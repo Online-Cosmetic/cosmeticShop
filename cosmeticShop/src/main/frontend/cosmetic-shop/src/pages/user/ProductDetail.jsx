@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Container } from "react-bootstrap";
-import ProductList from "./ProductList.jsx";
+import ProductList from "../../components/user/ProductList.jsx";
 import { useParams } from "react-router-dom";
 
 function Detail({ products, title }) {
