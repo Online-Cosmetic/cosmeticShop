@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductOption {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

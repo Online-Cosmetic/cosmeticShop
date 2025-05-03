@@ -1,5 +1,6 @@
 package Midas.cosmeticShop.entity;
 
+import Midas.cosmeticShop.entity.Users.Company;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +16,8 @@ import java.util.List;
 @Getter
 public class Product {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /* 상품이 소속된 회사와의 연관관계 */

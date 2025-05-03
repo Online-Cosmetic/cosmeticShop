@@ -1,11 +1,11 @@
 package Midas.cosmeticShop.entity;
 
+import Midas.cosmeticShop.entity.Users.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.security.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +16,8 @@ import java.util.List;
 @Getter
 public class Order {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,11 +26,6 @@ public class Order {
 
     @Column(name = "total_price", nullable = false)
     private int totalPrice;
-
-    /* 배송 주소와의 연관관계 --> 객체 참조에서 아래처럼 값 복사로 변경 */
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "address_id", nullable = false)
-//    private Address address;
 
     /* 기존의 Address 연관관계를 제거하고, 주문 당시의 주소 정보를 스냅샷으로 저장
      * 객체 참조의 문제 시나리오 : 주문의 목적지 주소는 User 의 주소가 바뀌더라도 변하면 안됨.

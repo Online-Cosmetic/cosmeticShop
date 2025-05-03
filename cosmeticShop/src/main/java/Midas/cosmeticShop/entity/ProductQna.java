@@ -1,5 +1,6 @@
 package Midas.cosmeticShop.entity;
 
+import Midas.cosmeticShop.entity.Users.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +14,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ProductQna { /* 특정 상품에 대한 QNA */
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

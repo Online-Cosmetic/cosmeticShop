@@ -1,5 +1,6 @@
 package Midas.cosmeticShop.entity;
 
+import Midas.cosmeticShop.entity.Users.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

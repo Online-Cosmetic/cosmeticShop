@@ -1,5 +1,6 @@
 package Midas.cosmeticShop.entity;
 
+import Midas.cosmeticShop.entity.Users.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Address { // 한명이 여러개의 주소를 가질 수 있다면 테이블 분리가 합리적인듯
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
