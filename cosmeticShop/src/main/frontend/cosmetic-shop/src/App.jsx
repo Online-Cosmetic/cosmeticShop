@@ -12,7 +12,7 @@ import {
 import "./App.css";
 import data from "./data.jsx";
 import ProductDetail from "./pages/user/ProductDetail.jsx";
-import ProductList from "./components/user/ProductList.jsx";
+import ProductList from "./pages/user/ProductList.jsx";
 import { Routes, Route, Link, useNavigate, Outlet } from "react-router-dom";
 
 function App() {
