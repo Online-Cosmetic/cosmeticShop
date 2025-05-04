@@ -1,9 +1,15 @@
-HELP.md
+cosmeticShop/HELP.md
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+cosmeticShop/src/main/java/Midas/cosmeticShop/service/CompanyDetailService.java
+cosmeticShop/src/main/java/Midas/cosmeticShop/service/CommonUserDetailService.java
+cosmeticShop/src/main/java/Midas/cosmeticShop/repository/Users/AdminRepository.java
+cosmeticShop/src/main/java/Midas/cosmeticShop/dto/CustomUserDeatils
+
 
 ### STS ###
 .apt_generated
