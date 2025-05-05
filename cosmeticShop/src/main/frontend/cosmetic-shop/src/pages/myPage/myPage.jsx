@@ -1,29 +1,10 @@
-// bootstrap library - Will be deleted soon
-import "bootstrap/dist/css/bootstrap.min.css";
-// react/hook
-import { useState } from "react";
-// style
-import "./App.css";
-// data for frontend-UI test
-import data from "./data.jsx";
-// Components
-import ProductDetail from "./pages/user/ProductDetail.jsx";
-import ProductList from "./components/user/ProductList.jsx";
+import React from "react";
+import Header from "../../components/common/Header.jsx";
+import Footer from "../../components/common/Footer.jsx";
+import { Link } from "react-router-dom";
 
-import LogIn from "./pages/logIn/LogIn.jsx";
-import Signup from "./pages/signUp/signUp.jsx";
+function LogIn() {
 
-import Header from "./components/common/Header.jsx";
-import Footer from "./components/common/Footer.jsx";
-// Routing
-import { Routes, Route } from "react-router-dom";
-
-function App() {
-    let [products] = useState(data);
-    let productRows = [];
-    for (let i = 0; i < products.length; i += 3) {
-        productRows.push(products.slice(i, i + 3));
-    }
     return (
         <>
             <Routes>
@@ -87,7 +68,7 @@ function App() {
 
                 {/* Routing */}
                 <Route
-                    path="/detail/:id"
+                    path="/OrdersHistory"
                     element={<ProductDetail products={products} title="Related products" />}
                 />
                 <Route 
@@ -109,4 +90,4 @@ function App() {
     );
 }
 
-export default App;
+export default LogIn;
