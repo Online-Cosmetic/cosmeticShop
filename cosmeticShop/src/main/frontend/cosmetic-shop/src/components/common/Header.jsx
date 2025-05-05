@@ -6,7 +6,7 @@ export default function Header() {
         <header>
             <nav className="flex justify-end border-b border-gray-300">
                 <div className="flex space-x-10 py-2 pr-6 text-gray-500">
-                        <span>Sign Up</span>
+                        <span onClick={"/"}>Sign Up</span>
                         <span>Sign In</span>
                         <span>My Page</span>
                         <span>Cart</span>
