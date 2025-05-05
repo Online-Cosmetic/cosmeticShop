@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const QnA = () => {
     const [allPosts, setAllPosts] = useState([]);
     const [posts, setPosts] = useState([]);
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [isInit, setIsInit] = useState(true);
 
     // 기본 기간 설정
     const getDefault = () => {
@@ -21,24 +19,20 @@ const QnA = () => {
         };
     };
 
-    useEffect(() => {
-        const { startDate, endDate } = getDefault();
-        setStartDate(startDate);
-        setEndDate(endDate);
-    }, []);
+    const { startDate: defaultStart, endDate: defaultEnd } = getDefault();
+    const [startDate, setStartDate] = useState(defaultStart);
+    const [endDate, setEndDate] = useState(defaultEnd);
 
     useEffect(() => {
-        if (isInit && startDate && endDate) {
-            handleSearch();
-            setIsInit(false);
-        }
-    },[isInit, startDate, endDate])
+        handleSearch();
+    }, []);
         
     // 기간 조회
     const postsPerPage = 10;
 
     const handleSearch = async () => {
         try {
+            // const response = await axios.get('/qnaDummy.json');
             const response = await axios.get('/api/qna', {
                 params: {
                     startDate: startDate,
@@ -47,15 +41,23 @@ const QnA = () => {
             });
             const result = response.data;
 
-            setAllPosts(result);
+            const filtered = result.filter(post => {
+                const postDate = new Date(post.date);
+                const sDate = new Date(startDate);
+                const eDate = new Date(endDate);
+    
+                return postDate >= sDate && postDate <= eDate;
+            });
+    
+            setAllPosts(filtered);
             setPage(1);
 
-            const pages = Math.ceil(result.length / postsPerPage);
+            const pages = Math.ceil(filtered.length / postsPerPage);
             setTotalPages(pages);
 
-            const currentPagePosts = result.slice(0, postsPerPage);
+            const currentPagePosts = filtered.slice(0, postsPerPage);
             setPosts(currentPagePosts);
-        } catch {
+        } catch (error) {
             console.error("조회 실패:", error);
         }
     }
@@ -82,9 +84,9 @@ const QnA = () => {
                 <input 
                     type="date" 
                     value={endDate}
-                    onChange={(e => setEndDate(e.target.value))}
+                    onChange={(e) => setEndDate(e.target.value)}
                 />
-                <button type="submit" onClick={handleSearch}>조회</button>
+                <button type="button" onClick={ handleSearch }>조회</button>
             </div>
 
             <table>
