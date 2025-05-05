@@ -8,7 +8,7 @@ export default function Header() {
                 <div className="flex space-x-10 py-2 pr-6 text-gray-500">
                     <Link to="/logIn">Log In</Link>
                     <Link to="/signUp">Sign Up</Link>
-                    <span>My Page</span>
+                    <Link to="/myPage">My Page</Link>
                     <span>Cart</span>
                     <span>Q&A</span>
                 </div>

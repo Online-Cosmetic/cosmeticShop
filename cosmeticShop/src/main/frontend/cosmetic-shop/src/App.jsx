@@ -11,7 +11,8 @@ import ProductDetail from "./pages/user/ProductDetail.jsx";
 import ProductList from "./components/user/ProductList.jsx";
 
 import LogIn from "./pages/logIn/LogIn.jsx";
-import Signup from "./pages/signUp/signUp.jsx";
+import SignUp from "./pages/signUp/signUp.jsx";
+import MyPage from "./pages/myPage/myPage.jsx";
 
 import Header from "./components/common/Header.jsx";
 import Footer from "./components/common/Footer.jsx";
@@ -90,13 +91,17 @@ function App() {
                     path="/detail/:id"
                     element={<ProductDetail products={products} title="Related products" />}
                 />
-                <Route 
+                <Route
                     path="/login"
-                    element={<LogIn />} 
+                    element={<LogIn />}
                 />
-                 <Route 
+                <Route
                     path="/signUp"
-                    element={<Signup />} 
+                    element={<SignUp />}
+                />
+                <Route
+                    path="/myPage"
+                    element={<MyPage />}
                 />
                 {/* 404 page */}
                 <Route
