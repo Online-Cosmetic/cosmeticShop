@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface QnaRepository extends JpaRepository<Qna, Long> {
     List<Qna> findByUserId (String userId);
     Optional<Qna> findById (Long id);
+    List<Qna> findByUserNickNameContaining (String nickName);
+    List<Qna> findByQuestionTitleContaining (String questionTitle);
 }

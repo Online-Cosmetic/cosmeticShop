@@ -16,6 +16,7 @@ import java.security.Principal;
 import java.util.List;
 
 @RestController
+@RequestMapping("/qnas")
 public class QnaController {
 
     private final QnaService qnaService;
@@ -25,25 +26,37 @@ public class QnaController {
     }
 
     //사용자가 작성한 Qna 목록 반환
-    @GetMapping("/qnas")
-    public ResponseEntity<List<QnaListDTO>> getQna(Authentication authentication) {
-        return ResponseEntity.ok().body(qnaService.getQnaList(authentication.getName()));
+    @GetMapping("/me")
+    public ResponseEntity<List<QnaListDTO>> getMyQnas(Authentication authentication) {
+        return ResponseEntity.ok().body(qnaService.getMyQnas(authentication.getName()));
     }
 
     //모든 Qna 목록 반환
-    @GetMapping("/allQnas")
-    public ResponseEntity<List<QnaListDTO>> getQna() {
-        return ResponseEntity.ok().body(qnaService.getAllQnaList());
+    @GetMapping("/all")
+    public ResponseEntity<List<QnaListDTO>> getAllQnas() {
+        return ResponseEntity.ok().body(qnaService.getAllQnas());
     }
 
+    @GetMapping("/search/user")
+    public ResponseEntity<List<QnaListDTO>> getQnasByUser(@RequestParam("nickname") String nickname) {
+        return ResponseEntity.ok().body(qnaService.getQnasByUser(nickname));
+    }
+
+
+    @GetMapping("/search/title")
+    public ResponseEntity<List<QnaListDTO>> getQnasByTitle(@RequestParam("title") String title) {
+        return ResponseEntity.ok().body(qnaService.getQnasByTitle(title));
+    }
+
+
     //Qna 상세 정보 반환 (상세페이지용)
-    @GetMapping("/qnaDetails/{qnaId}")
+    @GetMapping("detail/{qnaId}")
     public ResponseEntity<QnaDTO> getQnaDetail(@PathVariable Long id) {
         return ResponseEntity.ok().body(qnaService.getQnaDetail(id));
     }
 
     //Qna 작성(추가)
-    @PostMapping("/qnas")
+    @PostMapping
     public ResponseEntity<Void> postQna(@RequestBody QnaPostDTO qnaPostDTO,
                                         Authentication authentication) {
         qnaService.postQna(qnaPostDTO, authentication.getName());
@@ -51,7 +64,7 @@ public class QnaController {
     }
 
     //Qna 제목/내용 수정
-    @PutMapping("/qnas/{qnaId}")
+    @PutMapping("/{qnaId}")
     public ResponseEntity<Void> putQna(@PathVariable Long id,
                                        @RequestBody QnaPostDTO qnaPostDTO,
                                        Authentication authentication) {
@@ -60,7 +73,7 @@ public class QnaController {
     }
 
     //Qna 답변 작성
-    @PutMapping("/qnas/{qnaId}/answers")
+    @PutMapping("/{qnaId}/answers")
     public ResponseEntity<Void> putQnaAnswer(@PathVariable Long id,
                                              @RequestParam("answer") String answer) {
         qnaService.putQnaAnswer(id, answer);
@@ -68,7 +81,7 @@ public class QnaController {
     }
 
     //Qna 삭제
-    @DeleteMapping("/qnas/{qnaId}")
+    @DeleteMapping("/{qnaId}")
     public  ResponseEntity<Void> deleteQna(@PathVariable Long id, Authentication authentication) {
         qnaService.deleteQna(id, authentication.getName());
         return ResponseEntity.ok().build();

@@ -28,7 +28,7 @@ public class QnaService {
     }
 
     //사용자가 작성한 QnaList를 반환
-    public List<QnaListDTO> getQnaList (String userId) {
+    public List<QnaListDTO> getMyQnas (String userId) {
         List<Qna> qnaList = QnaRepo.findByUserId(userId);
         List<QnaListDTO> qnaListDTOList = new ArrayList<>();
         for(Qna qna : qnaList) {
@@ -38,8 +38,26 @@ public class QnaService {
     }
 
     //모든 QnaList를 반환
-    public List<QnaListDTO> getAllQnaList () {
+    public List<QnaListDTO> getAllQnas () {
         List<Qna> qnaList = QnaRepo.findAll();
+        List<QnaListDTO> qnaListDTOList = new ArrayList<>();
+        for(Qna qna : qnaList) {
+            qnaListDTOList.add(new QnaListDTO(qna));
+        }
+        return qnaListDTOList;
+    }
+
+    public List<QnaListDTO> getQnasByUser (String nickname) {
+        List<Qna> qnaList = QnaRepo.findByUserNickNameContaining(nickname);
+        List<QnaListDTO> qnaListDTOList = new ArrayList<>();
+        for(Qna qna : qnaList) {
+            qnaListDTOList.add(new QnaListDTO(qna));
+        }
+        return qnaListDTOList;
+    }
+
+    public List<QnaListDTO> getQnasByTitle (String title) {
+        List<Qna> qnaList = QnaRepo.findByQuestionTitleContaining(title);
         List<QnaListDTO> qnaListDTOList = new ArrayList<>();
         for(Qna qna : qnaList) {
             qnaListDTOList.add(new QnaListDTO(qna));
