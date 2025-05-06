@@ -56,7 +56,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         }
         String userId = loginDTO.getUserId();
         String password = loginDTO.getPassword();
-        String loginType = loginDTO.getRole();
 
 
         if (userId == null || password == null) {
@@ -66,8 +65,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         UsernamePasswordAuthenticationToken authToken
             = new UsernamePasswordAuthenticationToken(userId, password);
 
-        /* loginType 검증을 위해 detail 을 추가. 권한 정보를 전달할 DTO 추가 */
-        authToken.setDetails(new LoginRequestDetails(loginType));
         return authenticationManager.authenticate(authToken);
     }
 

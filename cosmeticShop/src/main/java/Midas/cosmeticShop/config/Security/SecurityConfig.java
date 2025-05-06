@@ -20,7 +20,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Collections;
-import java.util.List;
 
 /*
     시큐리티 필터를 타는 로그인 방식의 동작은
@@ -28,7 +27,7 @@ import java.util.List;
 */
 
 @Configuration
-@EnableWebSecurity(debug = true) // 개발환경에서만 true 옵션을 주자
+@EnableWebSecurity(debug = false) // 개발환경에서만 true 옵션을 주자
 public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
@@ -106,8 +105,8 @@ public class SecurityConfig {
                     "/api/auth/login",
                     "/api/auth/signup/**",
                     "api/auth/logout",
-                    "api/auth/reissue")
-                .permitAll()
+                    "api/auth/reissue",
+                    "/api/auth/validate-token").permitAll()
                 // HTML 페이지
                 .requestMatchers(
                     "/",
@@ -135,8 +134,10 @@ public class SecurityConfig {
             new JWTFilter(jwtUtil, baseUserRepository)
             , UsernamePasswordAuthenticationFilter.class // JWTFilter 먼저 등록
         );
-            // LoginFilter가 아직 체인에 들어가기 전이라면 예상과 다른 위치에 놓일 가능성이 있으니
-            // 그냥 UsernamePasswordAuthenticationFilter.class 사용
+             /*
+                LoginFilter가 아직 체인에 들어가기 전이라면 예상과 다른 위치에 놓일 가능성이 있으니
+                그냥 UsernamePasswordAuthenticationFilter.class 사용
+            */
 
         http.addFilterAt(
             loginFilter,
