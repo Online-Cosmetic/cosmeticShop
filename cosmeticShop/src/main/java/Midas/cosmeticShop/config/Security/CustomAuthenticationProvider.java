@@ -1,7 +1,7 @@
 package Midas.cosmeticShop.config.Security;
 
 import Midas.cosmeticShop.dto.BaseUserDetails;
-import Midas.cosmeticShop.dto.LoginRequestDetails;
+import Midas.cosmeticShop.dto.Auth.LoginRequestDetails;
 import Midas.cosmeticShop.service.BaseUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.*;

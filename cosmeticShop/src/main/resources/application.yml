@@ -4,10 +4,16 @@ server:
 #  port: 8080
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/cosmall?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: dragonwaterr
-    password: 1234
+        url: jdbc:mysql://localhost:3306/cosmall?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        username: dragonwaterr
+        password: 1234
+
+        # 서버 띄울때는 이 부분 .env 파일에 넣고 파라미터로 가져와야할듯 (보안이슈)
+#        url: jdbc:mysql://34.46.251.192:3306/cosMall?useSSL=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+#        driver-class-name: com.mysql.cj.jdbc.Driver
+#        username: yongsuChoi
+#        password: 1234123412341234
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
@@ -18,6 +24,6 @@ spring:
     hibernate:
       ddl-auto: update   # 실서버에서는 validate로 설정해야 한다!
 #      ddl-auto: create
-  jwt:
+  jwt: # 서버 띄울때는 이 비밀키도 .env 에 넣고 파라미터로 가져와야할듯 (보안이슈)
     secretKey: c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK
     refreshExpirationMs: 604800000   # 7일(밀리초)

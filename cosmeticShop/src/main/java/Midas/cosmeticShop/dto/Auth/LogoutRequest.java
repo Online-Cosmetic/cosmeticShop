@@ -1,4 +1,4 @@
-package Midas.cosmeticShop.dto;
+package Midas.cosmeticShop.dto.Auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
