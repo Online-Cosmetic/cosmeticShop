@@ -2,6 +2,7 @@ package Midas.cosmeticShop.controller;
 
 import Midas.cosmeticShop.dto.QnaDTO;
 import Midas.cosmeticShop.dto.QnaListDTO;
+import Midas.cosmeticShop.dto.QnaPostDTO;
 import Midas.cosmeticShop.service.QnaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -43,19 +44,18 @@ public class QnaController {
 
     //Qna 작성(추가)
     @PostMapping("/qnas")
-    public ResponseEntity<Void> postQna(@RequestParam("questionTitle") String questionTitle,
-                                        @RequestParam("content") String content,
+    public ResponseEntity<Void> postQna(@RequestBody QnaPostDTO qnaPostDTO,
                                         Authentication authentication) {
-        qnaService.postQna(questionTitle, content, authentication.getName());
+        qnaService.postQna(qnaPostDTO, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
     //Qna 제목/내용 수정
     @PutMapping("/qnas/{qnaId}")
     public ResponseEntity<Void> putQna(@PathVariable Long id,
-                                       @RequestParam("questionTitle") String questionTitle,
-                                       @RequestParam("content") String content) {
-        qnaService.putQna(id, questionTitle, content);
+                                       @RequestBody QnaPostDTO qnaPostDTO,
+                                       Authentication authentication) {
+        qnaService.putQna(id, qnaPostDTO, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
@@ -69,8 +69,8 @@ public class QnaController {
 
     //Qna 삭제
     @DeleteMapping("/qnas/{qnaId}")
-    public  ResponseEntity<Void> deleteQna(@PathVariable Long id) {
-        qnaService.deleteQna(id);
+    public  ResponseEntity<Void> deleteQna(@PathVariable Long id, Authentication authentication) {
+        qnaService.deleteQna(id, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
