@@ -29,7 +29,7 @@ public class QnaService {
 
     //사용자가 작성한 QnaList를 반환
     public List<QnaListDTO> getMyQnas (String userId) {
-        List<Qna> qnaList = QnaRepo.findByUserId(userId);
+        List<Qna> qnaList = QnaRepo.findByUserUserId(userId);
         List<QnaListDTO> qnaListDTOList = new ArrayList<>();
         for(Qna qna : qnaList) {
             qnaListDTOList.add(new QnaListDTO(qna));

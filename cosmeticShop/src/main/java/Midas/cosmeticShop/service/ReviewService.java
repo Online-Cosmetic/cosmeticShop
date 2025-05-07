@@ -36,7 +36,7 @@ public class ReviewService {
     }
 
     public List<ReviewDTO> getReview(Long productId) {
-        List<Review> reviewList = ReviewRepo.findByProductIdByRatingDesc(productId);
+        List<Review> reviewList = ReviewRepo.findByProductIdOrderByRatingDesc(productId);
         List<ReviewDTO> reviewDTOList = new ArrayList<>();
         for (Review review : reviewList) {
             reviewDTOList.add(new ReviewDTO(review));
