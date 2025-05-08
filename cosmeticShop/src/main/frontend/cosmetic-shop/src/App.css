@@ -66,16 +66,17 @@
   object-fit: cover; /* 이미지 잘라내기, 컨테이너에 맞게 */
   object-position: center; /* 중앙정렬 */
 }
-/* 
-  == html상에서 이미지를 집어 넣으려면 == 
+
+/*
+  == html상에서 이미지를 집어 넣으려면 ==
 
   1. src 폴더 내의 이미지
-  import bg from './img/bg.png'; 
+  import bg from './img/bg.png';
   ...
   <div style={{ backgroundImage : `url(${bg})` }}></div>
 
   => 동적인 상호아, 컴포넌트 등에서 사용 추천
-  
+
   2. public 폴더 내의 이미지
   import 필요없이 가능.
   리액트는 사이트발행 이전에 html css js를 한 파일로 압축을 함 (bundling)

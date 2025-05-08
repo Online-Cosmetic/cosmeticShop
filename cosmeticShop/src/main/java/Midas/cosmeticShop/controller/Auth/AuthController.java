@@ -1,13 +1,12 @@
 package Midas.cosmeticShop.controller.Auth;
 
-import Midas.cosmeticShop.dto.Auth.LoginRequest;
 import Midas.cosmeticShop.dto.Auth.LogoutRequest;
 import Midas.cosmeticShop.jwt.JWTUtil;
 import Midas.cosmeticShop.service.RefreshTokenService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +16,10 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private AuthenticationManager authenticationManager;
+//    private AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshSvc;
     private final JWTUtil jwtUtil;
+    private final HttpServletResponse response;
 
     // 1) 로그인 로직은 LoginFilter.java 에서 분리해 가져올 예정입니다.
 
@@ -30,10 +30,14 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest dto) {
 
-        /* 1) DB 에서 해당 리프레시 토큰 삭제 */
+        /* 1) DB에 있는 리프레시 토큰 삭제 */
         refreshSvc.invalidate(dto.getRefreshToken());
 
-        /* 2) (선택) 현재 SecurityContext 초기화 */
+        // 2) 응답 쿠키 만료
+        response.addCookie(jwtUtil.createDeleteCookie("access"));
+        response.addCookie(jwtUtil.createDeleteCookie("refresh"));
+        
+        /* 3) (선택) 현재 SecurityContext 초기화  :  관례상 로그아웃 → 컨텍스트 클리어 */
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             SecurityContextHolder.clearContext();

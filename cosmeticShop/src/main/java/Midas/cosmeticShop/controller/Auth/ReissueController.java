@@ -71,7 +71,8 @@ public class ReissueController {
         refreshTokenService.createRefreshToken(userId, newRefresh);
 
         // response
-        response.addHeader("access", newAccess);
+//        response.addHeader("access", accessToken); // 쿠키로 내려줘야 하는데 헤더로 내려준 이게 문제였다
+        response.addCookie(jwtUtil.createCookie("access", newAccess, jwtUtil.getValidity("access")));
         response.addCookie(refreshTokenService.createCookie("refresh", newRefresh));
 
         return new ResponseEntity<>(HttpStatus.OK);

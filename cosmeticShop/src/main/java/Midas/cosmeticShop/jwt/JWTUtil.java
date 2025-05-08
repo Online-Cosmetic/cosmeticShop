@@ -55,6 +55,7 @@ package Midas.cosmeticShop.jwt;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import org.apache.tomcat.util.http.SameSiteCookies;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -153,21 +154,23 @@ public class JWTUtil {
     }
 
     /** HttpOnly 쿠키 생성 (access, refresh 공통) */
+    // SAMESITE = NONE 설정을 위해,  Cookie -> ResponseCookie 클래스로 변경
+    // 이렇게 안하면 클라이언트에서 서버로 쿠키가 안넘어간대
     public Cookie createCookie(String name, String token, long maxAgeMs) {
         Cookie cookie = new Cookie(name, token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);           // HTTPS 환경에서만 전송
+        cookie.setSecure(false);           // HTTPS 환경에서만 전송
         cookie.setPath("/");
         cookie.setMaxAge((int)(maxAgeMs / 1000));
         // SameSite 설정은 Spring Boot 2.6+ 에서 application.properties 또는 response 헤더로 제어
         return cookie;
     }
 
-    /** 로그아웃/만료 처리용 쿠키 삭제 */
+    /** 로그아웃 / 만료 처리용 쿠키 삭제 */
     public Cookie createDeleteCookie(String name) {
         Cookie cookie = new Cookie(name, null);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setPath("/");
         cookie.setMaxAge(0);
         return cookie;

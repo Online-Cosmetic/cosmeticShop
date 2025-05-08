@@ -104,9 +104,14 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/login",
                     "/api/auth/signup/**",
-                    "api/auth/logout",
-                    "api/auth/reissue",
+                    "/api/auth/logout",
+                    "/api/auth/reissue",
                     "/api/auth/validate-token").permitAll()
+                // 상품 관련
+                .requestMatchers(
+                    "/api/products"
+                ).permitAll()
+//                hasRole("COMPANY")  // 이후에 이걸로 교체
                 // HTML 페이지
                 .requestMatchers(
                     "/",
@@ -145,7 +150,7 @@ public class SecurityConfig {
         );
 
 
-        //세션 설정 : stateless 설정
+        //세션 설정 : stateless
         http.sessionManagement((session) -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

@@ -1,10 +1,6 @@
 package Midas.cosmeticShop.repository;
 
 import Midas.cosmeticShop.entity.RefreshToken;
-import Midas.cosmeticShop.entity.Users.Admin;
-import Midas.cosmeticShop.entity.Users.BaseUser;
-import Midas.cosmeticShop.entity.Users.Company;
-import Midas.cosmeticShop.entity.Users.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

@@ -1,11 +1,11 @@
-// src/pages/logIn/Login.jsx
+// src/pages/logIn/userLogin.jsx
 import React, { useState } from "react";
 import {useNavigate, Link, redirect} from "react-router-dom";
 import axios from "axios";
 import Header from "../../components/common/Header.jsx";
 import Footer from "../../components/common/Footer.jsx";
 
-function Login() {
+function UserLogin() {
     const navigate = useNavigate();
     const [creds, setCreds] = useState({ userId: "", password: "" });
 
@@ -82,4 +82,4 @@ function Login() {
     );
 }
 
-export default Login;
+export default UserLogin;

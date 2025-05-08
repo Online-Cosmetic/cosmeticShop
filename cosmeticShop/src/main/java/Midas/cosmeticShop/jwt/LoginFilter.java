@@ -2,7 +2,6 @@ package Midas.cosmeticShop.jwt;
 
 import Midas.cosmeticShop.dto.BaseUserDetails;
 import Midas.cosmeticShop.dto.Auth.LoginDTO;
-import Midas.cosmeticShop.dto.Auth.LoginRequestDetails;
 import Midas.cosmeticShop.entity.RefreshToken;
 import Midas.cosmeticShop.service.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,10 +84,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         RefreshToken refresh = refreshTokenService.createRefreshToken(authInfo.userId, refreshToken); // create & save
 
-
         // JSON 응답
-        response.setHeader("access", accessToken); // access 토큰은 헤더로 받기
-        response.addCookie(refreshTokenService.createCookie("refresh", refresh.getToken())); // refresh 토큰은 쿠키로 응답받기
+//        response.setHeader("access", accessToken); // access 토큰은 헤더로 받기 --> 쿠키로 수정
+        response.addCookie(jwtUtil.createCookie("access", accessToken, jwtUtil.getValidity("access")));
+        response.addCookie(jwtUtil.createCookie("refresh", refreshToken, jwtUtil.getValidity("refresh")));
+//        response.addCookie(refreshTokenService.createCookie("refresh", refresh.getToken())); // refresh 토큰은 쿠키로 응답받기
         response.setStatus(200);
     }
 
