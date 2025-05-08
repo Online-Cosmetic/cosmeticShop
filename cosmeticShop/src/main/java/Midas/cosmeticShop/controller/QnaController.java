@@ -75,8 +75,9 @@ public class QnaController {
     //Qna 답변 작성
     @PutMapping("/{qnaId}/answers")
     public ResponseEntity<Void> putQnaAnswer(@PathVariable Long id,
-                                             @RequestParam("answer") String answer) {
-        qnaService.putQnaAnswer(id, answer);
+                                             @RequestParam("answer") String answer,
+                                             Authentication authentication) {
+        qnaService.putQnaAnswer(id, answer, authentication.getName());
         return ResponseEntity.ok().build();
     }
 

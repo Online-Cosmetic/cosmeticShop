@@ -92,9 +92,13 @@ public class QnaService {
         QnaRepo.save(qna);
     }
 
-    public void putQnaAnswer (Long qnaId, String answer) {
+    public void putQnaAnswer (Long qnaId, String answer, String userId) {
         Qna qna = QnaRepo.findById(qnaId)
                 .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
+        User user = UserRepo.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+        if (!user.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 QnA 답변 작성이 가능합니다.");
         qna.setAnswer(answer);
         qna.setAnsweredAt(LocalDateTime.now());
         QnaRepo.save(qna);
@@ -105,7 +109,7 @@ public class QnaService {
                 .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
         if(!qna.getUser().getUserId().equals(userId))
             throw new AccessDeniedException("본인이 작성한 QnA만 삭제할 수 있습니다.");
-        QnaRepo.deleteById(qnaId);
+        QnaRepo.delete(qna);
     }
 
 }
