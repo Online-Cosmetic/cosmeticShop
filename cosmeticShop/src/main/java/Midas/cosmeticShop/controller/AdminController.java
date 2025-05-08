@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
-@ResponseBody
+@RestController
 public class AdminController {
 
     private final AdminService adminService;
