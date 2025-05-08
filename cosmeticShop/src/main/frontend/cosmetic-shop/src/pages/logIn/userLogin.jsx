@@ -21,7 +21,9 @@ function Login() {
                     userId: creds.userId,
                     password: creds.password
                 });
+
             const token = res.data.accessToken;
+
             localStorage.setItem("accessToken", token);
             axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             // axios.defaults.headers.common["Authorization"] = `${token}`;
