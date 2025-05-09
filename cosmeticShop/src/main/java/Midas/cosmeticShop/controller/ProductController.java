@@ -1,10 +1,11 @@
 package Midas.cosmeticShop.controller;
 
-import Midas.cosmeticShop.dto.ProductDTO;
+import Midas.cosmeticShop.dto.Product.ProductDTO;
+import Midas.cosmeticShop.dto.Product.ProductDetailResponseDTO;
+import Midas.cosmeticShop.dto.Product.ProductImageDTO;
 import Midas.cosmeticShop.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,9 +28,22 @@ public class ProductController {
         return ResponseEntity.ok().build();
     }
 
+
+    /* 상품 상세 조회 (수정 폼용 데이터 반환) : 권한 검증필요 X */
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductDetailResponseDTO> getProductDetail(@PathVariable Long productId) {
+
+        ProductDTO dto = productService.getProductInfo(productId);
+        ProductImageDTO imageDTO = productService.getProductImages(productId);
+
+        ProductDetailResponseDTO responseDTO = new ProductDetailResponseDTO(dto, imageDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+
     /* 상품 정보 수정 : 작업중 */
     @PutMapping("/{productId}")
-    public String modifyProduct(@PathVariable Long productId) {
+    public String replaceProduct(@PathVariable Long productId) {
         // 정보 수정 + 사진 수정
         return "";
     }

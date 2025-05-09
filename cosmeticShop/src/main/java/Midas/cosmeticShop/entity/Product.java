@@ -1,6 +1,6 @@
 package Midas.cosmeticShop.entity;
 
-import Midas.cosmeticShop.dto.ProductDTO;
+import Midas.cosmeticShop.dto.Product.ProductDTO;
 import Midas.cosmeticShop.entity.Users.Company;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,6 +34,14 @@ public class Product {
             .productOptions( new ArrayList<>() )            // 리스트 초기화 안하면 NullPointerException 발생
             .reviews( new ArrayList<>())                         // 리스트 초기화 안하면 NullPointerException 발생
             .build();
+    }
+
+    public void modifyFields(ProductDTO dto) {
+        this.categoryId = dto.getCategoryId();
+        this.productName = dto.getProductName();
+        this.description = dto.getDescription();
+        this.price = dto.getPrice();
+        this.stock = dto.getStock();
     }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

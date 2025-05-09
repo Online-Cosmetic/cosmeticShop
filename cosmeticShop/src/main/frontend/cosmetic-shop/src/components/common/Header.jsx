@@ -28,8 +28,9 @@ export default function Header() {
                         </>
                     ) : (
                         <>
-                            <Link to="/logIn">Log In</Link>
+                            <Link to="/logIn">LogIn</Link>
                             <Link to="/signUp">Sign Up</Link>
+                            <Link to="/enterpriseLogIn">Enterprise LogIn</Link>
                         </>
                     )}
                     <span>Cart</span>

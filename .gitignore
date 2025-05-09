@@ -13,12 +13,9 @@ cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserInfoDTO.java
 cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserResponse.java
 cosmeticShop/src/main/java/Midas/cosmeticShop/dto/Auth/LoginRequest.java
 
-# 기업 로그인 jsx 파일
-cosmeticShop/src/main/frontend/cosmetic-shop/src/pages/logIn/companyLogin.jsx
 
 # 없어도 되는 상품 관련 사진 코드 ?
 cosmeticShop/src/main/java/Midas/cosmeticShop/service/ProductImageService.java
-cosmeticShop/src/main/java/Midas/cosmeticShop/dto/ProductImageDTO.java
 
 ### STS ###
 .apt_generated

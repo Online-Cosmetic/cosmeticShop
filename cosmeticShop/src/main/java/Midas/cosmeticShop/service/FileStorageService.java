@@ -35,4 +35,20 @@ public class FileStorageService {
             throw new RuntimeException("파일 저장에 실패했습니다. 파일명 " + fileName, e);
         }
     }
+
+    public void deleteFile(String imageUrl) {
+
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return;
+        }
+
+        try {
+            // 저장할 때 /images/ 경로를 붙여서 URL을 반환했으므로 해당 접두어를 제거합니다.
+            String fileName = imageUrl.startsWith("/images/") ? imageUrl.substring("/images/".length()) : imageUrl;
+            Path targetLocation = fileStorageLocation.resolve(fileName).normalize();
+            Files.deleteIfExists(targetLocation);
+        } catch (IOException e) {
+            throw new RuntimeException("파일 삭제에 실패했습니다. 파일명 " + imageUrl, e);
+        }
+    }
 }

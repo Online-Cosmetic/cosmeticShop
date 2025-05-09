@@ -1,11 +1,11 @@
-// src/pages/logIn/userLogin.jsx
+// src/pages/logIn/companyLogin.jsx
 import React, { useState } from "react";
 import {useNavigate, Link, redirect} from "react-router-dom";
 import axios from "axios";
 import Header from "../../components/common/Header.jsx";
 import Footer from "../../components/common/Footer.jsx";
 
-function UserLogin() {
+function companyLogin() {
     const navigate = useNavigate();
     const [creds, setCreds] = useState({ userId: "", password: "" });
 
@@ -17,16 +17,13 @@ function UserLogin() {
     const handleSubmit = async () => {
         try {
             const res = await axios.post("/api/auth/login",
-            {
+                {
                     userId: creds.userId,
                     password: creds.password
                 });
-
-            const token = res.data.accessToken;
-
-            localStorage.setItem("accessToken", token);
-            axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-            // axios.defaults.headers.common["Authorization"] = `${token}`;
+            // const token = res.data.accessToken;
+            // localStorage.setItem("accessToken", token);
+            // axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             navigate("/");
             window.location.reload(); // 윈도우 창 수동 새로고침
         } catch (err) {
@@ -82,4 +79,4 @@ function UserLogin() {
     );
 }
 
-export default UserLogin;
+export default companyLogin;
