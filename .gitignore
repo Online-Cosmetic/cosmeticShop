@@ -1,0 +1,46 @@
+cosmeticShop/HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# 아래는 /login 이 로직 분리되면 여기서 빠질 애들
+cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserInfoDTO.java
+cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserResponse.java
+cosmeticShop/src/main/java/Midas/cosmeticShop/dto/Auth/LoginRequest.java
+
+
+# 없어도 되는 상품 관련 사진 코드 ?
+cosmeticShop/src/main/java/Midas/cosmeticShop/service/ProductImageService.java
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
