@@ -31,7 +31,6 @@ public class Product {
             .discountRate(0)          // 처음은 할인율 0
             .createdAt(LocalDateTime.now())
             .productImages( new ArrayList<>())             // 리스트 초기화 안하면 NullPointerException 발생
-            .productOptions( new ArrayList<>() )            // 리스트 초기화 안하면 NullPointerException 발생
             .reviews( new ArrayList<>())                         // 리스트 초기화 안하면 NullPointerException 발생
             .build();
     }
@@ -52,13 +51,9 @@ public class Product {
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
-    /* 상품 카테고리 -> 아래의 ProductType 을 어떻게 활용할지 생각해야할듯 */
+    /* 상품 카테고리 : SKIN, HAIR ... */
     @Column(name = "category_id", nullable = false)
     private int categoryId;
-
-    /* SKIN, HAIR ... */
-//    @Enumerated(EnumType.STRING)
-//    private ProductType productType;
 
     @Column(name = "name", nullable = false)
     private String productName;
@@ -85,10 +80,6 @@ public class Product {
     /* 여러개의 상품 이미지를 보유 */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> productImages;
-
-    /* 동일 제품의 여러 사이즈, 색상 등을 위함 */
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductOption> productOptions;
 
     /* 해당 상품에 등록된 리뷰들 */
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
