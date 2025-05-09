@@ -15,12 +15,12 @@ function EnterpriseLogin() {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post("/api/auth/login",
+      await axios.post("/api/auth/login",
           {
-              userId: creds.userId,
-              password: creds.password,
-        });
-      // EnterpriseMain 페이지로 이동
+            userId: creds.userId,
+            password: creds.password,
+          });
+// EnterpriseMain 페이지로 이동
       navigate("/enterpriseMain");
       window.location.reload();
     } catch (err) {

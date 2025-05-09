@@ -17,7 +17,7 @@ export default function Header() {
 
     return (
         <header>
-            <nav className="flex justify-end border-b border-gray-300">
+            <nav className="bg-gray-100 border-b border-gray-300">
                 <div className="flex space-x-10 py-2 pr-6 text-gray-500">
                     {isAuthenticated ? (
                         <>
@@ -39,17 +39,17 @@ export default function Header() {
             </nav>
             {/* 하단 내비게이션 영역은 그대로 유지 */}
             <nav className="container mx-auto flex items-center justify-between py-4 px-6 border-b border-gray-300">
-                <Link to="/" className="text-2xl text-black">
+                <Link to="/" className="text-xl text-black">
                     cosMall
                 </Link>
                 <div className="flex space-x-4 text-gray-500">
-                    <Link to="/detail" className="no-underline">
+                    <Link to="/detail" className="text-gray-500 no-underline">
                         Category
                     </Link>
-                    <Link to="/event" className="no-underline">
+                    <Link to="/event" className="text-gray-500 no-underline">
                         Event
                     </Link>
-                    <Link to="/faq" className="no-underline">
+                    <Link to="/faq" className="text-gray-500 no-underline">
                         FAQ
                     </Link>
                 </div>

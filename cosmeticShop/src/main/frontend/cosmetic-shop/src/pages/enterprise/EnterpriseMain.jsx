@@ -1,9 +1,8 @@
 import React from "react";
-import DashboardSection from "./Dashboard.jsx";
-import SidebarSection from "./Sidebar.jsx";
-import axios from "axios";
 import Header from "../../components/common/Header.jsx";
 import Footer from "../../components/common/Footer.jsx";
+import SidebarSection from "./Sidebar.jsx"; // 실제 파일 경로로 수정
+import DashboardSection from "./Dashboard.jsx"; // 실제 파일 경로로 수정
 
 function EnterpriseMain() {
     return (

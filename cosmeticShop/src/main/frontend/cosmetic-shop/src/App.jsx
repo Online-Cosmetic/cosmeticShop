@@ -1,23 +1,21 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
-import data from "./data.jsx";
+
+import data from "./utils/data.js";
+
 import ProductDetail from "./pages/user/ProductDetail.jsx";
 import ProductList from "./components/user/ProductList.jsx";
-import UserLogin from "./pages/user/userLogin.jsx";
+import UserLogin from "./pages/user/UserLogin.jsx";
 import Logout from "./pages/user/Logout.jsx";
 import SignUp from "./pages/user/SignUp.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
 import RegisterProduct from "./pages/product/RegisterProduct.jsx";
-
 import EnterpriseLogin from "./pages/enterprise/EnterpriseLogin.jsx";
 import EnterpriseSignUp from "./pages/enterprise/EnterpriseSignUp.jsx";
 import EnterpriseMain from "./pages/enterprise/EnterpriseMain.jsx";
-import DashboardSection from "./pages/enterprise/Dashboard.jsx";
-import SidebarSection from "./pages/enterprise/Sidebar.jsx";
-
-
 import Header from "./components/common/Header.jsx";
 import Footer from "./components/common/Footer.jsx";
+
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -26,20 +24,9 @@ import axios from "axios";
 axios.defaults.baseURL = "http://localhost:9000";
 axios.defaults.withCredentials = true;
 
-// 로그인 상태가 유지되어 있으면, 새로고침 시에도 헤더에 자동 설정
-// const initAuth = () => {
-//     const token = localStorage.getItem("accessToken");
-//     if (token) {
-//         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-//     }
-// };
-
 function App() {
     let [products] = useState(data);
 
-    // useEffect(() => {
-    //     initAuth();
-    // }, []);
 
     // 로그아웃 처리 컴포넌트
     function Logout() {
@@ -47,8 +34,6 @@ function App() {
         useEffect(() => {
             // 서버 쪽 쿠키 만료 요청 (엔드포인트 구현 필요)
             axios.post("/api/auth/logout").catch(() => {});
-            // localStorage.removeItem("accessToken");
-            // delete axios.defaults.headers.common["Authorization"];
             navigate("/login");
         }, []);
         return null;
@@ -91,6 +76,7 @@ function App() {
                 <Route path="/myPage" element={<MyPage />} />
                 <Route path="/enterpriseLogin" element={<EnterpriseLogin />} />
                 <Route path="/enterpriseSignUp" element={<EnterpriseSignUp />} />
+                <Route path="/enterpriseMain" element={<EnterpriseMain />} />
                 <Route path="/logout" element={<Logout />} />
 
                 {/* RegisterProduct 페이지 라우트 추가 */}
