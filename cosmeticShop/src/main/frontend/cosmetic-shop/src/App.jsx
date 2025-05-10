@@ -13,6 +13,7 @@ import ProductList from "./components/user/ProductList.jsx";
 import LogIn from "./pages/logIn/LogIn.jsx";
 import SignUp from "./pages/signUp/signUp.jsx";
 import MyPage from "./pages/myPage/myPage.jsx";
+import QnaListPage from "./pages/qnaPage/qnaListPage.jsx";
 
 import Header from "./components/common/Header.jsx";
 import Footer from "./components/common/Footer.jsx";
@@ -102,6 +103,10 @@ function App() {
                 <Route
                     path="/myPage"
                     element={<MyPage />}
+                />
+                                <Route
+                    path="/qnaListPage"
+                    element={<QnaListPage/>}
                 />
                 {/* 404 page */}
                 <Route

@@ -10,7 +10,7 @@ export default function Header() {
                     <Link to="/signUp">Sign Up</Link>
                     <Link to="/myPage">My Page</Link>
                     <span>Cart</span>
-                    <span>Q&A</span>
+                    <Link to="/qnaListPage">Q&A</Link>
                 </div>
             </nav>
             <nav className="container mx-auto flex items-center justify-between py-4 px-6 border-b border-gray-300">
