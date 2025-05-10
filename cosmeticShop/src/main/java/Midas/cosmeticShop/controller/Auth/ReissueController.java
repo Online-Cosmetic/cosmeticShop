@@ -36,7 +36,7 @@ public class ReissueController {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken(refreshTokenService.getRefreshFromCookie(request));
 
-        if(refreshToken.getToken() == null || refreshToken.getToken().equals("")) {
+        if(refreshToken.getToken() == null || refreshToken.getToken().isEmpty()) {
             return new ResponseEntity<>("refresh token null", HttpStatus.BAD_REQUEST);
         }
 

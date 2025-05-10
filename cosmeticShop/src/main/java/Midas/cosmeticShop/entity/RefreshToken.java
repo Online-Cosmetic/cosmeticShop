@@ -1,6 +1,5 @@
 package Midas.cosmeticShop.entity;
 
-import Midas.cosmeticShop.entity.Users.BaseUser;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;

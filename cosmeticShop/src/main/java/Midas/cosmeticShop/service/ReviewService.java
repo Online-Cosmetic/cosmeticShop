@@ -79,6 +79,6 @@ public class ReviewService {
                         .orElseThrow(() -> new EntityNotFoundException("리뷰가 존재하지 않습니다."));
         if(!review.getUser().getUserId().equals(userId))
             throw new AccessDeniedException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
-        ReviewRepo.deleteById(reviewId);
+        ReviewRepo.delete(review);
     }
 }
