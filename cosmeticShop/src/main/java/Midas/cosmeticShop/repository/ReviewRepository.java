@@ -9,5 +9,6 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByProductId(Long productId);
     List<Review> findByProductIdOrderByRatingDesc(Long productId);
-//    List<Review> findByProductIdByRatingDesc(Long productId);
+    List<Review> findByContentContaining(String badKeyword);
+    void deleteAllByContentContaining(String badKeyword);
 }

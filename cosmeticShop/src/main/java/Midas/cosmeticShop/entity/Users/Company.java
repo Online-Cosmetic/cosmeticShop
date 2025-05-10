@@ -46,6 +46,7 @@ public class Company extends BaseUser {
     @Column
     private boolean approved;
 
+
     /* orphanRemoval 옵션도 고려 */
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
     private List<Product> products;

@@ -24,12 +24,6 @@ public class OrderItem {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    /* 수정 필요 ? */
-//    @ManyToOne(fetch = FetchType.LAZY)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_option_id")
-    private ProductOption productOption;
-
     /* 주문 수량 */
     @Column(nullable = false)
     private int quantity;
@@ -38,8 +32,7 @@ public class OrderItem {
     @Column(name = "price", nullable = false)
     private int orderPrice;
 
-    /* 수정 필요 ? */
-//    @Column(columnDefinition = "ENUM('배송준비중','배송중','배송완료') default '배송준비중'")
+    /* 배송 상태 : READY, PROG, COMP*/
     @Enumerated(EnumType.STRING)
     private DeliveryStatus deliveryStatus;
 }

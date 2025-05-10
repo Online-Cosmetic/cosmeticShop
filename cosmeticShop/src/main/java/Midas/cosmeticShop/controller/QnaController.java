@@ -6,13 +6,8 @@ import Midas.cosmeticShop.dto.QnaPostDTO;
 import Midas.cosmeticShop.service.QnaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -75,8 +70,9 @@ public class QnaController {
     //Qna 답변 작성
     @PutMapping("/{qnaId}/answers")
     public ResponseEntity<Void> putQnaAnswer(@PathVariable Long id,
-                                             @RequestParam("answer") String answer) {
-        qnaService.putQnaAnswer(id, answer);
+                                             @RequestParam("answer") String answer,
+                                             Authentication authentication) {
+        qnaService.putQnaAnswer(id, answer, authentication.getName());
         return ResponseEntity.ok().build();
     }
 

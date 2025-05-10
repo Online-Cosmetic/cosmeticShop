@@ -5,10 +5,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Base64;
 import java.util.UUID;
 
 @Service
 public class FileStorageService {
+
     private final Path fileStorageLocation = Paths.get(
         "C:\\Users\\yongsuchoi\\ideaProjects\\cosMall\\cosmeticShop\\src\\main\\resources\\static\\images")
         .toAbsolutePath().normalize();
@@ -36,12 +38,27 @@ public class FileStorageService {
         }
     }
 
-    public void deleteFile(String imageUrl) {
+    // 파일을 Base64 문자열로 변환
+    public String loadFileAsBase64(String imageUrl) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return "";
+        }
+        try {
+            // 저장 시에 붙은 "/images/" 경로를 제거
+            String fileName = imageUrl.startsWith("/images/") ? imageUrl.substring("/images/".length()) : imageUrl;
+            Path filePath = fileStorageLocation.resolve(fileName).normalize();
+            byte[] fileBytes = Files.readAllBytes(filePath);
+            return Base64.getEncoder().encodeToString(fileBytes);
+        } catch (IOException e) {
+            throw new RuntimeException("파일 로딩 실패: " + imageUrl, e);
+        }
+    }
 
+
+    public void deleteFile(String imageUrl) {
         if (imageUrl == null || imageUrl.isEmpty()) {
             return;
         }
-
         try {
             // 저장할 때 /images/ 경로를 붙여서 URL을 반환했으므로 해당 접두어를 제거합니다.
             String fileName = imageUrl.startsWith("/images/") ? imageUrl.substring("/images/".length()) : imageUrl;

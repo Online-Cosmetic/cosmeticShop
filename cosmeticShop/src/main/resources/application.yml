@@ -21,7 +21,7 @@ spring:
         show-sql: true
         format-sql: true
     hibernate:
-      ddl-auto: update   # 실서버에서는 validate로 설정해야 한t
+      ddl-auto: update   # 실서버에서는 validate로 설정해야 한다
 #      ddl-auto: create
 
   jwt: # 서버 띄울때는 이 비밀키도 .env 에 넣고 파라미터로 가져와야할듯 (보안이슈)

@@ -2,7 +2,6 @@ package Midas.cosmeticShop.jwt;
 
 import Midas.cosmeticShop.dto.BaseUserDetails;
 import Midas.cosmeticShop.dto.Auth.LoginDTO;
-import Midas.cosmeticShop.entity.RefreshToken;
 import Midas.cosmeticShop.service.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -42,8 +41,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             obtainUsername() 메소드는 JSON 형태로 넘어온 body 내용을 직접 뽑아내지 못하기 때문에
             objectMapper 를 통해 username 과 password 를 추출한다
         */
-        LoginDTO loginDTO = new LoginDTO();
 
+        LoginDTO loginDTO;
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             ServletInputStream inputStream = request.getInputStream();
@@ -82,13 +81,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String accessToken = jwtUtil.createJwt("access", authInfo.userId, authInfo.role, 600000L); // AccessToken
         String refreshToken = jwtUtil.createJwt("refresh", authInfo.userId, authInfo.role, 604800000L);
 
-        RefreshToken refresh = refreshTokenService.createRefreshToken(authInfo.userId, refreshToken); // create & save
+        // create & save
+        refreshTokenService.createRefreshToken(authInfo.userId, refreshToken);
 
         // JSON 응답
-//        response.setHeader("access", accessToken); // access 토큰은 헤더로 받기 --> 쿠키로 수정
         response.addCookie(jwtUtil.createCookie("access", accessToken, jwtUtil.getValidity("access")));
         response.addCookie(jwtUtil.createCookie("refresh", refreshToken, jwtUtil.getValidity("refresh")));
-//        response.addCookie(refreshTokenService.createCookie("refresh", refresh.getToken())); // refresh 토큰은 쿠키로 응답받기
         response.setStatus(200);
     }
 
