@@ -9,7 +9,6 @@ import Midas.cosmeticShop.repository.QnaRepository;
 import Midas.cosmeticShop.repository.Users.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -67,14 +66,14 @@ public class QnaService {
 
     public QnaDTO getQnaDetail (Long qnaId) {
         Qna qna = QnaRepo.findById(qnaId)
-                .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
         return new QnaDTO(qna);
     }
 
     public void postQna (QnaPostDTO qnaPostDTO,String userId) {
         Qna qna = new Qna();
         User user = UserRepo.findByUserId(userId)
-                        .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         qna.setUser(user);
         qna.setQuestionTitle(qnaPostDTO.getQuestionTitle());
         qna.setContent(qnaPostDTO.getContent());
@@ -84,7 +83,7 @@ public class QnaService {
 
     public void putQna (Long qnaId, QnaPostDTO qnaPostDTO, String userId) {
         Qna qna = QnaRepo.findById(qnaId)
-                .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
         if(!qna.getUser().getUserId().equals(userId)) //작성자가 맞는지 확인
             throw new AccessDeniedException("본인이 작성한 QnA만 수정할 수 있습니다.");
         qna.setQuestionTitle(qnaPostDTO.getQuestionTitle());
@@ -94,9 +93,9 @@ public class QnaService {
 
     public void putQnaAnswer (Long qnaId, String answer, String userId) {
         Qna qna = QnaRepo.findById(qnaId)
-                .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
         User user = UserRepo.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 QnA 답변 작성이 가능합니다.");
         qna.setAnswer(answer);
@@ -106,7 +105,7 @@ public class QnaService {
 
     public  void deleteQna (Long qnaId, String userId) {
         Qna qna = QnaRepo.findById(qnaId)
-                .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
         if(!qna.getUser().getUserId().equals(userId))
             throw new AccessDeniedException("본인이 작성한 QnA만 삭제할 수 있습니다.");
         QnaRepo.delete(qna);

@@ -1,12 +1,9 @@
 package Midas.cosmeticShop.dto;
 
-import Midas.cosmeticShop.entity.ReviewImage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.List;
 
 @Getter
 @Setter
