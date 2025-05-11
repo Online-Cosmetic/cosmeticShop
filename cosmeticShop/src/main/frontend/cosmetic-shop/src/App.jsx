@@ -9,6 +9,8 @@ import UserLogin from "./pages/user/UserLogin.jsx";
 import Logout from "./pages/user/Logout.jsx";
 import SignUp from "./pages/user/SignUp.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
+import Cart from "./pages/user/Cart.jsx";
+import QnA from "./pages/user/QnA.jsx";
 import RegisterProduct from "./pages/product/RegisterProduct.jsx";
 import EnterpriseLogin from "./pages/enterprise/EnterpriseLogin.jsx";
 import EnterpriseSignUp from "./pages/enterprise/EnterpriseSignUp.jsx";
@@ -75,6 +77,8 @@ function App() {
                 <Route path="/signUp" element={<SignUp />} />
                 <Route path="/myPage" element={<MyPage />} />
                 <Route path="/enterpriseLogin" element={<EnterpriseLogin />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/qna" element={<QnA />} />
                 <Route path="/enterpriseSignUp" element={<EnterpriseSignUp />} />
                 <Route path="/enterpriseMain" element={<EnterpriseMain />} />
                 <Route path="/logout" element={<Logout />} />
