@@ -1,93 +1,42 @@
-/* App.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-
-.main-bg {
-  height: 400px;
-  background-image: url(../public/bg.png);
-  background-size: cover; /* 배경 이미지 크기 조절 */
-  background-position: center; /* 배경 이미지 위치 설정 */
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
 }
 
-.product-list {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  align-content: flex-end;
-  row-gap: 32px;
-  flex-wrap: wrap;
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-
-.product-title {
-  margin-top: 12px;
-  color: #000;
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 100%;
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.product-content {
-  color: #828282;
-
-  /* Body text */
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 300;
-  line-height: 100%;
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
 }
 
-.product-price {
-  color: #000;
-
-  /* Body text */
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 300;
-  line-height: 100%;
+.card {
+  padding: 2em;
 }
 
-/* detail page */
-
-.detail-img-container {
-  width: 90%;
-  height: 300px;
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
+.read-the-docs {
+  color: #888;
 }
-
-.detail-img-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* 이미지 잘라내기, 컨테이너에 맞게 */
-  object-position: center; /* 중앙정렬 */
-}
-
-/*
-  == html상에서 이미지를 집어 넣으려면 ==
-
-  1. src 폴더 내의 이미지
-  import bg from './img/bg.png';
-  ...
-  <div style={{ backgroundImage : `url(${bg})` }}></div>
-
-  => 동적인 상호아, 컴포넌트 등에서 사용 추천
-
-  2. public 폴더 내의 이미지
-  import 필요없이 가능.
-  리액트는 사이트발행 이전에 html css js를 한 파일로 압축을 함 (bundling)
-  이때 src파일들은 모두 압축이 됨.
-  public 폴더안의 파일들은 압축이 안됨.
-
-  <img src="/logo.png"/>처럼
-  슬래시부터 시작.
-
-  => 수백개의 이미지를 넣을 거라면 public폴더에.
-
-  근데 주의할 점은 서브경로에 발행할때 (home.com/어쩌구) 에는 문제가 생김.
-  CRA기준으로 process.env.PUBLIC_URL + '/logo192.png' 이런식으로 해결 가능
-*/
