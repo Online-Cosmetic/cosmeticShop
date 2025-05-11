@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import Header from "../../components/common/Header";
 import Footer from "../../components/common/Footer";
 
 function UserLogin() {
+
+    const expectedRole = 'USER';
+
     const navigate = useNavigate();
     const { login } = useAuth();
     const [creds, setCreds] = useState({ userId: "", password: "" });
@@ -18,7 +20,9 @@ function UserLogin() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+
             // 인증 API 호출 후 AuthContext 내 login 함수로 상태 업데이트
+            // await login(creds, expectedRole);  이거 어떻게 꾸겨넣지..
             await login(creds);
             navigate("/"); // 상태가 업데이트되면 헤더도 변경됨
         } catch (err) {
@@ -26,6 +30,8 @@ function UserLogin() {
             alert("로그인에 실패했습니다.");
         }
     };
+
+
 
     return (
         <>

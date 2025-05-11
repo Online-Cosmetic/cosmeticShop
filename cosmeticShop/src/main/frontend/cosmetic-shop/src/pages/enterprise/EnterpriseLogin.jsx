@@ -20,9 +20,9 @@ function EnterpriseLogin() {
             userId: creds.userId,
             password: creds.password,
           });
-// EnterpriseMain 페이지로 이동
+      // EnterpriseMain 페이지로 이동 (절대 경로 사용)
       navigate("/enterpriseMain");
-      window.location.reload();
+      // window.location.reload();
     } catch (err) {
       console.error(err);
       alert("로그인에 실패했습니다.");
