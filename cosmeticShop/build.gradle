@@ -21,6 +21,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://jitpack.io' } // iamport maven 라이브러리를 받아오기 위한 세팅
 }
 
 dependencies {
@@ -42,12 +43,13 @@ dependencies {
 	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 //	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta'
 
+	implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
+
 	compileOnly 'org.projectlombok:lombok:1.18.26'
 	annotationProcessor 'org.projectlombok:lombok:1.18.26'
 
 
 //	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-
 	testImplementation 'org.springframework.boot:spring-boot-starter-test' // 테스트 관련 의존성 - JUnit Jupiter 사용
 	testImplementation 'org.springframework.security:spring-security-test'
 }

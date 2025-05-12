@@ -24,13 +24,17 @@ public class CartController {
     }
 
     @PostMapping("/carts")
-    public ResponseEntity<Void> postCart(@RequestBody CartPostDTO cartPostDTO, Authentication authentication) {
+    public ResponseEntity<Void> postCart(@RequestBody CartPostDTO cartPostDTO,
+                                         Authentication authentication) {
         cartService.postCart(cartPostDTO, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/carts/{cartId}")
-    public ResponseEntity<Void> putCart(@PathVariable Long cartId, @RequestParam("quantity") int quantity, Authentication authentication) {
+    public ResponseEntity<Void> putCart(@PathVariable Long cartId,
+                                        @RequestParam("quantity")
+                                        int quantity,
+                                        Authentication authentication) {
         cartService.putCart(cartId, quantity, authentication.getName());
         return ResponseEntity.ok().build();
     }

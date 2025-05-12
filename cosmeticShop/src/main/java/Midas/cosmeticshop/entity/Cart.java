@@ -27,7 +27,6 @@ public class Cart {
     private User user;
 
     // 상품과의 연관관계
-    /* 2차 수정 : ManyToOne ? OneToMany ? */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;

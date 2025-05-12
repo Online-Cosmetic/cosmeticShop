@@ -21,7 +21,7 @@ public class ProductController {
     @PostMapping("")
     public ResponseEntity<?> registerProduct(
         @CookieValue(value = "access", required = false) String accessToken,
-        @ModelAttribute ProductDTO productDTO,
+        @RequestBody ProductDTO productDTO,
         @RequestParam("mainImage") MultipartFile mainImage,
         @RequestParam(value = "additionalImages", required=false) MultipartFile[] additionalImages
     ) {
@@ -47,7 +47,8 @@ public class ProductController {
     public ResponseEntity<Void> replaceProduct(
         @CookieValue(value = "access", required = false) String accessToken,
         @PathVariable Long productId,
-        @ModelAttribute ProductUpdateDTO dto,
+//        @ModelAttribute ProductUpdateDTO dto,
+        @RequestBody ProductUpdateDTO dto,
         @RequestParam(value = "newImages", required = false) MultipartFile[] newImages
     ) {
         productService.replaceProduct(accessToken, productId, dto, newImages);
