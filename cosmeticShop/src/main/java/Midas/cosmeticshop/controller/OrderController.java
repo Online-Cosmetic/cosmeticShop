@@ -1,7 +1,6 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.OrderItemDTO;
-import Midas.cosmeticshop.entity.Order;
 import Midas.cosmeticshop.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,7 @@ public class OrderController {
     * 체크한 아이템들에 대한 각 OrderItemDTO 정보가 채워지고,
     * 체크한 아이템 수만큼의 OrderItemDTO 들이 요청에 List 로 넘어온 다음 makeOrder(List<OrderItemDTO>)를 호출한다.
     * */
-    @PostMapping("")
+    @PostMapping("/batch")
     public ResponseEntity<?> makeOrders(@Valid @RequestBody List<OrderItemDTO> orderItemDTOList) {
         orderService.createOrders(orderItemDTOList);
         return ResponseEntity.ok().build();

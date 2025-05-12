@@ -9,7 +9,8 @@ export const AuthProvider = ({ children }) => {
     // 로그인 함수
     const login = async (credentials) => {
         try {
-            const res = await axios.post("/api/auth/login", credentials);
+            const res =
+                await axios.post("/api/auth/login", credentials);
             // if (!role || role.toUpperCase() !== role) {
             //     alert('해당 로그인 페이지에서 로그인할 수 없는 계정입니다.');
             //     return;

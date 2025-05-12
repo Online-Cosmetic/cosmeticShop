@@ -105,7 +105,8 @@ public class JWTUtil {
     public Cookie createCookie(String name, String token, long maxAgeMs) {
         Cookie cookie = new Cookie(name, token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);           // HTTPS 환경에서만 전송
+//        cookie.setSecure(false);
+        cookie.setSecure(true); // HTTPS 환경일 때만 전송
         cookie.setPath("/");
         cookie.setMaxAge((int)(maxAgeMs / 1000));
         // SameSite 설정은 Spring Boot 2.6+ 에서 application.properties 또는 response 헤더로 제어
@@ -116,7 +117,7 @@ public class JWTUtil {
     public Cookie createDeleteCookie(String name) {
         Cookie cookie = new Cookie(name, null);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
         return cookie;
