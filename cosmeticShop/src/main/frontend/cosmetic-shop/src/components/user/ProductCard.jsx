@@ -22,14 +22,14 @@ function ProductCard({ product, onQuantityChange, editable = true }) {
             <div className="flex flex-col gap-1">
                 <p className="text-xl font-bold">{product.brand}</p>
                 <p>{product.name}</p>
-                {editable ? (
+                {editable ? ( // Cart에서는 수량조정가능, Order에서는 수량조절불가
                     <div className="flex items-center gap-2">
                         <button className="text-2xl" onClick={handleDecrease}>−</button>
                         <span>{product.quantity}</span>
                         <button className="text-2xl" onClick={handleIncrease}>+</button>
                     </div>
                 ) : (
-                    <div className="text-lg">Qty: {product.quantity}</div>
+                    <div className="text-base">{product.quantity} items</div>
                 )}
                 <p className="font-semibold">₩{product.price.toLocaleString()}</p>
                 <p className="text-red-400 font-bold">{product.promotion}</p>

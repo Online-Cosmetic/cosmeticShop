@@ -1,7 +1,15 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-
+{/*
+await axios.post("/api/order", {
+        totalPrice,
+        shippingFee,
+        promo,
+        orderTotal,
+      });
+*/}
 function CartSummary() {
     const navigate = useNavigate();
     return (

@@ -29,6 +29,7 @@ function Order() {
                         ]}
                     />
                     {/* 상품 목록 */}
+                    <h2 className="text-2xl font-semibold">Order Itmes</h2>
                     <div className="flex-1 min-w-0 space-y-8">
                         {cartItems.map((product) => (
                             <ProductCard
@@ -37,7 +38,7 @@ function Order() {
                                 onQuantityChange={() => {
                                     // TODO: 수량변경시 호출해서 반영 후 이 부분 UI만 갱신해야함
                                 }}
-                                editable={true}
+                                editable={false}
                             />
                         ))}
                     </div>

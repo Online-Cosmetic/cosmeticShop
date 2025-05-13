@@ -11,48 +11,54 @@ function AddressForm({ savedAddresses = [] }) {
 
     return (
         <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Shipping Address</h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-semibold">Shipping Address</h2>
+                {savedAddresses.length > 0 && (
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowDropdown(!showDropdown)}
+                            className="w-40 px-4 py-1.5 border border-black rounded-xl text-semibold"
+                        >
+                          <span className="flex justify-between w-full">
+                            <span>My Address</span>
+                            <span>▼</span>
+                          </span>
+                        </button>
 
-            {/* 저장된 배송지 */}
-            {savedAddresses.length > 0 && (
-                <>
-                    <button
-                        onClick={() => setShowDropdown(!showDropdown)}
-                        className="w-full text-left px-4 py-2 bg-gray-100 border rounded"
-                    >
-                        Saved Addresses ▼
-                    </button>
+                        {showDropdown && (
+                            <ul className="absolute right-0 mt-2 w-60 border rounded bg-white shadow z-10">
+                                {savedAddresses.map((addr) => (
+                                    <li
+                                        key={addr.id}
+                                        onClick={() => handleSelect(addr)}
+                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                        {addr.city}, {addr.street}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                )}
+            </div>
 
-                    {showDropdown && (
-                        <ul className="border rounded w-full bg-white shadow mt-2">
-                            {savedAddresses.map((addr) => (
-                                <li
-                                    key={addr.id}
-                                    onClick={() => handleSelect(addr)}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                >
-                                    {addr.city}, {addr.street}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </>
-            )}
             {/* 입력창 */}
-            <input
-                type="text"
-                placeholder="City"
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                className="w-full border px-4 py-2 rounded"
-            />
-            <input
-                type="text"
-                placeholder="Street"
-                value={form.street}
-                onChange={(e) => setForm({ ...form, street: e.target.value })}
-                className="w-full border px-4 py-2 rounded"
-            />
+            <div className="flex gap-4">
+                <input
+                    type="text"
+                    placeholder="City"
+                    value={form.city}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                    className="w-full border px-4 py-2 rounded basis-1/2"
+                />
+                <input
+                    type="text"
+                    placeholder="Street"
+                    value={form.street}
+                    onChange={(e) => setForm({ ...form, street: e.target.value })}
+                    className="w-full border px-4 py-2 rounded basis-1/2"
+                />
+            </div>
             <input
                 type="text"
                 placeholder="Detail"
@@ -60,6 +66,13 @@ function AddressForm({ savedAddresses = [] }) {
                 onChange={(e) => setForm({ ...form, detail: e.target.value })}
                 className="w-full border px-4 py-2 rounded"
             />
+            <div className="flex justify-end relative">
+                <button
+                    className="w-full py-2 bg-neutral-600 text-white font-semibold rounded-lg"
+                >
+                      <span className="flex justify-center w-full">Save this Address</span>
+                </button>
+            </div>
         </div>
     );
 }
