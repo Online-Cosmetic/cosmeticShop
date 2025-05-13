@@ -1,0 +1,191 @@
+/* src/pages/qnaPage/QnAPage.css */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body,
+  html {
+    width: 100%;
+    font-family: Arial, sans-serif;
+  }
+  
+  .top-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .top-bar a {
+    margin-left: 16px;
+    font-size: 14px;
+    color: #333;
+    text-decoration: none;
+  }
+  
+  .main-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 16px;
+  }
+  
+  .logo {
+    font-size: 24px;
+    font-weight: bold;
+    margin-right: 32px;
+  }
+  
+  .search {
+    position: relative;
+    margin-right: auto;
+    width: 240px; /* 设置搜索框宽度 */
+  }
+  
+  .search input {
+    width: 100%;
+    padding: 8px 12px 8px 32px; /* 左侧留出图标空间 */
+    border: none;
+    border-radius: 4px;
+    background: #f0f0f0;
+  }
+  
+  .search i {
+    position: absolute;
+    left: 12px; /* 图标位于左侧 */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+  }
+  
+  .welcome {
+    margin-left: 32px;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  nav.categories {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    padding: 12px 0;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  nav.categories a {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    text-decoration: none;
+  }
+  
+  main {
+    width: 90%;
+    max-width: 1000px;
+    margin: 48px auto;
+    padding: 0 16px;
+  }
+  
+  .qna-detail {
+    padding: 32px 0;
+  }
+  
+  .qna-detail h2 {
+    margin-bottom: 16px;
+    font-size: 20px;
+    color: #333;
+  }
+  
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #666;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .content {
+    min-height: 300px;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 24px;
+  }
+  
+  .actions {
+    border-top: 1px solid #ddd;
+    padding-top: 16px;
+    text-align: right;
+  }
+  
+  .actions button {
+    margin-left: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f9f9f9;
+    cursor: pointer;
+  }
+  
+  footer {
+    border-top: 1px solid #ddd;
+    padding: 24px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .footer-left {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .social {
+    margin-top: 8px;
+  }
+  
+  .social i {
+    margin-right: 12px;
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+  }
+  
+  .footer-cols {
+    display: flex;
+    gap: 48px;
+  }
+  
+  .footer-col h4 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  .footer-col a {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: #666;
+    text-decoration: none;
+  }
+  
+  /* 确保Font Awesome正常工作 */
+  [class^="fa-"], [class*=" fa-"] {
+    font-family: 'Font Awesome 4.7';
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
