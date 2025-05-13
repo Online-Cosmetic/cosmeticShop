@@ -16,6 +16,7 @@ import RegisterProduct from "./pages/product/RegisterProduct.jsx";
 import EnterpriseLogin from "./pages/enterprise/EnterpriseLogin.jsx";
 import EnterpriseSignUp from "./pages/enterprise/EnterpriseSignUp.jsx";
 import EnterpriseMain from "./pages/enterprise/EnterpriseMain.jsx";
+import Overview from "./pages/enterprise/overview.jsx";
 import Header from "./components/common/Header.jsx";
 import Footer from "./components/common/Footer.jsx";
 
@@ -60,8 +61,8 @@ function App() {
                             <ProductList products={products} title="Best Seller" />
                             {/* 임시 RegisterProduct 페이지 네비게이션 링크 */}
                             <div className="text-center my-4">
-                                <Link to="/registerProduct" className="btn btn-primary">
-                                    임시 - Register Product 페이지로 이동
+                                <Link to="/enterprise/overview" className="btn btn-primary">
+                                    임시 - Enterprise 페이지로 이동
                                 </Link>
                             </div>
                             <Footer />
@@ -81,12 +82,16 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/order" element={<Order />} />
                 <Route path="/qna" element={<QnA />} />
+
+
                 <Route path="/enterpriseSignUp" element={<EnterpriseSignUp />} />
                 <Route path="/enterpriseMain" element={<EnterpriseMain />} />
                 <Route path="/logout" element={<Logout />} />
 
                 {/* RegisterProduct 페이지 라우트 추가 */}
-                <Route path="/registerProduct" element={<RegisterProduct />} />
+                <Route path="/enterprise/product/register" element={<RegisterProduct />} />
+                <Route path="/enterprise/overview" element={<Overview />} />
+
 
                 {/* 404 */}
                 <Route path="*" element={<div>404</div>} />

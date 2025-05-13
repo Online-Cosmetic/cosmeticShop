@@ -13,6 +13,7 @@ function AddressForm({ savedAddresses = [] }) {
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Shipping Address</h2>
+                {/* 드롭다운 */}
                 {savedAddresses.length > 0 && (
                     <div className="relative">
                         <button
