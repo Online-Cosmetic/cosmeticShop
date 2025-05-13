@@ -10,6 +10,7 @@ import Logout from "./pages/user/Logout.jsx";
 import SignUp from "./pages/user/SignUp.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
 import Cart from "./pages/user/Cart.jsx";
+import Order from "./pages/user/Order.jsx";
 import QnA from "./pages/user/QnA.jsx";
 import RegisterProduct from "./pages/product/RegisterProduct.jsx";
 import EnterpriseLogin from "./pages/enterprise/EnterpriseLogin.jsx";
@@ -78,6 +79,7 @@ function App() {
                 <Route path="/myPage" element={<MyPage />} />
                 <Route path="/enterpriseLogin" element={<EnterpriseLogin />} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/order" element={<Order />} />
                 <Route path="/qna" element={<QnA />} />
                 <Route path="/enterpriseSignUp" element={<EnterpriseSignUp />} />
                 <Route path="/enterpriseMain" element={<EnterpriseMain />} />
