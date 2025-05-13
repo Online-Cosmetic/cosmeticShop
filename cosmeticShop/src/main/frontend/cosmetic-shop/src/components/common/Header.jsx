@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Header() {
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, user, logout } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -17,43 +17,36 @@ export default function Header() {
 
     return (
         <header>
-            <nav className="bg-gray-100 border-b border-gray-300">
-                <div className="flex space-x-10 py-2 pr-6 text-gray-500">
+            {/* #1 nav */}
+            <nav className="border-b border-gray-300">
+                <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
                     {isAuthenticated ? (
                         <>
-                            <button onClick={handleLogout} className="hover:underline">
-                                Log Out
-                            </button>
+                            <button onClick={handleLogout} className="hover:underline">Log Out</button>
                             <Link to="/myPage">My Page</Link>
                         </>
                     ) : (
-                        <>
-                            <Link to="/logIn">LogIn</Link>
-                            <Link to="/signUp">Sign Up</Link>
-                            <Link to="/enterpriseLogIn">Enterprise LogIn</Link>
-                        </>
+                        <Link to="/logIn">Log In</Link>
                     )}
-                    <span>Cart</span>
-                    <span>Q&A</span>
+
+                    <Link to="/cart">Cart</Link>
+                    <Link to="/qna">Q&A</Link>
                 </div>
             </nav>
-            {/* 하단 내비게이션 영역은 그대로 유지 */}
-            <nav className="container mx-auto flex items-center justify-between py-4 px-6 border-b border-gray-300">
-                <Link to="/" className="text-xl text-black">
-                    cosMall
-                </Link>
-                <div className="flex space-x-4 text-gray-500">
-                    <Link to="/detail" className="text-gray-500 no-underline">
-                        Category
+            {/* #2 nav */}
+            <nav className="w-full border-b border-gray-300">
+                <div className="max-w-screen-xl mx-auto px-16 flex items-center justify-between py-4">
+                    <Link to="/" className="text-xl text-black">
+                        cosMall
                     </Link>
-                    <Link to="/event" className="text-gray-500 no-underline">
-                        Event
-                    </Link>
-                    <Link to="/faq" className="text-gray-500 no-underline">
-                        FAQ
-                    </Link>
+                    {isAuthenticated && (
+                        <span className="text-gray-600">
+                            Welcome, {user?.name || "Customer"}
+                        </span>
+                    )}
                 </div>
             </nav>
+            {/* #3 nav */}
             <nav className="border-b border-gray-300">
                 <div className="flex justify-center space-x-10 py-2 text-xl">
                     <span>Makeup</span>
