@@ -5,7 +5,7 @@ import Footer from "../../components/common/Footer.jsx";
 //import { Link } from "react-router-dom";
 
 //fake data
-const qnaData = [
+const fakeQnaData = [
     {
         id: 1,
         nickname: '홍길동',
@@ -234,13 +234,26 @@ const qnaData = [
 ]
 
 function QnaListPage() {
+/*     const [qnaData, setQnaData] = useState([]); */
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
 
-    const totalPages = Math.ceil(qnaData.length / itemsPerPage);
+    const totalPages = Math.ceil(fakeQnaData.length / itemsPerPage); // faka data 사용
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentData = qnaData.slice(startIndex, startIndex + itemsPerPage);
+    const currentData = fakeQnaData.slice(startIndex, startIndex + itemsPerPage);
+
+    // axion get 요청
+
+/*     useEffect(() => {
+        axios.get("http://localhost:8080/api/qna") // API
+            .then((response) => {
+                setQnaData(response.data);
+            })
+            .catch((error) => {
+                console.error("QnA 데이터를 가져오는 중 오류 발생:", error);
+            });
+    }, []); */
 
     const formatDate = (iso) => {
         const date = new Date(iso);
@@ -278,6 +291,7 @@ function QnaListPage() {
                             id="searchBtn"
                             className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
                         >
+                            {/* Search ico */}
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-6 w-6 text-gray-500"
@@ -305,6 +319,7 @@ function QnaListPage() {
                             <th className="py-2 px-4">Date</th>
                         </tr>
                     </thead>
+                    {/* List map */}
                     <tbody>
                         {currentData.map((item, index) => (
                             <tr key={`${item.id}-${startIndex + index}`} className="border-t">
