@@ -9,7 +9,7 @@ export default function EnterpiseHeader() {
     const handleLogout = async () => {
         try {
             await logout();
-            navigate("/enterprise/overview");
+            navigate("/enterprise/dashboard");
         } catch (error) {
             console.error("Logout failed:", error);
         }
@@ -18,7 +18,7 @@ export default function EnterpiseHeader() {
     return (
             <header className="w-full border-b border-gray-300">
                 <div className="max-w-screen-xl px-12 py-4 flex items-center justify-between ">
-                    <Link to="/enterprise/overview" className="text-2xl text-black">
+                    <Link to="/enterprise/dashboard" className="text-2xl text-black">
                         cosMall Enterprise
                     </Link>
                     {isAuthenticated && (

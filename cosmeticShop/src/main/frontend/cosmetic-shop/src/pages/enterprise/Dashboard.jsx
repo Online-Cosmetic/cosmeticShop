@@ -1,9 +1,9 @@
 import React from "react";
 import EnterpriseHeader from "../../components/enterprise/EnterpriseHeader.jsx";
 import EnterpriseSidebar from "../../components/enterprise/EnterpriseSidebar.jsx";
-import Footer from "../../components/common/Footer";
+import Footer from "../../components/common/Footer.jsx";
 
-function Overview() {
+function Dashboard() {
     return (
         <>
             {/* 헤더 */}
@@ -24,4 +24,4 @@ function Overview() {
     );
 }
 
-export default Overview;
+export default Dashboard;

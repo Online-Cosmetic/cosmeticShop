@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Header from "../../components/common/Header.jsx";
+import UserHeader from "../../components/user/UserHeader.jsx";
 import Footer from "../../components/common/Footer.jsx";
 
 function SignUp() {
@@ -43,7 +43,7 @@ function SignUp() {
 
     return (
         <>
-            <Header />
+            <UserHeader />
             <div className="flex items-center justify-center min-h-screen bg-white">
                 <div className="w-full max-w-sm space-y-6">
                     <h1 className="text-3xl font-bold text-gray-900">Create An Account</h1>

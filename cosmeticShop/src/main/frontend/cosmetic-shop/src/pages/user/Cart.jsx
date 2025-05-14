@@ -1,5 +1,5 @@
 import React from "react";
-import Header from "../../components/common/Header.jsx";
+import UserHeader from "../../components/user/UserHeader.jsx";
 import Footer from "../../components/common/Footer.jsx";
 import CartSummary from "../../components/user/CartSummary.jsx";
 import ProductCard from "../../components/user/ProductCard.jsx";
@@ -27,7 +27,7 @@ function Cart() {
     ];
     return (
         <div className="flex flex-col min-h-screen">
-            <Header />
+            <UserHeader />
             <main className="flex-grow">
                 <div className="max-w-screen-xl mx-auto px-20 py-8">
                     <h2 className="text-3xl font-bold text-neutral-800 mb-6">Cart</h2>

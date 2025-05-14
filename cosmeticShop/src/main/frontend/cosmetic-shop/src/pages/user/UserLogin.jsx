@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
-import Header from "../../components/common/Header";
-import Footer from "../../components/common/Footer";
+import UserHeader from "../../components/user/UserHeader.jsx";
+import Footer from "../../components/common/Footer.jsx";
 
 function UserLogin() {
     const navigate = useNavigate();
@@ -30,7 +30,7 @@ function UserLogin() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Header />
+            <UserHeader />
             <main className="flex-grow flex items-center justify-center bg-white py-16">
                 <div className="w-full max-w-sm space-y-6">
                     <h1 className="text-3xl font-bold text-gray-900 text-center">User Login</h1>

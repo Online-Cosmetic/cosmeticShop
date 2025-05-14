@@ -12,12 +12,12 @@ import MyPage from "./pages/user/MyPage.jsx";
 import Cart from "./pages/user/Cart.jsx";
 import Order from "./pages/user/Order.jsx";
 import QnA from "./pages/user/QnA.jsx";
-import RegisterProduct from "./pages/product/RegisterProduct.jsx";
+import RegisterProduct from "./pages/enterprise/RegisterProduct.jsx";
+import ProductManagement from "./pages/enterprise/ProductManagement.jsx";
 import EnterpriseLogin from "./pages/enterprise/EnterpriseLogin.jsx";
 import EnterpriseSignUp from "./pages/enterprise/EnterpriseSignUp.jsx";
-import EnterpriseMain from "./pages/enterprise/EnterpriseMain.jsx";
-import Overview from "./pages/enterprise/overview.jsx";
-import Header from "./components/common/Header.jsx";
+import Dashboard from "./pages/enterprise/Dashboard.jsx";
+import UserHeader from "./components/user/UserHeader.jsx";
 import Footer from "./components/common/Footer.jsx";
 
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
@@ -56,12 +56,12 @@ function App() {
                     path="/"
                     element={
                         <>
-                            <Header />
+                            <UserHeader />
                             {/* 메인 페이지 UI 생략 */}
                             <ProductList products={products} title="Best Seller" />
                             {/* 임시 RegisterProduct 페이지 네비게이션 링크 */}
                             <div className="text-center my-4">
-                                <Link to="/enterprise/overview" className="btn btn-primary">
+                                <Link to="/enterprise/dashboard" className="btn btn-primary">
                                     임시 - Enterprise 페이지로 이동
                                 </Link>
                             </div>
@@ -85,12 +85,12 @@ function App() {
 
 
                 <Route path="/enterpriseSignUp" element={<EnterpriseSignUp />} />
-                <Route path="/enterpriseMain" element={<EnterpriseMain />} />
                 <Route path="/logout" element={<Logout />} />
 
                 {/* RegisterProduct 페이지 라우트 추가 */}
                 <Route path="/enterprise/product/register" element={<RegisterProduct />} />
-                <Route path="/enterprise/overview" element={<Overview />} />
+                <Route path="/enterprise/products/manage" element={<ProductManagement />} />
+                <Route path="/enterprise/dashboard" element={<Dashboard />} />
 
 
                 {/* 404 */}

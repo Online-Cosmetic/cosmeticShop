@@ -1,6 +1,6 @@
 import React from "react";
 import ProductList from "../../components/user/ProductList.jsx";
-import Header from "../../components/common/Header.jsx";
+import UserHeader from "../../components/user/UserHeader.jsx";
 import Footer from "../../components/common/Footer.jsx";
 import { useParams } from "react-router-dom";
 
@@ -14,7 +14,7 @@ function Detail({ products, title }) {
 
   return (
     <>
-      <Header/>
+      <UserHeader/>
       <div className="pt-5 max-w-screen-xl mx-auto px-4">
         <div className="flex flex-col md:flex-row gap-6">
           {/* 이미지 영역 */}

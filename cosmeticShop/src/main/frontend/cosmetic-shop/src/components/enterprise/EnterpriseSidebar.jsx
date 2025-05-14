@@ -5,7 +5,7 @@ function EnterpriseSidebar() {
     const { pathname } = useLocation();
 
     const menuItems = [
-        { label: "Overview", path: "/enterprise/overview" },
+        { label: "Dashboard", path: "/enterprise/dashboard" },
         { label: "Register Product", path: "/enterprise/product/register" },
         { label: "Manage Products", path: "/enterprise/products/manage" },
         { label: "Order & Delivery", path: "/enterprise/orders" },
@@ -13,7 +13,7 @@ function EnterpriseSidebar() {
     ];
 
     return (
-        <div className="w-60 min-h-screen bg-white border-r px-6 py-8 flex flex-col gap-4">
+        <div className="w-60 min-h-screen bg-white border-r border-gray-300 px-6 py-8 flex flex-col gap-4">
             {menuItems.map((item) => (
                 <Link
                     key={item.path}

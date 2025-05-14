@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import EnterpriseHeader from "../../components/enterprise/EnterpriseHeader.jsx";
-import Footer from "../../components/common/Footer";
+import Footer from "../../components/common/Footer.jsx";
 import EnterpriseSidebar from "../../components/enterprise/EnterpriseSidebar.jsx";
 
 function RegisterProduct() {
@@ -66,12 +66,12 @@ function RegisterProduct() {
             {/* 사이드바 */}
             <div className="flex min-h-screen">
                 {/* Sidebar */}
-                <div className="w-1/6">
+                <div className="w-1/6 border-r border-gray-20">
                     <EnterpriseSidebar />
                 </div>
                 {/* 본문 */}
-                <div className="flex-1 flex justify-center bg-white">
-                    <div className="w-full mx-auto px-40 py-20 bg-white rounded-2xl flex flex-col gap-12">
+                <div className="flex-1 flex justify-center">
+                    <div className="w-full mx-auto px-20 py-20 rounded-2xl flex flex-col gap-12">
                         <h2 className="text-4xl font-bold text-black">Product Registration</h2>
                         <form onSubmit={handleSubmit} className="flex flex-col gap-8">
                             {/* 카테고리 */}

@@ -1,5 +1,5 @@
 import React from "react";
-import Header from "../../components/common/Header.jsx";
+import UserHeader from "../../components/user/UserHeader.jsx";
 import Footer from "../../components/common/Footer.jsx";
 import CartSummary from "../../components/user/CartSummary.jsx";
 import AddressForm from "../../components/user/AddressForm.jsx";
@@ -19,7 +19,7 @@ function Order() {
     ];
     return (
         <>
-            <Header />
+            <UserHeader />
             <main className="max-w-screen-xl mx-auto px-8 py-12 flex flex-col lg:flex-row gap-12">
                 <div className="flex-1 space-y-12">
                     <AddressForm

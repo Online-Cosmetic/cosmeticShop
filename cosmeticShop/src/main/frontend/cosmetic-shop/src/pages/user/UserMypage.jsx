@@ -1,13 +1,13 @@
 import React from "react";
-import Header from "../../components/common/Header.jsx";
+import UserHeader from "../../components/user/UserHeader.jsx";
 import Footer from "../../components/common/Footer.jsx";
 import { Link } from "react-router-dom";
 
-function MyPage() {
+function UserMypage() {
 
     return (
         <>
-            <Header />
+            <UserHeader />
             <div className="flex min-h-screen bg-white text-gray-900 p-10 font-sans">
                 {/* Sidebar */}
                 <div className="w-[200px] text-sm mr-12">
@@ -109,4 +109,4 @@ function MyPage() {
     );
 }
 
-export default MyPage;
+export default UserMypage;
