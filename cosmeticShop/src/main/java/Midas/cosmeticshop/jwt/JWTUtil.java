@@ -2,6 +2,7 @@ package Midas.cosmeticshop.jwt;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,11 +18,12 @@ import java.util.Date;
 @Component
 public class JWTUtil {
 
+    @Getter
     private final SecretKey secretKey;
     private final UserDetailsService userDetailsService;
 
     // 토큰 유효시간(ms) 상수 (필요 시 application.properties로 이동 가능)
-    private final long accessTokenValidityMs  = 600_000L;       // 10분
+    private final long accessTokenValidityMs  = 1000L * 60 * 30;     // 30분
     private final long refreshTokenValidityMs = 604_800_000L;   // 7일
 
     public JWTUtil(@Value("${spring.jwt.secretKey}") String secret,
@@ -33,8 +35,18 @@ public class JWTUtil {
         this.userDetailsService = userDetailsService;
     }
 
+    // 접두어("Bearer ") 제거하는 헬퍼 메소드 추가
+    protected String cleanToken(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
+        return token;
+    }
+
     // — 기존에 있던 메소드들 —
     public String getUserId(String token) {
+        token = cleanToken(token);
+
         return Jwts.parser().verifyWith(secretKey).build()
             .parseSignedClaims(token)
             .getPayload()
@@ -42,6 +54,8 @@ public class JWTUtil {
     }
 
     public String getRole(String token) {
+        token = cleanToken(token);
+
         return Jwts.parser().verifyWith(secretKey).build()
             .parseSignedClaims(token)
             .getPayload()
@@ -49,6 +63,8 @@ public class JWTUtil {
     }
 
     public Boolean isExpired(String token) {
+        token = cleanToken(token);
+
         Date exp = Jwts.parser().verifyWith(secretKey).build()
             .parseSignedClaims(token)
             .getPayload()
@@ -57,6 +73,8 @@ public class JWTUtil {
     }
 
     public String getCategory(String token) {
+        token = cleanToken(token);
+
         return Jwts.parser().verifyWith(secretKey).build()
             .parseSignedClaims(token)
             .getPayload()
@@ -79,6 +97,8 @@ public class JWTUtil {
     /** 토큰이 유효한지(서명+만료) 검사 */
     public boolean validateToken(String token) {
         try {
+            token = cleanToken(token);
+
             var claims = Jwts.parser().verifyWith(secretKey).build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -90,6 +110,8 @@ public class JWTUtil {
 
     /** 쿠키에서 꺼낸 토큰으로 Authentication 생성 */
     public Authentication getAuthentication(String token) {
+        token = cleanToken(token);
+
         String userId = getUserId(token);
         var userDetails = userDetailsService.loadUserByUsername(userId);
         return new UsernamePasswordAuthenticationToken(

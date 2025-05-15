@@ -1,5 +1,6 @@
 package Midas.cosmeticshop.service;
 
+import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.OrderDTO;
 import Midas.cosmeticshop.dto.OrderItemDTO;
 import Midas.cosmeticshop.entity.DeliveryStatus;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
     /* 단일 상품 주문 */
     @Transactional
@@ -34,8 +37,10 @@ public class OrderService {
         int discountRate = product.getDiscountRate();
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) auth.getPrincipal(); // UserDetails 를 구현한 객체를 가져 온다
+//        User user = (User) auth.getPrincipal(); // UserDetails 를 구현한 객체를 가져 온다
 //        user = userRepository.findById(user.getId()).get();
+        BaseUserDetails baseUserDetails = (BaseUserDetails) auth.getPrincipal(); // UserDetails 를 구현한 객체를 가져 온다
+        Optional<User> user = userRepository.findByUserId(baseUserDetails.getUsername());
 
         int discountedPrice =  orderItemDTO.getPrice() * (100 - discountRate) / 100;
         int totalPrice = discountedPrice * orderItemDTO.getQuantity();
@@ -57,11 +62,11 @@ public class OrderService {
             orderItems
         );
 
-        order = order.makeOrder(user, orderDTO);
+        order = order.makeOrder(user.orElse(null), orderDTO);
 
-        user.getOrders().add(order);
-        orderItemRepository.save(orderItem);
+        user.get().getOrders().add(order);
         orderRepository.save(order);
+        orderItemRepository.save(orderItem);
     }
 
     /* 장바구니에서 선택한 여러 상품들 한번에 주문 */

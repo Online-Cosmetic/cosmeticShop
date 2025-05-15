@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import customAxios from '../../utils/customAxios.js';
 import Header from "../../components/common/Header.jsx";
 import Footer from "../../components/common/Footer.jsx";
 
 function ProductRegister() {
+    // 로그인 시 저장한 access token을 로컬 스토리지에서 가져옵니다.
+    const token = localStorage.getItem('accessToken');
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         categoryId: '',
@@ -42,10 +44,12 @@ function ProductRegister() {
         e.preventDefault();
         const formDataToSend = new FormData();
 
+        // 텍스트 데이터 추가
         Object.keys(formData).forEach(key => {
             formDataToSend.append(key, formData[key]);
         });
 
+        // 파일 데이터 추가
         if (mainImage) {
             formDataToSend.append('mainImage', mainImage);
         }
@@ -55,11 +59,13 @@ function ProductRegister() {
         });
 
         try {
-            await axios.post('/api/products', formDataToSend, {
+            await customAxios().post('/api/products', formDataToSend, {
+                // axios가 FormData를 전송할 때 Content-Type은 자동으로 설정되므로 직접 지정하지 않습니다.
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Authorization': token ? `Bearer ${token}` : ''
+                    // 'Content-Type': 'multipart/form-data'
                 },
-                withCredentials: true
+                withCredentials: false
             });
             navigate('/products');
         } catch (error) {

@@ -3,10 +3,11 @@ package Midas.cosmeticshop.controller.auth;
 import Midas.cosmeticshop.dto.auth.LoginResponse;
 import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.auth.LoginRequest;
-import Midas.cosmeticshop.dto.auth.LogoutRequest;
+import Midas.cosmeticshop.dto.auth.UserDTO;
 import Midas.cosmeticshop.jwt.JWTUtil;
 import Midas.cosmeticshop.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,6 +29,13 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshSvc;
     private final JWTUtil jwtUtil;
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal BaseUserDetails principal) {
+        // BaseUserDetails 에 username, roles, id 등을 담아둔 상태
+        UserDTO dto = UserDTO.from(principal);
+        return ResponseEntity.ok(Map.of("user", dto));
+    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
@@ -61,15 +72,32 @@ public class AuthController {
         return ResponseEntity.ok(body);
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest dto,
-                                       HttpServletResponse response) {
-        refreshSvc.invalidate(dto.getRefreshToken());
-        // 만료 쿠키
-        response.addCookie(jwtUtil.createDeleteCookie("refresh"));
-        SecurityContextHolder.clearContext();
-        return ResponseEntity.ok().build();
+//    @PostMapping("/logout")
+//    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest dto,
+//                                       HttpServletResponse response) {
+//        refreshSvc.invalidate(dto.getRefreshToken());
+//        // 만료 쿠키
+//        response.addCookie(jwtUtil.createDeleteCookie("refresh"));
+//        SecurityContextHolder.clearContext();
+//        return ResponseEntity.ok().build();
+//    }
+// 삭제: @RequestBody LogoutRequest dto
+@PostMapping("/logout")
+public ResponseEntity<Void> logout(HttpServletRequest request,
+                                   HttpServletResponse response) {
+    // 1) 쿠키에서 refreshToken 직접 추출
+    String refreshToken = refreshSvc.getRefreshFromCookie(request);
+    if (refreshToken != null) {
+        // 2) DB/로직에서 해당 토큰 무효화
+        refreshSvc.invalidate(refreshToken);
     }
+    // 3) 만료 쿠키로 덮어쓰기
+    response.addCookie(jwtUtil.createDeleteCookie("refresh"));
+    // 4) SecurityContext 초기화
+    SecurityContextHolder.clearContext();
+    return ResponseEntity.ok().build();
+}
+
 
     @GetMapping("/validate-token")
     public ResponseEntity<Void> validateToken() {

@@ -1,5 +1,6 @@
 package Midas.cosmeticshop.service;
 
+import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.product.ProductDTO;
 import Midas.cosmeticshop.dto.product.ProductImageDTO;
 import Midas.cosmeticshop.dto.product.ProductImageItemDTO;
@@ -37,12 +38,17 @@ public class ProductService {
     private final JWTUtil jwtUtil;
 
     /* 상품 등록 :  상품정보 + 이미지들 */
-    public void registerProduct(String accessToken, ProductDTO dto, MultipartFile mainImage, MultipartFile[] additionalImages) {
+    public void registerProduct(
+            BaseUserDetails userDetails,
+            ProductDTO dto,
+            MultipartFile mainImage,
+            MultipartFile[] additionalImages) {
 
         // 토큰에서 사용자 아이디와 Role 을 추출
-        String userId = jwtUtil.getUserId(accessToken);
-        String role = jwtUtil.getRole(accessToken);
-        if (!"COMPANY".equals(role)) {
+        String userId = userDetails.getUsername();
+        String role = userDetails.getAuthorities().iterator().next().getAuthority();
+
+        if (!"ROLE_COMPANY".equals(role)) {
             throw new IllegalArgumentException("권한이 없습니다. 기업 회원만 상품 등록이 가능합니다.");
         }
 
@@ -103,7 +109,7 @@ public class ProductService {
                                ProductUpdateDTO dto, MultipartFile[] newImages) {
         // 1. 권한 검증 (COMPANY)
         String role = jwtUtil.getRole(accessToken);
-        if (!"COMPANY".equals(role)) throw new IllegalArgumentException("권한이 없습니다.");
+        if (!"ROLE_COMPANY".equals(role)) throw new IllegalArgumentException("권한이 없습니다.");
 
         // 2. 엔티티 조회
         Product product = productRepository.findById(productId)
@@ -151,7 +157,12 @@ public class ProductService {
 
 
     /* 상품 삭제 */
-    public void deleteProduct(Long productId) {
+    public void deleteProduct(String accessToken, Long productId) {
+
+        // 0. 권한 검증 (COMPANY)
+        String role = jwtUtil.getRole(accessToken);
+        if (!"ROLE_COMPANY".equals(role)) throw new IllegalArgumentException("권한이 없습니다.");
+
         // 1) DB에서 불러오기
         Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. id=" + productId));

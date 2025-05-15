@@ -13,6 +13,7 @@ cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserResponse.java
 # 없어도 되는 상품 관련 사진 코드 ?
 cosmeticShop/src/main/java/Midas/cosmeticShop/service/ProductImageService.java
 
+cosmeticShop/src/main/resources/static/images
 
 # yml 파일
 cosmeticShop/src/main/resources/application.yml
@@ -47,3 +48,4 @@ out/
 
 ### VS Code ###
 .vscode/
+node_modules

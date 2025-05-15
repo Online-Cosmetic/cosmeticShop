@@ -1,96 +1,127 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
-import data from "./utils/data.js";
+import React, {useEffect, useState} from 'react';
+import {Routes, Route, Navigate, useNavigate} from 'react-router-dom';
+import {emitter} from "./utils/customAxios.js";
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import LoginForm from './components/auth/LoginForm';
+import SignupForm from './components/auth/SignupForm';
 
-import ProductDetail from "./pages/user/ProductDetail.jsx";
+import UserLogin from './pages/user/UserLogin.jsx';
+import EnterpriseMain from './pages/enterprise/EnterpriseMain.jsx';
+import Header from './components/common/Header.jsx';
 import ProductList from "./components/user/ProductList.jsx";
-import UserLogin from "./pages/user/UserLogin.jsx";
-import Logout from "./pages/user/Logout.jsx";
+import Footer from "./components/common/Footer.jsx";
 import SignUp from "./pages/user/SignUp.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
+import EnterpriseLogin from "./pages/enterprise/EnterpriseLogin.jsx";
 import Cart from "./pages/user/Cart.jsx";
 import QnA from "./pages/user/QnA.jsx";
-import ProductRegister from "./pages/product/ProductRegister.jsx";
-import EnterpriseLogin from "./pages/enterprise/EnterpriseLogin.jsx";
 import EnterpriseSignUp from "./pages/enterprise/EnterpriseSignUp.jsx";
-import EnterpriseMain from "./pages/enterprise/EnterpriseMain.jsx";
-import Header from "./components/common/Header.jsx";
-import Footer from "./components/common/Footer.jsx";
+import Logout from "./pages/user/Logout.jsx";
+import ProductRegister from "./pages/product/ProductRegister.jsx";
+import ProductDetail from "./pages/user/ProductDetail.jsx";
+import data from './utils/data.js';
 
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import axios from "axios";
+const App = () => {
+    const navigate = useNavigate();
+    useEffect(() => {
+        emitter.on('logout', () => {
+            localStorage.removeItem('accessToken');
+            navigate('/login', { replace: true });
+        });
+    }, [navigate]);
 
-// Axios 전역 설정
-axios.defaults.baseURL = "http://localhost:9000";
-axios.defaults.withCredentials = true;
-
-function App() {
     let [products] = useState(data);
 
-
-    // 로그아웃 처리 컴포넌트
-    function Logout() {
-        const navigate = useNavigate();
-        useEffect(() => {
-            // 서버 쪽 쿠키 만료 요청 (엔드포인트 구현 필요)
-            axios.post("/api/auth/logout").catch(() => {});
-            navigate("/login");
-        }, []);
-        return null;
-    }
-
-    // 제품을 3개씩 묶어 표시하기 위해 행 분할
-    let productRows = [];
-    for (let i = 0; i < products.length; i += 3) {
-        productRows.push(products.slice(i, i + 3));
-    }
-
     return (
-        <>
-            <Routes>
-                <Route
-                    path="/"
-                    element={
-                        <>
-                            <Header />
-                            {/* 메인 페이지 UI 생략 */}
-                            <ProductList products={products} title="Best Seller" />
-                            {/* 임시 RegisterProduct 페이지 네비게이션 링크 */}
-                            <div className="text-center my-4">
-                                <Link to="/registerProduct" className="btn btn-primary">
-                                    임시 - Register Product 페이지로 이동
-                                </Link>
-                            </div>
-                            <Footer />
-                        </>
-                    }
-                />
+        <AuthProvider>
+            <Router>
+                <Routes>
+                    <Route
+                        path="/"
+                        element={
+                            <>
+                                <Header />
+                                {/* 메인 페이지 UI 생략 */}
+                                <ProductList products={products} title="Best Seller" />
+                                {/*/!* 임시 RegisterProduct 페이지 네비게이션 링크 *!/*/}
+                                {/*<div className="text-center my-4">*/}
+                                {/*    <Link to="/registerProduct" className="btn btn-primary">*/}
+                                {/*        임시 - Register Product 페이지로 이동*/}
+                                {/*    </Link>*/}
+                                {/*</div>*/}
+                                <Footer />
+                            </>
+                        }
+                    />
 
-                <Route
-                    path="/detail/:id"
-                    element={<ProductDetail products={products} title="Related products" />}
-                />
+                    <Route
+                        path="/detail/:id"
+                        element={<ProductDetail products={products} title="Related products" />}
+                    />
 
-                <Route path="/login" element={<UserLogin />} />
-                <Route path="/signUp" element={<SignUp />} />
-                <Route path="/myPage" element={<MyPage />} />
-                <Route path="/enterpriseLogin" element={<EnterpriseLogin />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/qna" element={<QnA />} />
-                <Route path="/enterpriseSignUp" element={<EnterpriseSignUp />} />
-                <Route path="/enterpriseMain" element={<EnterpriseMain />} />
-                <Route path="/logout" element={<Logout />} />
+                    <Route path="/login" element={<LoginForm />} />
 
-                {/* RegisterProduct 페이지 라우트 추가 */}
-                <Route path="/registerProduct" element={<ProductRegister />} />
+                    <Route path="/signup" element={<SignupForm />} />
 
-                {/* 404 */}
-                <Route path="*" element={<div>404</div>} />
-            </Routes>
-        </>
+                    {/* USER 권한 필요 */}
+                    <Route
+                        path="/user/*"
+                        element={
+                            <ProtectedRoute requiredRole="ROLE_USER">
+                                {/* 일반 회원 전용 컴포넌트 */}
+                                <div>일반 회원 페이지</div>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route path="/enterpriseLogin" element={<EnterpriseLogin />} />
+
+                    {/* USER 권한 필요 */}
+                    <Route
+                        path="/cart"
+                        element={
+                            <ProtectedRoute requiredRole="ROLE_USER">
+                                <Cart />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route path="/qna" element={<QnA />} />
+
+                    <Route path="/enterpriseSignUp" element={<EnterpriseSignUp />} />
+
+                    <Route path="/logout" element={<Logout />} />
+
+                    {/* COMPANY 권한 필요 */}
+                    <Route
+                        path="/company/*"
+                        element={
+                            <ProtectedRoute requiredRole="ROLE_COMPANY">
+                                {/* 기업 회원 전용 컴포넌트 */}
+                                <div>기업 회원 페이지</div>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* RegisterProduct 페이지 라우트 추가 */}
+                    <Route path="/registerProduct"
+                       element={
+                           <ProtectedRoute requiredRole="ROLE_COMPANY">
+                            <ProductRegister />
+                           </ProtectedRoute>
+                        }
+                    />
+
+                    {/* 기본 리다이렉트 */}
+                    <Route path="/" element={<Navigate to="/login" replace />} />
+                </Routes>
+            </Router>
+        </AuthProvider>
     );
-}
+};
 
 export default App;
