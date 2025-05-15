@@ -39,22 +39,22 @@
 // export default EnterpriseSidebar;
 // src/components/enterprise/EnterpriseSidebar.jsx
 import React from 'react';
-import { useAuth } from '../../context/AuthContext.jsx';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import { NavLink } from 'react-router-dom';
 
 export default function EnterpriseSidebar() {
-    const { role } = useAuth();
-    if (role !== 'COMPANY') return null;
+    const { user } = useAuth();
+    if (user?.role !== 'ROLE_COMPANY') return null;
 
     return (
         <ul className="space-y-4 p-4">
+            {/*<li>*/}
+            {/*    <NavLink to="/enterprise/dashboard" className="hover:underline">*/}
+            {/*        대시보드 홈*/}
+            {/*    </NavLink>*/}
+            {/*</li>*/}
             <li>
-                <NavLink to="/enterprise/dashboard" className="hover:underline">
-                    대시보드 홈
-                </NavLink>
-            </li>
-            <li>
-                <NavLink to="/enterprise/dashboard/product-register" className="hover:underline">
+                <NavLink to="/company/product/register" className="hover:underline">
                     상품 등록
                 </NavLink>
             </li>

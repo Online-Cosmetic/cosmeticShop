@@ -53,8 +53,15 @@ public class AuthController {
         // 2) 유저 정보와 권한 추출
         BaseUserDetails userDetails = (BaseUserDetails) auth.getPrincipal();
         String userId = userDetails.getUsername();
-        String role   = userDetails.getAuthorities()
-                                    .iterator().next().getAuthority();
+        String role = userDetails.getAuthorities()
+                                    .iterator().next().getAuthority(); // "ROLE_" 접두어가 붙은 값
+
+        // 역할 검증
+        String requestedRole = loginRequest.getRole();
+        if (!role.equals(requestedRole)) {
+            return ResponseEntity.status(403)
+                .body(new LoginResponse(null, null, null, "잘못된 로그인 페이지입니다. 올바른 로그인 페이지를 이용해주세요."));
+        }
 
         // 3) 토큰 생성
         String accessToken  = jwtUtil.createJwt("access",  userId, role, jwtUtil.getValidity("access"));
@@ -72,15 +79,6 @@ public class AuthController {
         return ResponseEntity.ok(body);
     }
 
-//    @PostMapping("/logout")
-//    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest dto,
-//                                       HttpServletResponse response) {
-//        refreshSvc.invalidate(dto.getRefreshToken());
-//        // 만료 쿠키
-//        response.addCookie(jwtUtil.createDeleteCookie("refresh"));
-//        SecurityContextHolder.clearContext();
-//        return ResponseEntity.ok().build();
-//    }
 // 삭제: @RequestBody LogoutRequest dto
 @PostMapping("/logout")
 public ResponseEntity<Void> logout(HttpServletRequest request,
@@ -97,7 +95,6 @@ public ResponseEntity<Void> logout(HttpServletRequest request,
     SecurityContextHolder.clearContext();
     return ResponseEntity.ok().build();
 }
-
 
     @GetMapping("/validate-token")
     public ResponseEntity<Void> validateToken() {

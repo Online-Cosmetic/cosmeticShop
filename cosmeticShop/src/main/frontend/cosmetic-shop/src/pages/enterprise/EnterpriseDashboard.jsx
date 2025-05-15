@@ -1,20 +1,3 @@
-// // EnterpriseDashboard.jsx
-// import React from 'react';
-// import { Outlet } from 'react-router-dom';
-// import EnterpriseSidebar from '../../components/enterprise/EnterpriseSidebar.jsx';
-//
-// const EnterpriseDashboard = () => {
-//     return (
-//         <div className="dashboard-container">
-//             <EnterpriseSidebar />
-//             <main className="dashboard-content">
-//                 <Outlet />
-//             </main>
-//         </div>
-//     );
-// };
-//
-// export default EnterpriseDashboard;
 // src/pages/enterprise/EnterpriseDashboard.jsx
 import React from 'react';
 import { Outlet } from 'react-router-dom';

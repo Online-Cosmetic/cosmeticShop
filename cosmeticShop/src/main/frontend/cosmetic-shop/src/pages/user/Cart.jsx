@@ -1,14 +1,10 @@
 import React from "react";
-import Header from "../../components/common/Header.jsx";
-import Footer from "../../components/common/Footer.jsx";
 import { Link } from "react-router-dom";
 
 function Cart() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Header />
-
             <main className="flex-grow">
                 <div className="max-w-screen-xl mx-auto px-20 py-8">
                     {/* Cart */}
@@ -58,7 +54,6 @@ function Cart() {
                     </div>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 }

@@ -1,12 +1,11 @@
 // src/pages/signUp/SignUp.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import Header from "../../components/common/Header.jsx";
-import Footer from "../../components/common/Footer.jsx";
+import { useAuth } from "../../contexts/AuthContext";
 
 function SignUp() {
     const navigate = useNavigate();
+    const { registerUser } = useAuth();
     const [form, setForm] = useState({
         userId: "",
         password: "",
@@ -16,16 +15,18 @@ function SignUp() {
         nickName: "",
         email: "",
     });
+    const [error, setError] = useState("");
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm((f) => ({ ...f, [name]: value }));
+        setError("");
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         try {
-            // await axios.post("/api/users", {
-            await axios.post("/api/auth/signup/user", {
+            await registerUser({
                 userId: form.userId,
                 password: form.password,
                 username: form.username,
@@ -34,20 +35,18 @@ function SignUp() {
                 nickName: form.nickName,
                 email: form.email,
             });
-            navigate("/login");
         } catch (err) {
-            console.error(err);
-            alert("회원가입에 실패했습니다.");
+            console.error('Signup error:', err);
+            setError(err.response?.data?.message || "회원가입에 실패했습니다.");
         }
     };
 
     return (
         <>
-            <Header />
             <div className="flex items-center justify-center min-h-screen bg-white">
                 <div className="w-full max-w-sm space-y-6">
                     <h1 className="text-3xl font-bold text-gray-900">Create An Account</h1>
-                    <div className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <input
                             name="userId"
                             value={form.userId}
@@ -55,6 +54,7 @@ function SignUp() {
                             type="text"
                             placeholder="ID"
                             className="w-full px-4 py-2 border rounded"
+                            required
                         />
                         <input
                             name="password"
@@ -63,6 +63,7 @@ function SignUp() {
                             type="password"
                             placeholder="Password"
                             className="w-full px-4 py-2 border rounded"
+                            required
                         />
                         <input
                             name="username"
@@ -71,6 +72,7 @@ function SignUp() {
                             type="text"
                             placeholder="User Name"
                             className="w-full px-4 py-2 border rounded"
+                            required
                         />
                         <input
                             name="age"
@@ -79,12 +81,14 @@ function SignUp() {
                             type="number"
                             placeholder="Age"
                             className="w-full px-4 py-2 border rounded"
+                            required
                         />
                         <select
                             name="gender"
                             value={form.gender}
                             onChange={handleChange}
                             className="w-full px-4 py-2 border rounded"
+                            required
                         >
                             <option value="MALE">남성</option>
                             <option value="FEMALE">여성</option>
@@ -96,6 +100,7 @@ function SignUp() {
                             type="text"
                             placeholder="Nick Name"
                             className="w-full px-4 py-2 border rounded"
+                            required
                         />
                         <input
                             name="email"
@@ -104,17 +109,22 @@ function SignUp() {
                             type="email"
                             placeholder="Email Address"
                             className="w-full px-4 py-2 border rounded"
+                            required
                         />
-                    </div>
-                    <button
-                        onClick={handleSubmit}
-                        className="w-full bg-black text-white py-3 rounded font-semibold hover:bg-gray-800"
-                    >
-                        Sign Up
-                    </button>
+                        {error && (
+                            <div className="text-red-500 text-sm text-center">
+                                {error}
+                            </div>
+                        )}
+                        <button
+                            type="submit"
+                            className="w-full bg-black text-white py-3 rounded font-semibold hover:bg-gray-800"
+                        >
+                            Sign Up
+                        </button>
+                    </form>
                 </div>
             </div>
-            <Footer />
         </>
     );
 }

@@ -1,53 +1,3 @@
-// import axios from 'axios';
-//
-// const customAxios = axios.create({
-//     baseURL: 'http://localhost:9000',
-//     withCredentials: true
-// });
-//
-// customAxios.interceptors.request.use(config => {
-//     if (config.url && config.url.includes('/api/auth/reissue')) {
-//         return config;
-//     }
-//     const token = localStorage.getItem('accessToken');
-//     if (token) {
-//         config.headers['Authorization'] = `Bearer ${token}`;
-//     }
-//     return config;
-// });
-//
-// customAxios.interceptors.response.use(
-//     response => response,
-//     async err => {
-//         const original = err.config;
-//         if (!original || typeof original.url !== 'string') {
-//             return Promise.reject(err);
-//         }
-//         if (original.url.includes('/api/auth/reissue')) {
-//             return Promise.reject(err);
-//         }
-//         if (err.response?.status === 401 && !original._retry) {
-//             original._retry = true;
-//             try {
-//                 const { data } = await customAxios.post(
-//                     '/api/auth/reissue',
-//                     {},
-//                     { withCredentials: true }
-//                 );
-//                 const newToken = data.accessToken;
-//                 localStorage.setItem('accessToken', newToken);
-//                 original.headers['Authorization'] = `Bearer ${newToken}`;
-//                 return customAxios(original);
-//             } catch (refreshErr) {
-//                 window.location.href = '/login';
-//                 return Promise.reject(refreshErr);
-//             }
-//         }
-//         return Promise.reject(err);
-//     }
-// );
-//
-// export default customAxios;
 // src/utils/customAxios.js
 import axios from 'axios';
 import mitt from 'mitt';
@@ -56,7 +6,6 @@ export const emitter = mitt();
 
 const customAxios = axios.create({
     baseURL: 'http://localhost:9000',
-    // baseURL: '/api',
     withCredentials: true,
 });
 

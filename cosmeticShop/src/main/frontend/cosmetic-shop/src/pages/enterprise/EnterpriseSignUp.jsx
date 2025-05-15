@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import Footer from "../../components/common/Footer.jsx";
 
 function EnterpriseSignUp() {
     const navigate = useNavigate();
@@ -145,7 +144,6 @@ function EnterpriseSignUp() {
                     </div>
                 </div>
             </div>
-            <Footer />
         </>
     );
 }

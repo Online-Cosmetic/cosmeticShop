@@ -1,32 +1,50 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
-import React, {useEffect, useState} from 'react';
-import {Routes, Route, Navigate, useNavigate} from 'react-router-dom';
-import {emitter} from "./utils/customAxios.js";
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import LoginForm from './components/auth/LoginForm';
-import SignupForm from './components/auth/SignupForm';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { emitter } from "./utils/customAxios.js";
 
-import UserLogin from './pages/user/UserLogin.jsx';
-import EnterpriseMain from './pages/enterprise/EnterpriseMain.jsx';
+// 공통 컴포넌트
 import Header from './components/common/Header.jsx';
-import ProductList from "./components/user/ProductList.jsx";
 import Footer from "./components/common/Footer.jsx";
-import SignUp from "./pages/user/SignUp.jsx";
-import MyPage from "./pages/user/MyPage.jsx";
-import EnterpriseLogin from "./pages/enterprise/EnterpriseLogin.jsx";
-import Cart from "./pages/user/Cart.jsx";
-import QnA from "./pages/user/QnA.jsx";
-import EnterpriseSignUp from "./pages/enterprise/EnterpriseSignUp.jsx";
-import Logout from "./pages/user/Logout.jsx";
-import ProductRegister from "./pages/product/ProductRegister.jsx";
+import ProtectedRoute from './components/ProtectedRoute';
+
+// 사용자 페이지
+import ProductList from "./components/user/ProductList.jsx";
 import ProductDetail from "./pages/user/ProductDetail.jsx";
+import Cart from "./pages/user/Cart.jsx";
+import MyPage from "./pages/user/MyPage.jsx";
+import QnA from "./pages/user/QnA.jsx";
+import UserLogin from './pages/user/UserLogin.jsx';
+import SignUp from './pages/user/SignUp.jsx';
+import OrderHistory from './pages/user/OrderHistory.jsx';
+
+// 기업 페이지
+import EnterpriseMain from './pages/enterprise/EnterpriseMain.jsx';
+import ProductRegister from "./pages/product/ProductRegister.jsx";
+import EnterpriseLogin from './pages/enterprise/EnterpriseLogin.jsx';
+import EnterpriseSignUp from "./pages/enterprise/EnterpriseSignUp.jsx";
+import ProductManagement from './pages/enterprise/ProductManagement.jsx';
+
+// 인증 관련 페이지
+import Logout from "./pages/user/Logout.jsx";
+
+// 데이터
 import data from './utils/data.js';
+
+const PublicLayout = ({ children }) => (
+    <>
+        <Header />
+        {children}
+        <Footer />
+    </>
+);
 
 const App = () => {
     const navigate = useNavigate();
+
     useEffect(() => {
         emitter.on('logout', () => {
             localStorage.removeItem('accessToken');
@@ -34,92 +52,113 @@ const App = () => {
         });
     }, [navigate]);
 
-    let [products] = useState(data);
-
     return (
         <AuthProvider>
-            <Router>
-                <Routes>
-                    <Route
-                        path="/"
-                        element={
-                            <>
-                                <Header />
-                                {/* 메인 페이지 UI 생략 */}
-                                <ProductList products={products} title="Best Seller" />
-                                {/*/!* 임시 RegisterProduct 페이지 네비게이션 링크 *!/*/}
-                                {/*<div className="text-center my-4">*/}
-                                {/*    <Link to="/registerProduct" className="btn btn-primary">*/}
-                                {/*        임시 - Register Product 페이지로 이동*/}
-                                {/*    </Link>*/}
-                                {/*</div>*/}
-                                <Footer />
-                            </>
-                        }
-                    />
+            <Routes>
+                {/* 공개 페이지 - 비로그인 사용자도 접근 가능 */}
+                <Route
+                    path="/"
+                    element={
+                        <PublicLayout>
+                            <ProductList products={data} title="Best Seller" />
+                        </PublicLayout>
+                    }
+                />
 
-                    <Route
-                        path="/detail/:id"
-                        element={<ProductDetail products={products} title="Related products" />}
-                    />
+                <Route
+                    path="/detail/:id"
+                    element={
+                        <PublicLayout>
+                            <ProductDetail products={data} title="Related products" />
+                        </PublicLayout>
+                    }
+                />
 
-                    <Route path="/login" element={<LoginForm />} />
+                <Route
+                    path="/qna"
+                    element={
+                        <PublicLayout>
+                            <QnA />
+                        </PublicLayout>
+                    }
+                />
 
-                    <Route path="/signup" element={<SignupForm />} />
+                {/* 인증 페이지 - 로그인하지 않은 사용자만 접근 가능 */}
+                <Route
+                    path="/login"
+                    element={
+                        <PublicLayout>
+                            <UserLogin />
+                        </PublicLayout>
+                    }
+                />
 
-                    {/* USER 권한 필요 */}
-                    <Route
-                        path="/user/*"
-                        element={
-                            <ProtectedRoute requiredRole="ROLE_USER">
-                                {/* 일반 회원 전용 컴포넌트 */}
-                                <div>일반 회원 페이지</div>
-                            </ProtectedRoute>
-                        }
-                    />
+                <Route
+                    path="/enterpriseLogin"
+                    element={
+                        <PublicLayout>
+                            <EnterpriseLogin />
+                        </PublicLayout>
+                    }
+                />
 
-                    <Route path="/enterpriseLogin" element={<EnterpriseLogin />} />
+                <Route
+                    path="/signup"
+                    element={
+                        <PublicLayout>
+                            <SignUp />
+                        </PublicLayout>
+                    }
+                />
 
-                    {/* USER 권한 필요 */}
-                    <Route
-                        path="/cart"
-                        element={
-                            <ProtectedRoute requiredRole="ROLE_USER">
-                                <Cart />
-                            </ProtectedRoute>
-                        }
-                    />
+                <Route
+                    path="/enterpriseSignUp"
+                    element={
+                        <PublicLayout>
+                            <EnterpriseSignUp />
+                        </PublicLayout>
+                    }
+                />
 
-                    <Route path="/qna" element={<QnA />} />
+                {/* 로그아웃 */}
+                <Route path="/logout" element={<Logout />} />
 
-                    <Route path="/enterpriseSignUp" element={<EnterpriseSignUp />} />
+                {/* 일반 회원 전용 페이지 */}
+                <Route
+                    path="/user/*"
+                    element={
+                        <ProtectedRoute requiredRole="ROLE_USER">
+                            <PublicLayout>
+                                <Routes>
+                                    <Route path="mypage" element={<MyPage />} />
+                                    <Route path="cart" element={<Cart />} />
+                                    <Route path="orders" element={<OrderHistory />} />
+                                </Routes>
+                            </PublicLayout>
+                        </ProtectedRoute>
+                    }
+                />
 
-                    <Route path="/logout" element={<Logout />} />
+                {/* 기업 회원 전용 페이지 */}
+                <Route
+                    path="/company/*"
+                    element={
+                        <ProtectedRoute requiredRole="ROLE_COMPANY">
+                            <PublicLayout>
+                                <Routes>
+                                    <Route path="/" element={<EnterpriseMain />} />
+                                    <Route path="dashboard" element={<EnterpriseMain />} />
+                                    <Route path="product/register" element={<ProductRegister />} />
+                                    <Route path="products" element={<ProductManagement />} />
+                                </Routes>
+                            </PublicLayout>
+                        </ProtectedRoute>
+                    }
+                />
 
-                    {/* COMPANY 권한 필요 */}
-                    <Route
-                        path="/company/*"
-                        element={
-                            <ProtectedRoute requiredRole="ROLE_COMPANY">
-                                {/* 기업 회원 전용 컴포넌트 */}
-                                <div>기업 회원 페이지</div>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    {/* RegisterProduct 페이지 라우트 추가 */}
-                    <Route path="/registerProduct"
-                       element={
-                           <ProtectedRoute requiredRole="ROLE_COMPANY">
-                            <ProductRegister />
-                           </ProtectedRoute>
-                        }
-                    />
-
-                    {/* 기본 리다이렉트 */}
-                    <Route path="/" element={<Navigate to="/login" replace />} />
-                </Routes>
-            </Router>
+                {/* 404 및 리다이렉트 */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
         </AuthProvider>
     );
 };

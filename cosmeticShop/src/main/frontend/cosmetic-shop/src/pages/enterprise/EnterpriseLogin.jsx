@@ -1,127 +1,35 @@
-// // src/pages/enterprise/EnterpriseLogin.jsx
-// import React, { useState } from "react";
-// import { useNavigate, Link } from "react-router-dom";
-// import Footer from "../../components/common/Footer.jsx";
-// import { useAuth } from "../../context/AuthContext.jsx";
-//
-// function EnterpriseLogin() {
-//   const navigate = useNavigate();
-//   const { login } = useAuth();
-//   const [creds, setCreds] = useState({ userId: "", password: "" });
-//
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setCreds((prev) => ({ ...prev, [name]: value }));
-//   };
-//
-//   const handleSubmit = async () => {
-//     try {
-//       // Context의 login() 사용
-//       await login(creds.userId, creds.password);
-//       navigate("/enterpriseMain");
-//       // Context가 업데이트되므로 페이지 전체 리로드는 불필요할 수 있습니다.
-//     } catch (err) {
-//       console.error(err);
-//       alert("로그인에 실패했습니다.");
-//     }
-//   };
-//
-//   return (
-//     <>
-//       <div className="min-h-screen flex justify-center items-center bg-gray-100">
-//         <div className="w-[816px] bg-white rounded-[30px] p-12 shadow-md">
-//           {/* 헤더 */}
-//           <div className="mb-12 text-center">
-//             <h1 className="text-4xl font-semibold text-gray-900">Welcome Back 👋</h1>
-//             <p className="text-2xl text-slate-700 mt-4">Let’s grow your business.</p>
-//           </div>
-//
-//           {/* 로그인 폼 */}
-//           <form
-//             className="space-y-8"
-//             onSubmit={(e) => {
-//               e.preventDefault();
-//               handleSubmit();
-//             }}
-//           >
-//             {/* ID */}
-//             <div>
-//               <label className="text-gray-900 text-base block mb-2">ID</label>
-//               <input
-//                 name="userId"
-//                 value={creds.userId}
-//                 onChange={handleChange}
-//                 type="text"
-//                 placeholder="User ID"
-//                 className="w-full h-12 px-4 bg-slate-50 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400"
-//               />
-//             </div>
-//
-//             {/* Password */}
-//             <div>
-//               <label className="text-gray-900 text-base block mb-2">Password</label>
-//               <input
-//                 name="password"
-//                 value={creds.password}
-//                 onChange={handleChange}
-//                 type="password"
-//                 placeholder="At least 8 characters"
-//                 className="w-full h-12 px-4 bg-slate-50 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400"
-//               />
-//             </div>
-//
-//             {/* Sign In Button */}
-//             <button
-//               type="submit"
-//               className="w-full py-4 bg-emerald-500 text-white text-xl font-medium rounded-xl hover:bg-emerald-600 transition"
-//             >
-//               Sign in
-//             </button>
-//           </form>
-//
-//           {/* 회원가입 안내 */}
-//           <div className="text-center mt-10">
-//             <span className="text-slate-700 text-lg">Don't have an account? </span>
-//             <Link to="/enterpriseSignUp" className="text-emerald-600 font-medium hover:underline">
-//               Sign up
-//             </Link>
-//           </div>
-//
-//           {/* 푸터 */}
-//           <div className="text-center text-gray-500 text-sm mt-10">
-//             © 2025 CosMall, LLC. All rights reserved.
-//           </div>
-//         </div>
-//       </div>
-//       <Footer />
-//     </>
-//   );
-// }
-//
-// export default EnterpriseLogin;
-// src/pages/enterprise/EnterpriseLogin.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Footer from '../../components/common/Footer.jsx';
-import { useAuth } from '../../context/AuthContext.jsx';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 
 export default function EnterpriseLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [creds, setCreds] = useState({ userId: '', password: '' });
+  const [creds, setCreds] = useState({ userId: '', password: '', role: 'ROLE_COMPANY' });
+  const [error, setError] = useState('');
 
   const handleChange = e => {
     const { name, value } = e.target;
     setCreds(prev => ({ ...prev, [name]: value }));
+    setError('');
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      await login(creds.userId, creds.password);
-      navigate('/enterprise/dashboard');
-    } catch {
-      alert('로그인에 실패했습니다.');
+      const response = await login(creds);
+      if (response.success) {
+        navigate('/company/dashboard');
+      } else {
+        setError('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      if (err.response?.status === 403) {
+        setError('기업 회원 전용 로그인 페이지입니다. 일반 회원은 일반 로그인을 이용해주세요.');
+      } else {
+        setError('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+      }
     }
   };
 
@@ -131,7 +39,7 @@ export default function EnterpriseLogin() {
           <div className="w-[816px] bg-white rounded-[30px] p-12 shadow-md">
             <div className="mb-12 text-center">
               <h1 className="text-4xl font-semibold">Welcome Back 👋</h1>
-              <p className="text-2xl mt-4">Let’s grow your business.</p>
+              <p className="text-2xl mt-4">Let's grow your business.</p>
             </div>
             <form className="space-y-8" onSubmit={handleSubmit}>
               <div>
@@ -142,6 +50,7 @@ export default function EnterpriseLogin() {
                     onChange={handleChange}
                     className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                     placeholder="User ID"
+                    required
                 />
               </div>
               <div>
@@ -152,9 +61,15 @@ export default function EnterpriseLogin() {
                     value={creds.password}
                     onChange={handleChange}
                     className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
-                    placeholder="At least 8 characters"
+                    placeholder="Password"
+                    required
                 />
               </div>
+              {error && (
+                <div className="text-red-500 text-sm text-center">
+                  {error}
+                </div>
+              )}
               <button
                   type="submit"
                   className="w-full py-4 bg-emerald-500 text-white font-medium rounded-xl hover:bg-emerald-600"
@@ -164,7 +79,7 @@ export default function EnterpriseLogin() {
             </form>
             <div className="text-center mt-10">
               <span>Don't have an account? </span>
-              <Link to="/enterprise/sign-up" className="text-emerald-600 hover:underline">
+              <Link to="/enterpriseSignUp" className="text-emerald-600 hover:underline">
                 Sign up
               </Link>
             </div>
@@ -173,7 +88,6 @@ export default function EnterpriseLogin() {
             </div>
           </div>
         </div>
-        <Footer />
       </>
   );
 }

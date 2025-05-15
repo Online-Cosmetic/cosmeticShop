@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SignupForm = () => {
     const navigate = useNavigate();
-    const { registerUser, registerCompany } = useAuth();
-    
-    const [userType, setUserType] = useState('user'); // 'user' or 'company'
+    const { registerUser, registerCompany, error: authError, loading, isAuthenticated, user } = useAuth();
+
+    const [userType, setUserType] = useState('user');
     const [formData, setFormData] = useState({
         userId: '',
         password: '',
@@ -17,7 +17,24 @@ const SignupForm = () => {
         phoneNumber: '',
     });
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+
+    // 인증 에러 감지
+    useEffect(() => {
+        if (authError) {
+            setError(authError);
+        }
+    }, [authError]);
+
+
+    // 이미 로그인한 사용자는 적절한 페이지로 리다이렉트
+    if (isAuthenticated) {
+        if (user.role === 'ROLE_USER') {
+            return <Navigate to="/user/mypage" replace />;
+        } else if (user.role === 'ROLE_COMPANY') {
+            return <Navigate to="/company" replace />;
+        }
+        return <Navigate to="/" replace />;
+    }
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -25,22 +42,42 @@ const SignupForm = () => {
             ...prev,
             [name]: value
         }));
+        setError('');
     };
 
     const validateForm = () => {
+        // 비밀번호 일치 여부만 확인
         if (formData.password !== formData.passwordConfirm) {
             setError('비밀번호가 일치하지 않습니다.');
             return false;
         }
-        
+
+        // 이메일 유효성 검사
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('유효한 이메일 주소를 입력해주세요.');
+            return false;
+        }
+
         if (userType === 'user') {
-            if (!formData.userId || !formData.password || !formData.email || !formData.nickName) {
+            if (!formData.userId || !formData.nickName) {
                 setError('모든 필수 항목을 입력해주세요.');
                 return false;
             }
+            // 아이디 유효성 검사
+            if (formData.userId.length < 4) {
+                setError('아이디는 4자 이상이어야 합니다.');
+                return false;
+            }
         } else {
-            if (!formData.companyName || !formData.password || !formData.email || !formData.phoneNumber) {
+            if (!formData.companyName || !formData.phoneNumber) {
                 setError('모든 필수 항목을 입력해주세요.');
+                return false;
+            }
+            // 전화번호 유효성 검사
+            const phoneRegex = /^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}$/;
+            if (!phoneRegex.test(formData.phoneNumber)) {
+                setError('전화번호 형식이 올바르지 않습니다. (예: 02-123-4567)');
                 return false;
             }
         }
@@ -51,12 +88,10 @@ const SignupForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        
+
         if (!validateForm()) {
             return;
         }
-
-        setLoading(true);
 
         try {
             if (userType === 'user') {
@@ -74,14 +109,9 @@ const SignupForm = () => {
                     phoneNumber: formData.phoneNumber,
                 });
             }
-            
-            navigate('/login', { 
-                state: { message: '회원가입이 완료되었습니다. 로그인해주세요.' }
-            });
         } catch (err) {
-            setError(err.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
-        } finally {
-            setLoading(false);
+            // 에러 처리는 AuthContext에서 처리됨
+            console.error('Signup error:', err);
         }
     };
 
@@ -97,23 +127,31 @@ const SignupForm = () => {
                 <div className="flex justify-center space-x-4 mb-4">
                     <button
                         type="button"
-                        onClick={() => setUserType('user')}
+                        onClick={() => {
+                            setUserType('user');
+                            setError('');
+                        }}
+                        disabled={loading}
                         className={`px-4 py-2 rounded-md ${
                             userType === 'user'
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-gray-200 text-gray-700'
-                        }`}
+                        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         일반 회원
                     </button>
                     <button
                         type="button"
-                        onClick={() => setUserType('company')}
+                        onClick={() => {
+                            setUserType('company');
+                            setError('');
+                        }}
+                        disabled={loading}
                         className={`px-4 py-2 rounded-md ${
                             userType === 'company'
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-gray-200 text-gray-700'
-                        }`}
+                        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         기업 회원
                     </button>
@@ -131,9 +169,10 @@ const SignupForm = () => {
                                         type="text"
                                         required
                                         className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                        placeholder="아이디"
+                                        placeholder="아이디 (4자 이상)"
                                         value={formData.userId}
                                         onChange={handleChange}
+                                        disabled={loading}
                                     />
                                 </div>
                                 <div>
@@ -147,6 +186,7 @@ const SignupForm = () => {
                                         placeholder="닉네임"
                                         value={formData.nickName}
                                         onChange={handleChange}
+                                        disabled={loading}
                                     />
                                 </div>
                             </>
@@ -163,6 +203,7 @@ const SignupForm = () => {
                                         placeholder="기업명"
                                         value={formData.companyName}
                                         onChange={handleChange}
+                                        disabled={loading}
                                     />
                                 </div>
                                 <div>
@@ -173,14 +214,15 @@ const SignupForm = () => {
                                         type="tel"
                                         required
                                         className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                        placeholder="전화번호"
+                                        placeholder="전화번호 (예: 02-123-4567)"
                                         value={formData.phoneNumber}
                                         onChange={handleChange}
+                                        disabled={loading}
                                     />
                                 </div>
                             </>
                         )}
-                        
+
                         <div>
                             <label htmlFor="email" className="sr-only">이메일</label>
                             <input
@@ -192,6 +234,7 @@ const SignupForm = () => {
                                 placeholder="이메일"
                                 value={formData.email}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
                         <div>
@@ -205,6 +248,7 @@ const SignupForm = () => {
                                 placeholder="비밀번호"
                                 value={formData.password}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
                         <div>
@@ -218,6 +262,7 @@ const SignupForm = () => {
                                 placeholder="비밀번호 확인"
                                 value={formData.passwordConfirm}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
                     </div>
@@ -233,8 +278,8 @@ const SignupForm = () => {
                             type="submit"
                             disabled={loading}
                             className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                                loading 
-                                    ? 'bg-blue-400 cursor-not-allowed' 
+                                loading
+                                    ? 'bg-blue-400 cursor-not-allowed'
                                     : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                             }`}
                         >
@@ -247,6 +292,7 @@ const SignupForm = () => {
                             type="button"
                             onClick={() => navigate('/login')}
                             className="font-medium text-blue-600 hover:text-blue-500"
+                            disabled={loading}
                         >
                             이미 계정이 있으신가요? 로그인
                         </button>
@@ -257,4 +303,4 @@ const SignupForm = () => {
     );
 };
 
-export default SignupForm; 
+export default SignupForm;

@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import customAxios from '../../utils/customAxios.js';
-import Header from "../../components/common/Header.jsx";
-import Footer from "../../components/common/Footer.jsx";
 
 function ProductRegister() {
     // 로그인 시 저장한 access token을 로컬 스토리지에서 가져옵니다.
     const token = localStorage.getItem('accessToken');
+    // console.log('access token:', token);
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         categoryId: '',
@@ -59,13 +58,11 @@ function ProductRegister() {
         });
 
         try {
-            await customAxios().post('/api/products', formDataToSend, {
-                // axios가 FormData를 전송할 때 Content-Type은 자동으로 설정되므로 직접 지정하지 않습니다.
+            await customAxios.post('/api/products', formDataToSend, {
                 headers: {
                     'Authorization': token ? `Bearer ${token}` : ''
-                    // 'Content-Type': 'multipart/form-data'
                 },
-                withCredentials: false
+                withCredentials: true
             });
             navigate('/products');
         } catch (error) {
@@ -75,7 +72,6 @@ function ProductRegister() {
 
     return (
         <>
-            <Header />
             <div className="container mt-5">
                 <h2>상품 등록</h2>
                 <form onSubmit={handleSubmit}>
@@ -152,7 +148,6 @@ function ProductRegister() {
                     <button type="submit" className="btn btn-primary">상품 등록</button>
                 </form>
             </div>
-            <Footer />
         </>
     );
 }
