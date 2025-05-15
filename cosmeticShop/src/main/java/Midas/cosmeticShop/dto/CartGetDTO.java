@@ -17,10 +17,10 @@ public class CartGetDTO {
     private Long id;
     private Long productId;
     private String productName;
+    private int quantity;
     private String companyName;
     private int price;
     private String productImage;
-    private int quantity;
 
     public CartGetDTO(Cart cart) {
         this.id = cart.getId();

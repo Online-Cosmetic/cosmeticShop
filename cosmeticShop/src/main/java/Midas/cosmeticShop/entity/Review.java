@@ -52,6 +52,6 @@ public class Review {
     private LocalDateTime revisedAt;
 
     /* 리뷰이미지와 양방향 연관관계 */
-    @OneToMany(mappedBy = "review")
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReviewImage> reviewImages;
 }

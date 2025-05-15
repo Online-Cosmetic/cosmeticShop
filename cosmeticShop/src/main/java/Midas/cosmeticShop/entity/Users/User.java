@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @SuperBuilder
-@Entity @Table(name = "users")
+@Entity
+@Table(name = "users")
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor

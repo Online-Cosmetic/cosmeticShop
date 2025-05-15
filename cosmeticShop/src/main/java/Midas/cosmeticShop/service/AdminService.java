@@ -5,7 +5,6 @@ import Midas.cosmeticShop.dto.ReviewDTO;
 import Midas.cosmeticShop.entity.BadKeyword;
 import Midas.cosmeticShop.entity.Review;
 import Midas.cosmeticShop.entity.Users.User;
-import Midas.cosmeticShop.entity.Users.UserRole;
 import Midas.cosmeticShop.repository.BadKeywordRepository;
 import Midas.cosmeticShop.repository.ReviewRepository;
 import Midas.cosmeticShop.repository.Users.UserRepository;
@@ -35,7 +34,7 @@ public class AdminService {
 
     public List<BadKeywordDTO> getBadkeywords (String userId) {
         User user = UserRepo.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
         List<BadKeyword> badKeywordList = BadKeywordRepo.findAll();
@@ -48,7 +47,7 @@ public class AdminService {
 
     public void postBadKeyword (String keyword, String userId) {
         User user = UserRepo.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
         BadKeyword badKeyword = new BadKeyword();
@@ -58,17 +57,17 @@ public class AdminService {
 
     public void deleteBadKeyword (Long badKeywordId, String userId) {
         User user = UserRepo.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
         BadKeyword badKeyword = BadKeywordRepo.findById(badKeywordId)
-                .orElseThrow(() -> new EntityNotFoundException("키워드가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("키워드가 존재하지 않습니다."));
         BadKeywordRepo.delete(badKeyword);
     }
 
     public List<ReviewDTO> getBadReviews (String userId) {
         User user = UserRepo.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
         List<BadKeyword> badKeywordList = BadKeywordRepo.findAll();
@@ -88,7 +87,7 @@ public class AdminService {
     @Transactional
     public void deleteBadReviews (String userId) {
         User user = UserRepo.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
         List<BadKeyword> badKeywordList = BadKeywordRepo.findAll();
@@ -99,11 +98,11 @@ public class AdminService {
 
     public void deleteReview(Long reviewId, String userId) {
         User user = UserRepo.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
         Review review = ReviewRepo.findById(reviewId)
-                .orElseThrow(() -> new EntityNotFoundException("리뷰가 존재하지 않습니다."));
+            .orElseThrow(() -> new EntityNotFoundException("리뷰가 존재하지 않습니다."));
         ReviewRepo.delete(review);
     }
 

@@ -2,12 +2,9 @@ package Midas.cosmeticShop.controller;
 
 import Midas.cosmeticShop.dto.BadKeywordDTO;
 import Midas.cosmeticShop.dto.ReviewDTO;
-import Midas.cosmeticShop.entity.BadKeyword;
-import Midas.cosmeticShop.entity.Users.Admin;
 import Midas.cosmeticShop.service.AdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

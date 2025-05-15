@@ -27,13 +27,8 @@ public class Cart {
     // 상품과의 연관관계
     /* 2차 수정 : ManyToOne ? OneToMany ? */
     @ManyToOne(fetch = FetchType.LAZY)
-//    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_option_id", nullable = true)
-    private ProductOption productOption;
 
     @Column(nullable = false)
     private int quantity;

@@ -1,7 +1,6 @@
 package Midas.cosmeticShop.entity.Users;
 
 import Midas.cosmeticShop.dto.Join.CompanyJoinDTO;
-import Midas.cosmeticShop.dto.Join.UserJoinDTO;
 import Midas.cosmeticShop.entity.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -46,6 +45,7 @@ public class Company extends BaseUser {
 
     @Column
     private boolean approved;
+
 
     /* orphanRemoval 옵션도 고려 */
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)

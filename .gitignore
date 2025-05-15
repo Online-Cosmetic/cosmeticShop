@@ -5,11 +5,14 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-cosmeticShop/src/main/java/Midas/cosmeticShop/service/CompanyDetailService.java
-cosmeticShop/src/main/java/Midas/cosmeticShop/service/CommonUserDetailService.java
-cosmeticShop/src/main/java/Midas/cosmeticShop/repository/Users/AdminRepository.java
-cosmeticShop/src/main/java/Midas/cosmeticShop/dto/CustomUserDeatils
+# 아래는 /login 이 로직 분리되면 여기서 빠질 애들
+cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserInfoDTO.java
+cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserResponse.java
+cosmeticShop/src/main/java/Midas/cosmeticShop/dto/Auth/LoginRequest.java
 
+
+# 없어도 되는 상품 관련 사진 코드 ?
+cosmeticShop/src/main/java/Midas/cosmeticShop/service/ProductImageService.java
 
 ### STS ###
 .apt_generated

@@ -2,8 +2,6 @@ package Midas.cosmeticShop.controller;
 
 import Midas.cosmeticShop.dto.CartGetDTO;
 import Midas.cosmeticShop.dto.CartPostDTO;
-import Midas.cosmeticShop.entity.Cart;
-import Midas.cosmeticShop.repository.CartRepository;
 import Midas.cosmeticShop.service.CartService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

@@ -20,7 +20,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Collections;
-import java.util.List;
 
 /*
     시큐리티 필터를 타는 로그인 방식의 동작은
@@ -35,13 +34,11 @@ public class SecurityConfig {
     private final RefreshTokenService refreshTokenService; // 생성자에 주입
     private final BaseUserRepository baseUserRepository;
 
-
     public SecurityConfig(JWTUtil jwtUtil, RefreshTokenService refreshTokenService, BaseUserRepository baseUserRepository) {
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
         this.baseUserRepository = baseUserRepository;
     }
-
 
     /* 인증할 때 비밀번호를 해시로 암호화해서 검증하고 진행하기 위함 */
     @Bean
@@ -87,7 +84,9 @@ public class SecurityConfig {
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
                         configuration.setMaxAge(3600L);
-                        configuration.setExposedHeaders(List.of("Authorization","Refresh-Token")); // 리프레시 토큰 구현위한 수정
+
+                        configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
+                        configuration.setExposedHeaders(Collections.singletonList("access"));
                         return configuration;
                     }
                 }));
@@ -105,9 +104,14 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/login",
                     "/api/auth/signup/**",
-                    "api/auth/logout",
-                    "api/auth/refresh")
-                .permitAll()
+                    "/api/auth/logout",
+                    "/api/auth/reissue",
+                    "/api/auth/validate-token").permitAll()
+                // 상품 관련
+                .requestMatchers(
+                    "/api/products"
+                ).permitAll()
+//                hasRole("COMPANY")  // 이후에 이걸로 교체
                 // HTML 페이지
                 .requestMatchers(
                     "/",
@@ -135,8 +139,10 @@ public class SecurityConfig {
             new JWTFilter(jwtUtil, baseUserRepository)
             , UsernamePasswordAuthenticationFilter.class // JWTFilter 먼저 등록
         );
-            // LoginFilter가 아직 체인에 들어가기 전이라면 예상과 다른 위치에 놓일 가능성이 있으니
-            // 그냥 UsernamePasswordAuthenticationFilter.class 사용
+             /*
+                LoginFilter가 아직 체인에 들어가기 전이라면 예상과 다른 위치에 놓일 가능성이 있으니
+                그냥 UsernamePasswordAuthenticationFilter.class 사용
+            */
 
         http.addFilterAt(
             loginFilter,
@@ -144,15 +150,10 @@ public class SecurityConfig {
         );
 
 
-        //세션 설정 : stateless 설정
+        //세션 설정 : stateless
         http.sessionManagement((session) -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
-    /* 여러개의 SecurityFilterChain 설정을 위한 2번째 필터체인 메소드 */
-//    @Bean
-//    public SecurityFilterChain filterChain2(HttpSecurity http) throws Exception {
-//        return http.build();
-//    }
 }

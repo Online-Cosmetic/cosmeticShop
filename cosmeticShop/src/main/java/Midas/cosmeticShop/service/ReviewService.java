@@ -1,6 +1,5 @@
 package Midas.cosmeticShop.service;
 
-import Midas.cosmeticShop.dto.QnaListDTO;
 import Midas.cosmeticShop.dto.ReviewDTO;
 import Midas.cosmeticShop.dto.ReviewPostDTO;
 import Midas.cosmeticShop.dto.ReviewPutDTO;

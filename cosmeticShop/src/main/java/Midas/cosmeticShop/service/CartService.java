@@ -4,10 +4,8 @@ import Midas.cosmeticShop.dto.CartGetDTO;
 import Midas.cosmeticShop.dto.CartPostDTO;
 import Midas.cosmeticShop.entity.Cart;
 import Midas.cosmeticShop.entity.Product;
-import Midas.cosmeticShop.entity.ProductOption;
 import Midas.cosmeticShop.entity.Users.User;
 import Midas.cosmeticShop.repository.CartRepository;
-import Midas.cosmeticShop.repository.ProductOptionRepository;
 import Midas.cosmeticShop.repository.ProductRepository;
 import Midas.cosmeticShop.repository.Users.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,13 +20,11 @@ public class CartService {
     private final CartRepository CartRepo;
     private final UserRepository UserRepo;
     private final ProductRepository ProductRepo;
-    private final ProductOptionRepository ProductOptionRepo;
 
-    public CartService (CartRepository CartRepo, UserRepository UserRepo, ProductRepository ProductRepo, ProductOptionRepository ProductOptionRepo) {
+    public CartService (CartRepository CartRepo, UserRepository UserRepo, ProductRepository ProductRepo) {
         this.CartRepo = CartRepo;
         this.UserRepo = UserRepo;
         this.ProductRepo = ProductRepo;
-        this.ProductOptionRepo = ProductOptionRepo;
     }
 
     public List<CartGetDTO> getCarts(String userId) {
@@ -50,9 +46,6 @@ public class CartService {
         Product product = ProductRepo.findById(cartPostDTO.getProductId())
                         .orElseThrow(() -> new EntityNotFoundException("상품이 존재하지 않습니다."));
         cart.setProduct(product);
-        ProductOption productOption = ProductOptionRepo.findById(cartPostDTO.getProductOptionId())
-                .orElseThrow(() -> new EntityNotFoundException("상품 옵션이 존재하지 않습니다."));
-        cart.setProductOption(productOption);
         cart.setQuantity(cartPostDTO.getQuantity());
         CartRepo.save(cart);
     }
