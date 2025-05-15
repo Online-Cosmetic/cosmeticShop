@@ -85,4 +85,7 @@ public class User extends BaseUser {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CouponMapping> coupons;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductLike> productLikes;
+
 }

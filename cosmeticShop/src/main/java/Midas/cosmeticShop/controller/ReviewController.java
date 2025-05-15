@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/reviews")
 public class ReviewController {
 
     private final ReviewService reviewService;
@@ -19,12 +20,12 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @GetMapping("/reviews")
+    @GetMapping
     public ResponseEntity<List<ReviewDTO>> getReview (@RequestParam("ProductId") Long productId) {
         return ResponseEntity.ok().body(reviewService.getReview(productId));
     }
 
-    @PostMapping("/reviews")
+    @PostMapping
     public ResponseEntity<Void> postReview (@RequestBody ReviewPostDTO reviewPostDTO,
                                             Authentication authentication) {
         reviewService.postReview(reviewPostDTO, authentication.getName());
@@ -32,7 +33,7 @@ public class ReviewController {
     }
 
     //rating도 수정되게 할건지?
-    @PutMapping("/reviews/{reviewId}")
+    @PutMapping("/{reviewId}")
     public ResponseEntity<Void> putReview (@PathVariable("reviewId") Long id,
                                            @RequestBody ReviewPutDTO reviewPutDTO,
                                            Authentication authentication) {
@@ -40,7 +41,7 @@ public class ReviewController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/review/{reviewId}")
+    @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable("reviewId") Long id,
                                              Authentication authentication) {
         reviewService.deleteReview(id, authentication.getName());
