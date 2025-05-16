@@ -17,33 +17,40 @@ export default function Header() {
 
         if (user.role === 'ROLE_USER') {
             return (
-                <div className="flex items-center space-x-4">
-                    <Link to="/user/mypage" className="text-gray-700 hover:text-emerald-600">
-                        <i className="fas fa-user mr-1"></i> My Page
-                    </Link>
-                    <Link to="/user/cart" className="text-gray-700 hover:text-emerald-600">
-                        <i className="fas fa-shopping-cart mr-1"></i> Cart
-                    </Link>
-                    <Link to="/user/orders" className="text-gray-700 hover:text-emerald-600">
-                        <i className="fas fa-history mr-1"></i> Order History
-                    </Link>
-                </div>
+                <nav className="border-b border-gray-300">
+                    <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
+                        <Link to="/user/mypage" className="text-gray-700 hover:text-emerald-600">
+                            <i className="fas fa-user mr-1"></i> My Page
+                        </Link>
+                        <Link to="/user/cart" className="text-gray-700 hover:text-emerald-600">
+                            <i className="fas fa-shopping-cart mr-1"></i> Cart
+                        </Link>
+                        <Link to="/user/orders" className="text-gray-700 hover:text-emerald-600">
+                            <i className="fas fa-history mr-1"></i> Order History
+                        </Link>
+                        <Link to="/qna">
+                            Q&A
+                        </Link>
+                    </div>
+                </nav>
             );
         }
 
         if (user.role === 'ROLE_COMPANY') {
             return (
-                <div className="flex items-center space-x-4">
-                    <Link to="/company/dashboard" className="text-gray-700 hover:text-emerald-600">
-                        <i className="fas fa-tachometer-alt mr-1"></i> Dashboard
-                    </Link>
-                    <Link to="/company/product/register" className="text-gray-700 hover:text-emerald-600">
-                        <i className="fas fa-plus-circle mr-1"></i> Add Product
-                    </Link>
-                    <Link to="/company/products" className="text-gray-700 hover:text-emerald-600">
-                        <i className="fas fa-box mr-1"></i> Products
-                    </Link>
-                </div>
+                <nav className="border-b border-gray-300">
+                    <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
+                        <Link to="/company/dashboard" className="text-gray-700 hover:text-emerald-600">
+                            <i className="fas fa-tachometer-alt mr-1"></i> Dashboard
+                        </Link>
+                        <Link to="/company/product/register" className="text-gray-700 hover:text-emerald-600">
+                            <i className="fas fa-plus-circle mr-1"></i> Add Product
+                        </Link>
+                        <Link to="/company/products" className="text-gray-700 hover:text-emerald-600">
+                            <i className="fas fa-box mr-1"></i> Products
+                        </Link>
+                    </div>
+                </nav>
             );
         }
 
@@ -59,13 +66,20 @@ export default function Header() {
                 </Link>
 
                 {/* 기본 내비게이션 메뉴 */}
-                <nav className="space-x-6">
-                    <Link to="/" className="hover:text-emerald-600">
-                        Home
-                    </Link>
-                    <Link to="/products" className="hover:text-emerald-600">
-                        Products
-                    </Link>
+                <nav className="border-b border-gray-300">
+                    <div className="flex justify-center space-x-10 py-2 text-xl">
+                        <Link to="/" className="hover:text-emerald-600">
+                            Home
+                        </Link>
+                        <Link to="/products" className="hover:text-emerald-600">
+                            Products
+                        </Link>
+                        {/* 아래 4개 메뉴도*/}
+                        <span>Makeup</span>
+                        <span>Skincare</span>
+                        <span>Hair</span>
+                        <span>Body</span>
+                    </div>
                 </nav>
 
                 {/* 사용자 상태별 메뉴 */}

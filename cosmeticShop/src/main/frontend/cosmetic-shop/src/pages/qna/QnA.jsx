@@ -1,61 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { SmallButton, Pagination }  from '../../components/ui/Button/index.jsx';
+import { Title } from '../../components/ui/Text/index.jsx';
+import { QnASearchBar } from '../../components/ui/QnASearchBar.jsx';
+import { PostForm } from '../../components/ui/PostForm.jsx';
 
 const QnA = () => {
     const [allPosts, setAllPosts] = useState([]);
     const [posts, setPosts] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-
-    // 기본 기간 설정
-    const getDefault = () => {
-        const today = new Date();
-        const lastMonth = new Date(today);
-        lastMonth.setMonth(lastMonth.getMonth() - 1);
-
-        return {
-            startDate: lastMonth.toISOString().split("T")[0],
-            endDate: today.toISOString().split("T")[0]
-        };
-    };
-
-    const { startDate: defaultStart, endDate: defaultEnd } = getDefault();
-    const [startDate, setStartDate] = useState(defaultStart);
-    const [endDate, setEndDate] = useState(defaultEnd);
+    const [searchOption, setSearchOption] = useState('title');
+    const [searchKeyword, setSearchKeyword] = useState('');
 
     useEffect(() => {
         handleSearch();
-    }, []);
-        
+    }, [searchOption, searchKeyword]);
+
     // 기간 조회
     const postsPerPage = 10;
 
     const handleSearch = async () => {
         try {
-            // const response = await axios.get('/qnaDummy.json');
-            const response = await axios.get('/api/qna', {
+            const response = await axios.get('/api/qna', { // 백엔드에서 불러오기
                 params: {
                     startDate: startDate,
                     endDate: endDate
                 }
             });
-            const result = response.data;
+            let result = response.data;
+            result = result.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            const filtered = result.filter(post => {
-                const postDate = new Date(post.date);
-                const sDate = new Date(startDate);
-                const eDate = new Date(endDate);
-    
-                return postDate >= sDate && postDate <= eDate;
-            });
-    
-            setAllPosts(filtered);
+            if (searchKeyword.trim() !== "") {
+                result = result.filter((post) => {
+                    const value = post[searchOption];
+                    return value?.toLowerCase().includes(searchKeyword.toLowerCase());
+                });
+            }
+
+            setAllPosts(result);
             setPage(1);
 
-            const pages = Math.ceil(filtered.length / postsPerPage);
+            const pages = Math.ceil(result.length / postsPerPage);
             setTotalPages(pages);
 
-            const currentPagePosts = filtered.slice(0, postsPerPage);
+            const currentPagePosts = result.slice(0, postsPerPage);
             setPosts(currentPagePosts);
         } catch (error) {
             console.error("조회 실패:", error);
@@ -71,62 +60,34 @@ const QnA = () => {
     },[page, allPosts])
 
     return (
-        <div>
-            <h1>Q&A</h1>
-            <div id="period">
-                <label>기간</label>
-                <input 
-                    type="date" 
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                />
-                ~
-                <input 
-                    type="date" 
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                />
-                <button type="button" onClick={ handleSearch }>조회</button>
+        <div className="qna relative">
+            <Title text="Q&A" />
+            <div className='qna-search-form'>
+                <QnASearchBar onSearch={(option, keyword) => {
+                    setSearchOption(option);
+                    setSearchKeyword(keyword);
+                }} />
             </div>
-
-            <table>
-                <thead>
-                    <tr>
-                    <th>#</th>
-                        <th>State</th>
-                        <th>Title</th>
-                        <th>Author</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {posts.length === 0 ? (
-                        <tr>
-                            <td>NO DATA</td>
-                        </tr>
-                    ) : (
-                        posts.map(post => (
-                            <tr key={post.id}>
-                                <td>{post.id}</td>
-                                    <td>{post.state}</td>
-                                    <td>{post.title}</td>
-                                    <td>{post.author}</td>
-                                    <td>{post.date}</td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-
-            {totalPages > 1 && (
-                <div>
-                    <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>prev</button>
-                    <span>{page}</span>
-                    <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>next</button>
-                </div>
-            )}
-            <div>
-                <a href="">write</a>
+            <hr className="line"/>
+            <div className='posts-container'>
+                {posts.length === 0 ? (
+                    <div className='flex flex-col items-center justify-center text-xl'>NO DATA</div>
+                ) : (
+                    posts.map(post => (
+                        <PostForm key={post.id} post={post} />
+                    ))
+                )}
+            </div>
+            <div className="post-buttons">
+                <Pagination
+                    className="pagination" page={page}
+                    totalPages={totalPages}
+                    onPageChange={(newPage) => setPage(newPage)}
+                />
+                <SmallButton
+                    className="write-button"
+                    text="Write" onClick={ handleSearch }
+                />
             </div>
 
         </div>

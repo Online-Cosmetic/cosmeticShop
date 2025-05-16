@@ -37,12 +37,10 @@ public class QnaController {
         return ResponseEntity.ok().body(qnaService.getQnasByUser(nickname));
     }
 
-
     @GetMapping("/search/title")
     public ResponseEntity<List<QnaListDTO>> getQnasByTitle(@RequestParam("title") String title) {
         return ResponseEntity.ok().body(qnaService.getQnasByTitle(title));
     }
-
 
     //Qna 상세 정보 반환 (상세페이지용)
     @GetMapping("/detail/{qnaId}")

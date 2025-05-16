@@ -11,9 +11,8 @@ function QnAList() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const currentData = qnaData.slice(startIndex, startIndex + itemsPerPage);
 
-    // axion get 요청
      useEffect(() => {
-         customAxios.get("/api/qna") // API
+         customAxios.get("/api/qnas") // API
             .then((response) => {
                 setQnaData(response.data);
             })

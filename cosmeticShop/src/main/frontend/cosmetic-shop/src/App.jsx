@@ -7,17 +7,19 @@ import { AuthProvider } from './contexts/AuthContext';
 import { emitter } from "./utils/customAxios.js";
 
 // 공통 컴포넌트
-import Header from './components/common/Header.jsx';
+import UserHeader from './components/common/UserHeader.jsx';
 import Footer from "./components/common/Footer.jsx";
 import ProtectedRoute from './components/ProtectedRoute';
 
 // 사용자 페이지
-import ProductList from "./components/product/ProductList.jsx";
+import ProductList from "./pages/product/ProductList.jsx";
 import ProductDetail from "./pages/product/ProductDetail.jsx";
 import Cart from "./pages/cart/Cart.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
 // import QnA from "./pages/qna/QnA.jsx";
 import QnA from "./pages/qna/QnAList.jsx";
+import Order from "./pages/order/Order.jsx";
+// import Checkout from "./pages/payment/Checkout.jsx";
 
 import UserLogin from './pages/auth/UserLogin.jsx';
 import SignUp from './pages/auth/SignUp.jsx';
@@ -28,7 +30,7 @@ import EnterpriseMain from './pages/enterprise/EnterpriseMain.jsx';
 import ProductRegister from "./pages/product/ProductRegister.jsx";
 import EnterpriseLogin from './pages/auth/EnterpriseLogin.jsx';
 import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
-import ProductManagement from './pages/enterprise/ProductManagement.jsx';
+import ProductManagement from './pages/product/ProductManagement.jsx';
 
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
@@ -38,7 +40,7 @@ import data from './utils/data.js';
 
 const PublicLayout = ({ children }) => (
     <>
-        <Header />
+        <UserHeader />
         {children}
         <Footer />
     </>
@@ -135,6 +137,8 @@ const App = () => {
                                     <Route path="mypage" element={<MyPage />} />
                                     <Route path="cart" element={<Cart />} />
                                     <Route path="orders" element={<OrderHistory />} />
+                                    <Route path="order" element={<Order />} />
+                                    {/*<Route path="checkout" element={<Checkout />} />*/}
                                 </Routes>
                             </PublicLayout>
                         </ProtectedRoute>

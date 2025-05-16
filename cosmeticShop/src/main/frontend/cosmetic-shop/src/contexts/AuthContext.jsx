@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../utils/axios';
+import { authAPI } from '../utils/customAxios';
 
 const AuthContext = createContext(null);
 
@@ -10,43 +10,52 @@ export const AuthProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // 앱 시작시 로그인 상태 확인
+    // 앱 시작시 토큰 확인
     useEffect(() => {
-        const checkAuth = async () => {
+        const checkAuth = () => {
             const token = localStorage.getItem('accessToken');
-            if (!token) {
-                setLoading(false);
-                return;
+            if (token) {
+                // 토큰이 있다면 저장된 사용자 정보 복원
+                const savedUser = JSON.parse(localStorage.getItem('user'));
+                if (savedUser) {
+                    setUser(savedUser);
+                }
             }
-
-            try {
-                const response = await axios.get('/auth/me');
-                setUser(response.data.user);
-            } catch (err) {
-                console.error('Auth check failed:', err);
-                localStorage.removeItem('accessToken');
-            } finally {
-                setLoading(false);
-            }
+            setLoading(false);
         };
 
         checkAuth();
     }, []);
 
+    // 사용자 정보 갱신이 필요한 경우 호출
+    const refreshUserInfo = async () => {
+        try {
+            const response = await authAPI.me();
+            setUser(response.data.user);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+        } catch (error) {
+            console.error('Failed to refresh user info:', error);
+            // 토큰이 유효하지 않은 경우
+            if (error.response?.status === 401) {
+                logout();
+            }
+        }
+    };
+
     // 로그인
     const login = async (credentials) => {
         try {
-            const response = await axios.post('/auth/login', credentials);
+            const response = await authAPI.login(credentials);
             const { userId, role, accessToken } = response.data;
 
             if (response.data.errorMessage) {
                 throw new Error(response.data.errorMessage);
             }
 
+            const userData = { userId, role };
             localStorage.setItem('accessToken', accessToken);
-            setUser({ userId, role });
-            // Access token을 Authorization 헤더에 설정
-            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            localStorage.setItem('user', JSON.stringify(userData));
+            setUser(userData);
 
             // 사용자 역할에 따른 리다이렉트
             if (role === 'ROLE_USER') {
@@ -71,10 +80,10 @@ export const AuthProvider = ({ children }) => {
     // 로그아웃
     const logout = async () => {
         try {
-            await axios.post('/auth/logout');
+            await authAPI.logout();
             setUser(null);
-            delete axios.defaults.headers.common['Authorization'];
             localStorage.removeItem('accessToken');
+            localStorage.removeItem('user');
             navigate('/login');
         } catch (error) {
             console.error('Logout failed:', error);
@@ -87,7 +96,7 @@ export const AuthProvider = ({ children }) => {
         try {
             setLoading(true);
             setError(null);
-            const response = await axios.post('/auth/signup/user', userData);
+            const response = await authAPI.signup.user(userData);
             navigate('/login', {
                 state: { message: '회원가입이 완료되었습니다. 로그인해주세요.' }
             });
@@ -106,7 +115,7 @@ export const AuthProvider = ({ children }) => {
         try {
             setLoading(true);
             setError(null);
-            const response = await axios.post('/auth/signup/company', companyData);
+            const response = await authAPI.signup.company(companyData);
             navigate('/login', {
                 state: { message: '회원가입이 완료되었습니다. 로그인해주세요.' }
             });
@@ -134,6 +143,7 @@ export const AuthProvider = ({ children }) => {
         registerUser,
         registerCompany,
         hasRole,
+        refreshUserInfo,
         isAuthenticated: !!user,
     };
 
