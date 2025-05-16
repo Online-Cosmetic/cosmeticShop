@@ -16,7 +16,7 @@ public class BaseUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        System.out.println("user.getRole() = " + user.getRole());
+//        System.out.println("user.getRole() = " + user.getRole());
         return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));  // ex) ROLE_USER, ROLE_COMPANY
     }
 
@@ -30,18 +30,10 @@ public class BaseUserDetails implements UserDetails {
     @Override
     public boolean isAccountNonExpired() { return true; }
 
-    @Override
-    public boolean isAccountNonLocked() { return true; }
-
-    @Override
-    public boolean isCredentialsNonExpired() { return true; }
-
-    @Override
-    public boolean isEnabled() { return true; }
-
+    // 도메인 객체 그대로 꺼내 쓰고 싶을 때
     public BaseUser getDomain() {
         return user;
-    }   // 도메인 객체 그대로 꺼내 쓰고 싶을 때
+    }
 
 }
 

@@ -3,7 +3,6 @@ package Midas.cosmeticshop.config.security;
 import Midas.cosmeticshop.jwt.JWTUtil;
 import Midas.cosmeticshop.jwt.JWTFilter;
 import Midas.cosmeticshop.repository.user.BaseUserRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,9 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.Collections;
 import java.util.List;
@@ -59,11 +56,6 @@ public class SecurityConfig {
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-//    @Bean(name = "mvcHandlerMappingIntrospector")
-//    public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
-//        return new HandlerMappingIntrospector();
-//    }
 
     @Bean
     public SecurityFilterChain filterChain(
@@ -125,7 +117,12 @@ public class SecurityConfig {
                 // 상품 관련
                 .requestMatchers(
                     "/carts",
-                    "api/orders/"
+                    "/api/orders/"
+                ).permitAll()
+
+                // QNA 관련
+                .requestMatchers(
+                    "/api/qnas/**"
                 ).permitAll()
 
                 .requestMatchers(

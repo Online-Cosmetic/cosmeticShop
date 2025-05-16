@@ -5,6 +5,7 @@ import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.auth.LoginRequest;
 import Midas.cosmeticshop.dto.auth.UserDTO;
 import Midas.cosmeticshop.jwt.JWTUtil;
+import Midas.cosmeticshop.repository.user.BaseUserRepository;
 import Midas.cosmeticshop.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +28,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
+    private final BaseUserRepository baseUserRepository;
     private final RefreshTokenService refreshSvc;
     private final JWTUtil jwtUtil;
 
@@ -49,6 +51,10 @@ public class AuthController {
                 loginRequest.getPassword()
             )
         );
+
+        if(loginRequest.getRole() == null) {
+            assignRole(loginRequest);
+        }
 
         // 2) 유저 정보와 권한 추출
         BaseUserDetails userDetails = (BaseUserDetails) auth.getPrincipal();
@@ -79,22 +85,33 @@ public class AuthController {
         return ResponseEntity.ok(body);
     }
 
-// 삭제: @RequestBody LogoutRequest dto
-@PostMapping("/logout")
-public ResponseEntity<Void> logout(HttpServletRequest request,
-                                   HttpServletResponse response) {
-    // 1) 쿠키에서 refreshToken 직접 추출
-    String refreshToken = refreshSvc.getRefreshFromCookie(request);
-    if (refreshToken != null) {
-        // 2) DB/로직에서 해당 토큰 무효화
-        refreshSvc.invalidate(refreshToken);
+    // localhost:9000 에서 API 테스트 할때만 호출될 메소드
+    private void assignRole(LoginRequest loginRequest) {
+        loginRequest.setRole(
+            "ROLE_" +
+                baseUserRepository
+                .findByUserId(loginRequest.getUserId())
+                .get()
+                .getRole()
+        );
     }
-    // 3) 만료 쿠키로 덮어쓰기
-    response.addCookie(jwtUtil.createDeleteCookie("refresh"));
-    // 4) SecurityContext 초기화
-    SecurityContextHolder.clearContext();
-    return ResponseEntity.ok().build();
-}
+
+    // 삭제: @RequestBody LogoutRequest dto
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request,
+                                    HttpServletResponse response) {
+        // 1) 쿠키에서 refreshToken 직접 추출
+        String refreshToken = refreshSvc.getRefreshFromCookie(request);
+        if (refreshToken != null) {
+            // 2) DB/로직에서 해당 토큰 무효화
+            refreshSvc.invalidate(refreshToken);
+        }
+        // 3) 만료 쿠키로 덮어쓰기
+        response.addCookie(jwtUtil.createDeleteCookie("refresh"));
+        // 4) SecurityContext 초기화
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/validate-token")
     public ResponseEntity<Void> validateToken() {

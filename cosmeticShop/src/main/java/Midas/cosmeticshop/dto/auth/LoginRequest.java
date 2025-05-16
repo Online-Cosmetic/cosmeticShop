@@ -13,4 +13,13 @@ public class LoginRequest {
     private String userId;
     private String password;
     private String role;
+
+    @Override
+    public String toString() {
+        return "LoginRequest{" +
+                "userId='" + userId + '\'' +
+                ", password='" + password + '\'' +
+                ", role='" + role + '\'' +
+                '}';
+    }
 }
