@@ -1,67 +1,83 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
-import Header from "../../components/common/Header";
-import Footer from "../../components/common/Footer";
+// src/pages/user/UserLogin.jsx
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 
-function UserLogin() {
+export default function UserLogin() {
     const navigate = useNavigate();
     const { login } = useAuth();
-    const [creds, setCreds] = useState({ userId: "", password: "" });
+    const [creds, setCreds] = useState({ userId: '', password: '', role: 'ROLE_USER' });
+    const [error, setError] = useState('');
 
-    const handleChange = (e) => {
+    const handleChange = e => {
         const { name, value } = e.target;
-        setCreds((prev) => ({ ...prev, [name]: value }));
+        setCreds(prev => ({ ...prev, [name]: value }));
+        setError('');
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         try {
-            // 인증 API 호출 후 AuthContext 내 login 함수로 상태 업데이트
-            await login(creds);
-            navigate("/"); // 상태가 업데이트되면 헤더도 변경됨
+            const response = await login(creds);
+            if (response.success) {
+                navigate('/');
+            } else {
+                setError('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+            }
         } catch (err) {
-            console.error(err);
-            alert("로그인에 실패했습니다.");
+            console.error('Login error:', err);
+            if (err.response?.status === 403) {
+                setError('일반 회원 전용 로그인 페이지입니다. 기업 회원은 기업 로그인을 이용해주세요.');
+            } else {
+                setError('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+            }
         }
     };
 
     return (
-        <>
-            <Header />
-            <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="flex flex-col min-h-screen">
+            <main className="flex-1 flex items-center justify-center bg-white py-16">
                 <div className="w-full max-w-sm space-y-6">
-                    <h1 className="text-3xl font-bold text-gray-900">User Login</h1>
+                    <h1 className="text-3xl font-bold text-center">User Login</h1>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <input
                             name="userId"
                             value={creds.userId}
                             onChange={handleChange}
-                            type="text"
+                            className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                             placeholder="User ID"
-                            className="w-full px-4 py-2 border rounded"
+                            required
                         />
                         <input
                             name="password"
+                            type="password"
                             value={creds.password}
                             onChange={handleChange}
-                            type="password"
+                            className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                             placeholder="Password"
-                            className="w-full px-4 py-2 border rounded"
+                            required
                         />
-                        <button
-                            type="submit"
-                            className="w-full bg-black text-white py-3 rounded font-semibold hover:bg-gray-800"
-                        >
+                        {error && (
+                            <div className="text-red-500 text-sm text-center">
+                                {error}
+                            </div>
+                        )}
+                        <button type="submit" className="w-full py-3 bg-black text-white rounded-xl">
                             Log In
                         </button>
                     </form>
+                    <div className="text-right space-y-2">
+                        <p className="text-sm">
+                            Don't have an account?
+                            <Link to="/signUp" className="text-base text-black hover:underline ml-2">Sign Up</Link>
+                        </p>
+                        <p className="text-sm">
+                            Are you a business user?
+                            <Link to="/enterpriseLogin" className="ml-2 hover:underline">Business Login</Link>
+                        </p>
+                    </div>
                 </div>
-            </div>
-            <Footer />
-        </>
+            </main>
+        </div>
     );
 }
-
-export default UserLogin;

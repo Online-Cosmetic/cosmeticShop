@@ -1,67 +1,112 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+// src/components/common/Header.jsx
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 
 export default function Header() {
-    const { isAuthenticated, logout } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        try {
-            await logout();
-            navigate("/");
-        } catch (error) {
-            console.error("Logout failed:", error);
+        await logout();
+        navigate('/login');
+    };
+
+    const renderUserMenu = () => {
+        if (!user) return null;
+
+        if (user.role === 'ROLE_USER') {
+            return (
+                <div className="flex items-center space-x-4">
+                    <Link to="/user/mypage" className="text-gray-700 hover:text-emerald-600">
+                        <i className="fas fa-user mr-1"></i> My Page
+                    </Link>
+                    <Link to="/user/cart" className="text-gray-700 hover:text-emerald-600">
+                        <i className="fas fa-shopping-cart mr-1"></i> Cart
+                    </Link>
+                    <Link to="/user/orders" className="text-gray-700 hover:text-emerald-600">
+                        <i className="fas fa-history mr-1"></i> Order History
+                    </Link>
+                </div>
+            );
         }
+
+        if (user.role === 'ROLE_COMPANY') {
+            return (
+                <div className="flex items-center space-x-4">
+                    <Link to="/company/dashboard" className="text-gray-700 hover:text-emerald-600">
+                        <i className="fas fa-tachometer-alt mr-1"></i> Dashboard
+                    </Link>
+                    <Link to="/company/product/register" className="text-gray-700 hover:text-emerald-600">
+                        <i className="fas fa-plus-circle mr-1"></i> Add Product
+                    </Link>
+                    <Link to="/company/products" className="text-gray-700 hover:text-emerald-600">
+                        <i className="fas fa-box mr-1"></i> Products
+                    </Link>
+                </div>
+            );
+        }
+
+        return null;
     };
 
     return (
-        <header>
-            <nav className="bg-gray-100 border-b border-gray-300">
-                <div className="flex space-x-10 py-2 pr-6 text-gray-500">
-                    {isAuthenticated ? (
-                        <>
-                            <button onClick={handleLogout} className="hover:underline">
-                                Log Out
-                            </button>
-                            <Link to="/myPage">My Page</Link>
-                        </>
-                    ) : (
-                        <>
-                            <Link to="/logIn">LogIn</Link>
-                            <Link to="/signUp">Sign Up</Link>
-                            <Link to="/enterpriseLogIn">Enterprise LogIn</Link>
-                        </>
-                    )}
-                    <span>Cart</span>
-                    <span>Q&A</span>
-                </div>
-            </nav>
-            {/* 하단 내비게이션 영역은 그대로 유지 */}
-            <nav className="container mx-auto flex items-center justify-between py-4 px-6 border-b border-gray-300">
-                <Link to="/" className="text-xl text-black">
-                    cosMall
+        <header className="w-full bg-white shadow-md">
+            <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+                {/* 로고 */}
+                <Link to="/" className="text-2xl font-bold text-gray-800">
+                    CosMall
                 </Link>
-                <div className="flex space-x-4 text-gray-500">
-                    <Link to="/detail" className="text-gray-500 no-underline">
-                        Category
+
+                {/* 기본 내비게이션 메뉴 */}
+                <nav className="space-x-6">
+                    <Link to="/" className="hover:text-emerald-600">
+                        Home
                     </Link>
-                    <Link to="/event" className="text-gray-500 no-underline">
-                        Event
+                    <Link to="/products" className="hover:text-emerald-600">
+                        Products
                     </Link>
-                    <Link to="/faq" className="text-gray-500 no-underline">
-                        FAQ
-                    </Link>
+                </nav>
+
+                {/* 사용자 상태별 메뉴 */}
+                <div className="flex items-center space-x-6">
+                    {renderUserMenu()}
+                    <div className="flex items-center space-x-4">
+                        {user ? (
+                            <>
+                                <span className="text-gray-700">Hello, {user.userId}</span>
+                                <button
+                                    onClick={handleLogout}
+                                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
+                                >
+                                    Login
+                                </Link>
+                                <Link
+                                    to="/signup"
+                                    className="px-4 py-2 border border-emerald-500 text-emerald-500 rounded-lg hover:bg-emerald-50 transition"
+                                >
+                                    Sign Up
+                                </Link>
+                                <Link
+                                    to="/enterpriseLogin"
+                                    className="px-4 py-2 text-gray-700 hover:text-emerald-600 transition"
+                                >
+                                    Business Login
+                                </Link>
+                            </>
+                        )}
+                    </div>
                 </div>
-            </nav>
-            <nav className="border-b border-gray-300">
-                <div className="flex justify-center space-x-10 py-2 text-xl">
-                    <span>Makeup</span>
-                    <span>Skincare</span>
-                    <span>Hair</span>
-                    <span>Body</span>
-                </div>
-            </nav>
+            </div>
         </header>
     );
 }
