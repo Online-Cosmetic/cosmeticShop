@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class Product {
 
     /* 상품 이미지, 상품 옵션은 따로 구현 해야함 */

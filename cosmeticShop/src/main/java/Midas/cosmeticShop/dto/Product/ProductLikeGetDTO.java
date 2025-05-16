@@ -1,8 +1,9 @@
-package Midas.cosmeticShop.dto;
+package Midas.cosmeticShop.dto.Product;
 
 import Midas.cosmeticShop.entity.Cart;
 import Midas.cosmeticShop.entity.Product;
 import Midas.cosmeticShop.entity.ProductImage;
+import Midas.cosmeticShop.entity.ProductLike;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,19 +15,17 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartGetDTO {
-    private Long id;
+public class ProductLikeGetDTO {
+
     private Long productId;
     private String productName;
     private String companyName;
     private int price;
     private int discountedPrice;
     private String productImage;
-    private int quantity;
 
-    public CartGetDTO(Cart cart) {
-        this.id = cart.getId();
-        Product product = cart.getProduct();
+    public ProductLikeGetDTO(ProductLike productLike) {
+        Product product = productLike.getProduct();
         this.productId = product.getId();
         this.productName = product.getProductName();
         this.companyName = product.getCompany().getCompanyName();
@@ -36,6 +35,5 @@ public class CartGetDTO {
         if (productImages != null && !productImages.isEmpty()) {
             this.productImage = productImages.get(0).getImageUrl();
         }
-        this.quantity = cart.getQuantity();
     }
 }

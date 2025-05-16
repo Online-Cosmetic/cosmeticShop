@@ -12,7 +12,7 @@ import java.util.UUID;
 public class FileStorageService {
 
     private final Path fileStorageLocation = Paths.get(
-        "C:\\Users\\yongsuchoi\\ideaProjects\\cosMall\\cosmeticShop\\src\\main\\resources\\static\\images")
+        "C:\\Users\\admin\\Desktop\\cosmeticShop\\src\\main\\resources\\static\\images")
         .toAbsolutePath().normalize();
 
     public FileStorageService() {
