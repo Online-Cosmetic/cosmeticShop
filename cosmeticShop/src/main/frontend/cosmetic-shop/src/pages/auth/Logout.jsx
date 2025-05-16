@@ -1,7 +1,7 @@
 // export default Logout;
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import customAxios from '../../utils/customAxios';
+import customAxios from '../../utils/customAxios.js';
 import {useAuth} from "../../contexts/AuthContext.jsx";
 
 const Logout = () => {

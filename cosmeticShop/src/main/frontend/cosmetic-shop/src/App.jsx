@@ -12,24 +12,26 @@ import Footer from "./components/common/Footer.jsx";
 import ProtectedRoute from './components/ProtectedRoute';
 
 // 사용자 페이지
-import ProductList from "./components/user/ProductList.jsx";
-import ProductDetail from "./pages/user/ProductDetail.jsx";
-import Cart from "./pages/user/Cart.jsx";
+import ProductList from "./components/product/ProductList.jsx";
+import ProductDetail from "./pages/product/ProductDetail.jsx";
+import Cart from "./pages/cart/Cart.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
-import QnA from "./pages/user/QnA.jsx";
-import UserLogin from './pages/user/UserLogin.jsx';
-import SignUp from './pages/user/SignUp.jsx';
-import OrderHistory from './pages/user/OrderHistory.jsx';
+// import QnA from "./pages/qna/QnA.jsx";
+import QnA from "./pages/qna/QnAList.jsx";
+
+import UserLogin from './pages/auth/UserLogin.jsx';
+import SignUp from './pages/auth/SignUp.jsx';
+import OrderHistory from './pages/order/OrderHistory.jsx';
 
 // 기업 페이지
 import EnterpriseMain from './pages/enterprise/EnterpriseMain.jsx';
 import ProductRegister from "./pages/product/ProductRegister.jsx";
-import EnterpriseLogin from './pages/enterprise/EnterpriseLogin.jsx';
-import EnterpriseSignUp from "./pages/enterprise/EnterpriseSignUp.jsx";
+import EnterpriseLogin from './pages/auth/EnterpriseLogin.jsx';
+import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
 import ProductManagement from './pages/enterprise/ProductManagement.jsx';
 
 // 인증 관련 페이지
-import Logout from "./pages/user/Logout.jsx";
+import Logout from "./pages/auth/Logout.jsx";
 
 // 데이터
 import data from './utils/data.js';

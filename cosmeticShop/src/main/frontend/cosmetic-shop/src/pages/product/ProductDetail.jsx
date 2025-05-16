@@ -1,5 +1,5 @@
 import React from "react";
-import ProductList from "../../components/user/ProductList.jsx";
+import ProductList from "../../components/product/ProductList.jsx";
 import { useParams } from "react-router-dom";
 
 function Detail({ products, title }) {

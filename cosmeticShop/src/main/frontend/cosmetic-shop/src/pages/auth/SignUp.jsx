@@ -1,10 +1,10 @@
 // src/pages/signUp/SignUp.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext.jsx";
 
 function SignUp() {
-    const navigate = useNavigate();
+    useNavigate();
     const { registerUser } = useAuth();
     const [form, setForm] = useState({
         userId: "",
