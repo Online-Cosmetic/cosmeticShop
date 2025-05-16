@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/carts")
 public class CartController {
 
     private final CartService cartService;
@@ -18,29 +19,29 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @GetMapping("/carts")
+    @GetMapping("")
     public ResponseEntity<List<CartGetDTO>> getCarts(Authentication authentication) {
         return ResponseEntity.ok().body(cartService.getCarts(authentication.getName()));
     }
 
-    @PostMapping("/carts")
+    @PostMapping("")
     public ResponseEntity<Void> postCart(@RequestBody CartPostDTO cartPostDTO,
                                          Authentication authentication) {
         cartService.postCart(cartPostDTO, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/carts/{cartId}")
+    @PutMapping("/{cartId}")
     public ResponseEntity<Void> putCart(@PathVariable Long cartId,
-                                        @RequestParam("quantity")
-                                        int quantity,
+                                        @RequestParam("quantity") int quantity,
                                         Authentication authentication) {
         cartService.putCart(cartId, quantity, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/carts/{cartId}")
-    public ResponseEntity<Void> putCart(@PathVariable Long cartId, Authentication authentication) {
+    @DeleteMapping("/{cartId}")
+    public ResponseEntity<Void> putCart(@PathVariable Long cartId,
+                                        Authentication authentication) {
         cartService.deleteCart(cartId, authentication.getName());
         return ResponseEntity.ok().build();
     }

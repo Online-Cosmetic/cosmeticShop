@@ -16,7 +16,6 @@ public class BaseUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-//        System.out.println("user.getRole() = " + user.getRole());
         return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));  // ex) ROLE_USER, ROLE_COMPANY
     }
 

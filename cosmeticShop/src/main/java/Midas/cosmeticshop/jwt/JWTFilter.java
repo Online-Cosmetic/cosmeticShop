@@ -12,13 +12,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 public class JWTFilter extends OncePerRequestFilter {
@@ -56,14 +54,11 @@ public class JWTFilter extends OncePerRequestFilter {
                 Optional<BaseUser> userOpt = baseUserRepository.findByUserId(userId);
                 if (userOpt.isPresent()) {
                     BaseUser user = userOpt.get();
+
                     // 2) 엔티티 → UserDetails 변환
                     BaseUserDetails userDetails = new BaseUserDetails(user);
 
-                    // 3) 권한 세팅 (ROLE_ 접두어)
-//                    String roleClaim = claims.get("role", String.class);
-//                    System.out.println("roleClaim = " + roleClaim + " ");
-
-//                    SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + roleClaim);
+                    // 3) 권한 세팅 (ROLE_ 접두어) : PASS
 
                     // 4) AuthenticationToken 생성
                     UsernamePasswordAuthenticationToken auth =
@@ -95,67 +90,4 @@ public class JWTFilter extends OncePerRequestFilter {
             || path.startsWith("/api/auth/me")
             || path.startsWith("/api/auth/logout");
     }
-
-    //    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-//        throws ServletException, IOException {
-//
-//        // 1) Authorization 헤더에서 Bearer 토큰 꺼내기
-//        String header = request.getHeader("Authorization");
-//        String accessToken = null;
-//        if (header != null && header.startsWith("Bearer ")) {
-//            accessToken = header.substring(7);
-//        }
-//
-//        // 2) 토큰 없으면 다음
-//        if (accessToken == null || accessToken.isBlank()) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-//
-//        // 3) 서명·만료 검증
-//        if (!jwtUtil.validateToken(accessToken)) {
-//            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired access token");
-//            return;
-//        }
-//        if (!"access".equals(jwtUtil.getCategory(accessToken))) {
-//            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid access token category");
-//            return;
-//        }
-//
-//        // 4) 토큰 만료 시
-//        try {
-//            jwtUtil.isExpired(accessToken);
-//        } catch (ExpiredJwtException e) {
-//            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Access token expired");
-//            return;
-//        }
-//
-//        // username, role 값을 획득
-//        String userId = jwtUtil.getUserId(accessToken);
-//
-//        Optional<BaseUser> user = baseUserRepository.findByUserId(userId);
-//        if (user.isEmpty()) {
-//            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
-//            return;
-//        }
-//
-//        String role = jwtUtil.getRole(accessToken);
-//
-//        // ROLE_ 접두어 붙여서 Spring Security 스타일로 변환
-//        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
-//
-//        BaseUserDetails baseUserDetails = new BaseUserDetails(user.get());
-////        Authentication authToken = new UsernamePasswordAuthenticationToken(
-////            baseUserDetails, null, baseUserDetails.getAuthorities()
-////        );
-//        Authentication auth = new UsernamePasswordAuthenticationToken(
-//            baseUserDetails,      // principal
-//            null,             // credentials
-//            List.of(authority)
-//        );
-////        SecurityContextHolder.getContext().setAuthentication(authToken);
-//        SecurityContextHolder.getContext().setAuthentication(auth);
-//
-//        filterChain.doFilter(request, response);
-//    }
 }
