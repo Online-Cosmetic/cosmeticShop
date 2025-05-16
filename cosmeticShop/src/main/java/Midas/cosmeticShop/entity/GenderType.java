@@ -1,4 +1,4 @@
-package Midas.cosmeticShop.entity;
+package Midas.cosmeticshop.entity;
 
 public enum GenderType {
     MALE, FEMALE

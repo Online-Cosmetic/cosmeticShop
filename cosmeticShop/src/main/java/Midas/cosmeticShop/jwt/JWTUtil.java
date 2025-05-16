@@ -1,60 +1,8 @@
-//package Midas.cosmeticShop.jwt;
-//
-//import io.jsonwebtoken.Jwts;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.stereotype.Component;
-//
-//import javax.crypto.SecretKey;
-//import javax.crypto.spec.SecretKeySpec;
-//import java.nio.charset.StandardCharsets;
-//import java.util.Date;
-//
-//
-//@Component
-//public class JWTUtil { // 토큰 발급과 검증 기능을 구현할 클래스
-//
-//    private SecretKey secretKey;
-//
-//    public JWTUtil(@Value("${spring.jwt.secretKey}")String secret) {
-//        this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
-//    }
-//
-//    /* 아래 메소드 : 토큰의 특정 요소를 검증 */
-//    public String getUserId(String token) {
-//        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", String.class);
-//    }
-////    public String getUserName(String token) {
-////        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("username", String.class);
-////    }
-//    public String getRole(String token) {
-//        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", String.class);
-//    }
-//    public Boolean isExpired(String token) {
-//        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
-//    }
-//
-//    public String getCategory(String token) {
-//        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
-//    }
-//
-//
-//    /* JWT 를 발행하는 메서드 */
-//    public String createJwt(String category, String userId, String role, Long expireMs) {
-//        return Jwts.builder()
-//            .claim("category", category)
-//            .claim("userId", userId)
-//            .claim("role", role)
-//            .issuedAt(new Date(System.currentTimeMillis()))
-//            .expiration(new Date(System.currentTimeMillis() + expireMs))
-//            .signWith(secretKey)
-//            .compact();
-//    }
-//}
-
-package Midas.cosmeticShop.jwt;
+package Midas.cosmeticshop.jwt;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -70,11 +18,12 @@ import java.util.Date;
 @Component
 public class JWTUtil {
 
+    @Getter
     private final SecretKey secretKey;
     private final UserDetailsService userDetailsService;
 
     // 토큰 유효시간(ms) 상수 (필요 시 application.properties로 이동 가능)
-    private final long accessTokenValidityMs  = 600_000L;       // 10분
+    private final long accessTokenValidityMs  = 1000L * 60 * 30;     // 30분
     private final long refreshTokenValidityMs = 604_800_000L;   // 7일
 
     public JWTUtil(@Value("${spring.jwt.secretKey}") String secret,
@@ -86,8 +35,18 @@ public class JWTUtil {
         this.userDetailsService = userDetailsService;
     }
 
+    // 접두어("Bearer ") 제거하는 헬퍼 메소드 추가
+    protected String cleanToken(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
+        return token;
+    }
+
     // — 기존에 있던 메소드들 —
     public String getUserId(String token) {
+        token = cleanToken(token);
+
         return Jwts.parser().verifyWith(secretKey).build()
             .parseSignedClaims(token)
             .getPayload()
@@ -95,6 +54,8 @@ public class JWTUtil {
     }
 
     public String getRole(String token) {
+        token = cleanToken(token);
+
         return Jwts.parser().verifyWith(secretKey).build()
             .parseSignedClaims(token)
             .getPayload()
@@ -102,6 +63,8 @@ public class JWTUtil {
     }
 
     public Boolean isExpired(String token) {
+        token = cleanToken(token);
+
         Date exp = Jwts.parser().verifyWith(secretKey).build()
             .parseSignedClaims(token)
             .getPayload()
@@ -110,6 +73,8 @@ public class JWTUtil {
     }
 
     public String getCategory(String token) {
+        token = cleanToken(token);
+
         return Jwts.parser().verifyWith(secretKey).build()
             .parseSignedClaims(token)
             .getPayload()
@@ -121,8 +86,8 @@ public class JWTUtil {
             .claim("category", category)
             .claim("userId", userId)
             .claim("role", role)
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + expireMs))
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + expireMs))
             .signWith(secretKey)
             .compact();
     }
@@ -132,6 +97,8 @@ public class JWTUtil {
     /** 토큰이 유효한지(서명+만료) 검사 */
     public boolean validateToken(String token) {
         try {
+            token = cleanToken(token);
+
             var claims = Jwts.parser().verifyWith(secretKey).build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -143,6 +110,8 @@ public class JWTUtil {
 
     /** 쿠키에서 꺼낸 토큰으로 Authentication 생성 */
     public Authentication getAuthentication(String token) {
+        token = cleanToken(token);
+
         String userId = getUserId(token);
         var userDetails = userDetailsService.loadUserByUsername(userId);
         return new UsernamePasswordAuthenticationToken(
@@ -158,7 +127,8 @@ public class JWTUtil {
     public Cookie createCookie(String name, String token, long maxAgeMs) {
         Cookie cookie = new Cookie(name, token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);           // HTTPS 환경에서만 전송
+//        cookie.setSecure(false);
+        cookie.setSecure(true); // HTTPS 환경일 때만 전송
         cookie.setPath("/");
         cookie.setMaxAge((int)(maxAgeMs / 1000));
         // SameSite 설정은 Spring Boot 2.6+ 에서 application.properties 또는 response 헤더로 제어
@@ -169,7 +139,7 @@ public class JWTUtil {
     public Cookie createDeleteCookie(String name) {
         Cookie cookie = new Cookie(name, null);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
         return cookie;

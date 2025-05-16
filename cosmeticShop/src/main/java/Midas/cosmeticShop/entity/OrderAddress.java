@@ -1,4 +1,4 @@
-package Midas.cosmeticShop.entity;
+package Midas.cosmeticshop.entity;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;

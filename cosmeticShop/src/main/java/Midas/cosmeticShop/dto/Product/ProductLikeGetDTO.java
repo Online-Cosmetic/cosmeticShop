@@ -1,9 +1,8 @@
-package Midas.cosmeticShop.dto.Product;
+package Midas.cosmeticshop.dto.product;
 
-import Midas.cosmeticShop.entity.Cart;
-import Midas.cosmeticShop.entity.Product;
-import Midas.cosmeticShop.entity.ProductImage;
-import Midas.cosmeticShop.entity.ProductLike;
+import Midas.cosmeticshop.entity.product.Product;
+import Midas.cosmeticshop.entity.product.ProductImage;
+import Midas.cosmeticshop.entity.product.ProductLike;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

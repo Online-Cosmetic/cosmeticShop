@@ -1,9 +1,9 @@
-package Midas.cosmeticShop.controller;
+package Midas.cosmeticshop.controller;
 
-import Midas.cosmeticShop.dto.ReviewDTO;
-import Midas.cosmeticShop.dto.ReviewPostDTO;
-import Midas.cosmeticShop.dto.ReviewPutDTO;
-import Midas.cosmeticShop.service.ReviewService;
+import Midas.cosmeticshop.dto.ReviewDTO;
+import Midas.cosmeticshop.dto.ReviewPostDTO;
+import Midas.cosmeticshop.dto.ReviewPutDTO;
+import Midas.cosmeticshop.service.ReviewService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +20,12 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @GetMapping
+    @GetMapping("")
     public ResponseEntity<List<ReviewDTO>> getReview (@RequestParam("ProductId") Long productId) {
         return ResponseEntity.ok().body(reviewService.getReview(productId));
     }
 
-    @PostMapping
+    @PostMapping("")
     public ResponseEntity<Void> postReview (@RequestBody ReviewPostDTO reviewPostDTO,
                                             Authentication authentication) {
         reviewService.postReview(reviewPostDTO, authentication.getName());

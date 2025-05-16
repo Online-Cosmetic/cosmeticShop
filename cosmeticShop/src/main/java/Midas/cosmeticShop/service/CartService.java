@@ -1,13 +1,13 @@
-package Midas.cosmeticShop.service;
+package Midas.cosmeticshop.service;
 
-import Midas.cosmeticShop.dto.CartGetDTO;
-import Midas.cosmeticShop.dto.CartPostDTO;
-import Midas.cosmeticShop.entity.Cart;
-import Midas.cosmeticShop.entity.Product;
-import Midas.cosmeticShop.entity.Users.User;
-import Midas.cosmeticShop.repository.CartRepository;
-import Midas.cosmeticShop.repository.ProductRepository;
-import Midas.cosmeticShop.repository.Users.UserRepository;
+import Midas.cosmeticshop.dto.CartGetDTO;
+import Midas.cosmeticshop.dto.CartPostDTO;
+import Midas.cosmeticshop.entity.Cart;
+import Midas.cosmeticshop.entity.product.Product;
+import Midas.cosmeticshop.entity.user.User;
+import Midas.cosmeticshop.repository.CartRepository;
+import Midas.cosmeticshop.repository.ProductRepository;
+import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 

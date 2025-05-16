@@ -1,6 +1,6 @@
-package Midas.cosmeticShop.dto;
+package Midas.cosmeticshop.dto;
 
-import Midas.cosmeticShop.entity.BadKeyword;
+import Midas.cosmeticshop.entity.BadKeyword;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

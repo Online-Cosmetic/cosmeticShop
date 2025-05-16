@@ -50,4 +50,39 @@ customAxios.interceptors.response.use(
     }
 );
 
+// API 요청 함수들
+export const authAPI = {
+    login: (credentials) => customAxios.post('/api/auth/login', credentials),
+    logout: () => customAxios.post('/api/auth/logout'),
+    signup: {
+        user: (data) => customAxios.post('/api/auth/signup/user', data),
+        company: (data) => customAxios.post('/api/auth/signup/company', data)
+    },
+    me: () => customAxios.get('/api/auth/me'),
+    refresh: () => customAxios.post('/api/auth/reissue')
+};
+
+export const userAPI = {
+    getProfile: () => customAxios.get('/api/user/profile'),
+    updateProfile: (data) => customAxios.put('/api/user/profile', data),
+    getCart: () => customAxios.get('/api/user/cart'),
+    addToCart: (productId, quantity) => customAxios.post('/api/user/cart', { productId, quantity }),
+    removeFromCart: (productId) => customAxios.delete(`/api/user/cart/${productId}`)
+};
+
+export const companyAPI = {
+    getProfile: () => customAxios.get('/api/company/profile'),
+    updateProfile: (data) => customAxios.put('/api/company/profile', data),
+    getProducts: () => customAxios.get('/api/company/products'),
+    addProduct: (data) => customAxios.post('/api/company/products', data),
+    updateProduct: (productId, data) => customAxios.put(`/api/company/products/${productId}`, data),
+    deleteProduct: (productId) => customAxios.delete(`/api/company/products/${productId}`)
+};
+
+export const productAPI = {
+    getAll: () => customAxios.get('/api/products'),
+    getById: (id) => customAxios.get(`/api/products/${id}`),
+    search: (query) => customAxios.get('/api/products/search', { params: { query } })
+};
+
 export default customAxios;

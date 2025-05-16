@@ -1,8 +1,8 @@
-package Midas.cosmeticShop.controller;
+package Midas.cosmeticshop.controller;
 
-import Midas.cosmeticShop.dto.CartGetDTO;
-import Midas.cosmeticShop.dto.CartPostDTO;
-import Midas.cosmeticShop.service.CartService;
+import Midas.cosmeticshop.dto.CartGetDTO;
+import Midas.cosmeticshop.dto.CartPostDTO;
+import Midas.cosmeticshop.service.CartService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +19,12 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @GetMapping
+    @GetMapping("")
     public ResponseEntity<List<CartGetDTO>> getCarts(Authentication authentication) {
         return ResponseEntity.ok().body(cartService.getCarts(authentication.getName()));
     }
 
-    @PostMapping
+    @PostMapping("")
     public ResponseEntity<Void> postCart(@RequestBody CartPostDTO cartPostDTO,
                                          Authentication authentication) {
         cartService.postCart(cartPostDTO, authentication.getName());

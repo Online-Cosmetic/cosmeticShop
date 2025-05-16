@@ -1,13 +1,13 @@
-package Midas.cosmeticShop.service;
+package Midas.cosmeticshop.service;
 
-import Midas.cosmeticShop.dto.BadKeywordDTO;
-import Midas.cosmeticShop.dto.ReviewDTO;
-import Midas.cosmeticShop.entity.BadKeyword;
-import Midas.cosmeticShop.entity.Review;
-import Midas.cosmeticShop.entity.Users.User;
-import Midas.cosmeticShop.repository.BadKeywordRepository;
-import Midas.cosmeticShop.repository.ReviewRepository;
-import Midas.cosmeticShop.repository.Users.UserRepository;
+import Midas.cosmeticshop.dto.BadKeywordDTO;
+import Midas.cosmeticshop.dto.ReviewDTO;
+import Midas.cosmeticshop.entity.BadKeyword;
+import Midas.cosmeticshop.entity.Review;
+import Midas.cosmeticshop.entity.user.User;
+import Midas.cosmeticshop.repository.BadKeywordRepository;
+import Midas.cosmeticshop.repository.ReviewRepository;
+import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;

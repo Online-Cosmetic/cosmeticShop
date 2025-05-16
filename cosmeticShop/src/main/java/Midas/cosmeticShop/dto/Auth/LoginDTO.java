@@ -1,4 +1,4 @@
-package Midas.cosmeticShop.dto.Auth;
+package Midas.cosmeticshop.dto.auth;
 
 import lombok.*;
 

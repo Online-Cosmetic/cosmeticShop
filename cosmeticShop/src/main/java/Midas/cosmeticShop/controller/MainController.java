@@ -1,4 +1,4 @@
-package Midas.cosmeticShop.controller;
+package Midas.cosmeticshop.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

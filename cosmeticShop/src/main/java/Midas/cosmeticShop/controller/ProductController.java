@@ -1,11 +1,14 @@
-package Midas.cosmeticShop.controller;
+package Midas.cosmeticshop.controller;
 
-import Midas.cosmeticShop.dto.Product.ProductDTO;
-import Midas.cosmeticShop.dto.Product.ProductDetailResponseDTO;
-import Midas.cosmeticShop.dto.Product.ProductImageDTO;
-import Midas.cosmeticShop.service.ProductService;
+import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.dto.product.ProductDTO;
+import Midas.cosmeticshop.dto.product.ProductDetailResponseDTO;
+import Midas.cosmeticshop.dto.product.ProductImageDTO;
+import Midas.cosmeticshop.dto.product.ProductUpdateDTO;
+import Midas.cosmeticshop.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,17 +22,17 @@ public class ProductController {
     /* 상품 등록 */
     @PostMapping("")
     public ResponseEntity<?> registerProduct(
-        @CookieValue(value = "access", required = false) String accessToken,
-        @ModelAttribute ProductDTO productDTO,
+        @AuthenticationPrincipal BaseUserDetails userDetails,
+        @ModelAttribute ProductDTO productDTO, // multipart 파일을 주고받기 위해 @ModelAttirute 사용
         @RequestParam("mainImage") MultipartFile mainImage,
         @RequestParam(value = "additionalImages", required=false) MultipartFile[] additionalImages
     ) {
-        productService.registerProduct(accessToken, productDTO, mainImage, additionalImages);
+        productService.registerProduct(userDetails, productDTO, mainImage, additionalImages);
         return ResponseEntity.ok().build();
     }
 
 
-    /* 상품 상세 조회 (수정 폼용 데이터 반환) : 권한 검증필요 X */
+    /* 상품 상세 조회  */
     @GetMapping("/{productId}")
     public ResponseEntity<ProductDetailResponseDTO> getProductDetail(@PathVariable Long productId) {
 
@@ -41,17 +44,24 @@ public class ProductController {
     }
 
 
-    /* 상품 정보 수정 : 작업중 */
+    /* 상품 수정 */
     @PutMapping("/{productId}")
-    public String replaceProduct(@PathVariable Long productId) {
-        // 정보 수정 + 사진 수정
-        return "";
+    public ResponseEntity<Void> replaceProduct(
+        @RequestHeader(value = "Authorization", required = false) String accessToken,
+        @PathVariable Long productId,
+        @ModelAttribute ProductUpdateDTO dto,
+        @RequestParam(value = "newImages", required = false) MultipartFile[] newImages
+    ) {
+        productService.replaceProduct(accessToken, productId, dto, newImages);
+        return ResponseEntity.noContent().build();
     }
 
-    /* 상품 삭제 : 작업중 */
+    /* 상품 삭제 */
     @DeleteMapping("/{productId}")
-    public String deleteProduct(@PathVariable Long productId) {
-        productService.deleteProduct(productId);
-        return "";
+    public ResponseEntity<Void> deleteProduct(
+        @RequestHeader(value = "Authorization", required = false) String accessToken,
+        @PathVariable Long productId) {
+        productService.deleteProduct(accessToken, productId);
+        return ResponseEntity.noContent().build();
     }
 }

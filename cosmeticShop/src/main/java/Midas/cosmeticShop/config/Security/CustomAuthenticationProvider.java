@@ -1,7 +1,7 @@
-package Midas.cosmeticShop.config.Security;
+package Midas.cosmeticshop.config.security;
 
-import Midas.cosmeticShop.dto.BaseUserDetails;
-import Midas.cosmeticShop.service.BaseUserDetailsService;
+import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.service.BaseUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
@@ -32,11 +32,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
         }
 
-//        // 2) Role <-> loginType 매칭
-//        boolean isCompany = userDetails.getAuthorities()
-//                                        .stream()
-//                                        .anyMatch(a -> a.getAuthority().equals("COMPANY"));
-
+        System.out.println("userDetails.getAuthorities() = " + userDetails.getAuthorities().toString());
         return new UsernamePasswordAuthenticationToken(userDetails, true, userDetails.getAuthorities());
     }
 

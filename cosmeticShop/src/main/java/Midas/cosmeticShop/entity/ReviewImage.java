@@ -1,4 +1,4 @@
-package Midas.cosmeticShop.entity;
+package Midas.cosmeticshop.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "review_image")
+@Table(name = "review_images")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

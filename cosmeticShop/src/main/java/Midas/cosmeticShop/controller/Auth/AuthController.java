@@ -1,65 +1,50 @@
-package Midas.cosmeticShop.controller.Auth;
+package Midas.cosmeticshop.controller.auth;
 
-import Midas.cosmeticShop.dto.Auth.LogoutRequest;
-import Midas.cosmeticShop.jwt.JWTUtil;
-import Midas.cosmeticShop.service.RefreshTokenService;
+import Midas.cosmeticshop.dto.auth.LoginResponse;
+import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.dto.auth.LoginRequest;
+import Midas.cosmeticshop.dto.auth.UserDTO;
+import Midas.cosmeticshop.jwt.JWTUtil;
+import Midas.cosmeticshop.repository.user.BaseUserRepository;
+import Midas.cosmeticshop.service.RefreshTokenService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/auth")  // ★ 통합 루트 (기존 : /refresh-token)
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-//    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final BaseUserRepository baseUserRepository;
     private final RefreshTokenService refreshSvc;
     private final JWTUtil jwtUtil;
-    private final HttpServletResponse response;
 
-    // 1) 로그인 로직은 LoginFilter.java 에서 분리해 가져올 예정입니다.
-
-    /* ------------------------------------------------------------------
-     * 2) 로그아웃
-     * POST /api/auth/logout
-     * ------------------------------------------------------------------*/
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest dto) {
-
-        /* 1) DB에 있는 리프레시 토큰 삭제 */
-        refreshSvc.invalidate(dto.getRefreshToken());
-
-        // 2) 응답 쿠키 만료
-        response.addCookie(jwtUtil.createDeleteCookie("access"));
-        response.addCookie(jwtUtil.createDeleteCookie("refresh"));
-        
-        /* 3) (선택) 현재 SecurityContext 초기화  :  관례상 로그아웃 → 컨텍스트 클리어 */
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            SecurityContextHolder.clearContext();
-        }
-
-        return ResponseEntity.ok().build();
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal BaseUserDetails principal) {
+        // BaseUserDetails 에 username, roles, id 등을 담아둔 상태
+        UserDTO dto = UserDTO.from(principal);
+        return ResponseEntity.ok(Map.of("user", dto));
     }
 
-    @GetMapping("/validate-token")
-    public ResponseEntity<Void> validateToken() {
-        // SecurityContext에 인증 정보가 있으면 200 반환
-        return ResponseEntity.ok().build();
-    }
-
-     /*------------------------------------------------------------------
-     * 1) 로그인 : 나중에 LoginFilter 에서 분리해오도록 할게요..
-     * POST /api/auth/login
-     * ------------------------------------------------------------------*/
-    /*@PostMapping("/login")
-    public ResponseEntity<UserResponse> login(@RequestBody LoginRequest loginRequest,
-                                              HttpServletResponse response) {
-        // 1) 인증 시도
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+        @Valid @RequestBody LoginRequest loginRequest,
+        HttpServletResponse response
+    ) {
+        // 1) 인증 수행
         Authentication auth = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getUserId(),
@@ -67,21 +52,69 @@ public class AuthController {
             )
         );
 
-        // 2) JWT 생성
-        String accessToken = jwtUtil.createJwt(auth);
+        if(loginRequest.getRole() == null) {
+            assignRole(loginRequest);
+        }
 
-        // 3) HttpOnly 쿠키 설정
-        Cookie jwtCookie = new Cookie("accessToken", accessToken);
-        jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true);            // HTTPS 환경일 때만
-        jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(tokenProvider.getAccessTokenValiditySeconds());
-        jwtCookie.setSameSite("Lax");         // Spring Boot 2.7+ 지원
-        response.addCookie(jwtCookie);
+        // 2) 유저 정보와 권한 추출
+        BaseUserDetails userDetails = (BaseUserDetails) auth.getPrincipal();
+        String userId = userDetails.getUsername();
+        String role = userDetails.getAuthorities()
+                                    .iterator().next().getAuthority(); // "ROLE_" 접두어가 붙은 값
 
-        // 4) 사용자 정보 응답
-        UserResponse userInfo = tokenProvider.getUserFromAuthentication(auth);
-        return ResponseEntity.ok(userInfo);
-    }*/
+        // 역할 검증
+        String requestedRole = loginRequest.getRole();
+        if (!role.equals(requestedRole)) {
+            return ResponseEntity.status(403)
+                .body(new LoginResponse(null, null, null, "잘못된 로그인 페이지입니다. 올바른 로그인 페이지를 이용해주세요."));
+        }
 
+        // 3) 토큰 생성
+        String accessToken  = jwtUtil.createJwt("access",  userId, role, jwtUtil.getValidity("access"));
+        String refreshToken = jwtUtil.createJwt("refresh", userId, role, jwtUtil.getValidity("refresh"));
+
+        // 4) DB에 리프레시 토큰 저장
+        refreshSvc.createRefreshToken(userId, refreshToken);
+
+        // 5) HttpOnly 리프레시 토큰 쿠키 설정
+        Cookie refreshCookie = jwtUtil.createCookie("refresh", refreshToken, jwtUtil.getValidity("refresh"));
+        response.addCookie(refreshCookie);
+
+        // 6) 응답 본문에 액세스 토큰과 유저 정보 포함
+        LoginResponse body = new LoginResponse(userId, role, accessToken);
+        return ResponseEntity.ok(body);
+    }
+
+    // localhost:9000 에서 API 테스트 할때만 호출될 메소드
+    private void assignRole(LoginRequest loginRequest) {
+        loginRequest.setRole(
+            "ROLE_" +
+                baseUserRepository
+                .findByUserId(loginRequest.getUserId())
+                .get()
+                .getRole()
+        );
+    }
+
+    // 삭제: @RequestBody LogoutRequest dto
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request,
+                                    HttpServletResponse response) {
+        // 1) 쿠키에서 refreshToken 직접 추출
+        String refreshToken = refreshSvc.getRefreshFromCookie(request);
+        if (refreshToken != null) {
+            // 2) DB/로직에서 해당 토큰 무효화
+            refreshSvc.invalidate(refreshToken);
+        }
+        // 3) 만료 쿠키로 덮어쓰기
+        response.addCookie(jwtUtil.createDeleteCookie("refresh"));
+        // 4) SecurityContext 초기화
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/validate-token")
+    public ResponseEntity<Void> validateToken() {
+        return ResponseEntity.ok().build();
+    }
 }

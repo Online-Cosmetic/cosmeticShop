@@ -1,10 +1,10 @@
-package Midas.cosmeticShop.service;
+package Midas.cosmeticshop.service;
 
-import Midas.cosmeticShop.entity.RefreshToken;
-import Midas.cosmeticShop.entity.Users.BaseUser;
-import Midas.cosmeticShop.exception.TokenRefreshException;
-import Midas.cosmeticShop.repository.Users.BaseUserRepository;
-import Midas.cosmeticShop.repository.RefreshTokenRepository;
+import Midas.cosmeticshop.entity.RefreshToken;
+import Midas.cosmeticshop.entity.user.BaseUser;
+import Midas.cosmeticshop.exception.TokenRefreshException;
+import Midas.cosmeticshop.repository.user.BaseUserRepository;
+import Midas.cosmeticshop.repository.RefreshTokenRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,7 +82,7 @@ public class RefreshTokenService {
     public Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(24*60*60);
-        cookie.setSecure(false);
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         return cookie;

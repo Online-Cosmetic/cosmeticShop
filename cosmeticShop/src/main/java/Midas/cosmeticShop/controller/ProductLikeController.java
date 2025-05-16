@@ -1,10 +1,9 @@
-package Midas.cosmeticShop.controller;
+package Midas.cosmeticshop.controller;
 
-import Midas.cosmeticShop.dto.Product.ProductLikeGetDTO;
-import Midas.cosmeticShop.service.ProductLikeService;
+import Midas.cosmeticshop.dto.product.ProductLikeGetDTO;
+import Midas.cosmeticshop.service.ProductLikeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,7 +25,7 @@ public class ProductLikeController {
 
     @PostMapping("/{productId}/likes/toggle")
     public ResponseEntity<Boolean> postLike(@PathVariable Long productId,
-                                         Authentication authentication) {
+                                            Authentication authentication) {
         return ResponseEntity.ok().body(productLikeService.toggleProductLike(productId, authentication.getName()));
     }
 

@@ -1,11 +1,10 @@
-package Midas.cosmeticShop.dto;
+package Midas.cosmeticshop.dto;
 
-import Midas.cosmeticShop.entity.Qna;
+import Midas.cosmeticshop.entity.Qna;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDateTime;
 
 @Getter

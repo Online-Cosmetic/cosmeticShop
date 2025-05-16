@@ -1,6 +1,7 @@
-package Midas.cosmeticShop.entity;
+package Midas.cosmeticshop.entity;
 
-import Midas.cosmeticShop.entity.Users.User;
+import Midas.cosmeticshop.entity.product.Product;
+import Midas.cosmeticshop.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "cart")
+//@Table(name = "carts")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -25,7 +27,6 @@ public class Cart {
     private User user;
 
     // 상품과의 연관관계
-    /* 2차 수정 : ManyToOne ? OneToMany ? */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;

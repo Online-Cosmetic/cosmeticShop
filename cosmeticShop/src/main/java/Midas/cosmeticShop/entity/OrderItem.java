@@ -1,5 +1,6 @@
-package Midas.cosmeticShop.entity;
+package Midas.cosmeticshop.entity;
 
+import Midas.cosmeticshop.entity.product.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,4 +36,12 @@ public class OrderItem {
     /* 배송 상태 : READY, PROG, COMP*/
     @Enumerated(EnumType.STRING)
     private DeliveryStatus deliveryStatus;
+
+    public OrderItem(Order order, Product product, int quantity, int orderPrice, DeliveryStatus deliveryStatus) {
+        this.order = order;
+        this.product = product;
+        this.quantity = quantity;
+        this.orderPrice = orderPrice;
+        this.deliveryStatus = deliveryStatus;
+    }
 }

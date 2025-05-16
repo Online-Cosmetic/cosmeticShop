@@ -1,11 +1,11 @@
-package Midas.cosmeticShop.service;
+package Midas.cosmeticshop.service;
 
-import Midas.cosmeticShop.dto.Join.CompanyJoinDTO;
-import Midas.cosmeticShop.dto.Join.UserJoinDTO;
-import Midas.cosmeticShop.entity.Users.Company;
-import Midas.cosmeticShop.entity.Users.User;
-import Midas.cosmeticShop.repository.Users.CompanyRepository;
-import Midas.cosmeticShop.repository.Users.UserRepository;
+import Midas.cosmeticshop.dto.signup.CompanySignUpDTO;
+import Midas.cosmeticshop.dto.signup.UserSignUpDTO;
+import Midas.cosmeticshop.entity.user.Company;
+import Midas.cosmeticshop.entity.user.User;
+import Midas.cosmeticshop.repository.user.CompanyRepository;
+import Midas.cosmeticshop.repository.user.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +24,7 @@ public class JoinService {
     }
 
     /* 일반 회원 가입 */
-    public void joinUser(UserJoinDTO dto) {
+    public void joinUser(UserSignUpDTO dto) {
         /* 이미 가입된 일반회원 체크 */
         validateUserSignUpinfo(dto);
         User user = User.from(dto, bCryptPasswordEncoder);
@@ -32,15 +32,15 @@ public class JoinService {
     }
 
     /* 기업 회원 가입 */
-    public void joinCompany(CompanyJoinDTO dto) {
+    public void joinCompany(CompanySignUpDTO dto) {
         /* 이미 가입된 기업회원 체크 */
         validateCompanySignUpinfo(dto);
-        Company company = Company.from(dto, bCryptPasswordEncoder);
+        Company company = Company.create(dto, bCryptPasswordEncoder);
         companyRepository.save(company);
     }
 
     /* 일반 회원 가입 시 정보 검증 */
-    private void validateUserSignUpinfo(UserJoinDTO dto) {
+    private void validateUserSignUpinfo(UserSignUpDTO dto) {
         Boolean idExist = userRepository.existsByUserId(dto.getUserId());
         Boolean nickNameExist = userRepository.existsByNickName(dto.getNickName());
         /* 일반/기업회원 이메일 모두 체크 */
@@ -57,7 +57,7 @@ public class JoinService {
     }
 
     /* 기업 회원 가입 시 정보 검증 */
-    private void validateCompanySignUpinfo(CompanyJoinDTO dto) {
+    private void validateCompanySignUpinfo(CompanySignUpDTO dto) {
         Boolean idExist = companyRepository.existsByCompanyName(dto.getCompanyName());
         /* 일반/기업회원 이메일 모두 체크 */
         Boolean emailExist =

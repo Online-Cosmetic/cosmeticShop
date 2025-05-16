@@ -1,6 +1,6 @@
-package Midas.cosmeticShop.repository;
+package Midas.cosmeticshop.repository;
 
-import Midas.cosmeticShop.entity.Cart;
+import Midas.cosmeticshop.entity.Cart;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

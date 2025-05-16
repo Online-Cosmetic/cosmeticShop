@@ -1,15 +1,16 @@
-package Midas.cosmeticShop.service;
+package Midas.cosmeticshop.service;
 
-import Midas.cosmeticShop.dto.Product.ProductLikeGetDTO;
-import Midas.cosmeticShop.entity.Product;
-import Midas.cosmeticShop.entity.ProductLike;
-import Midas.cosmeticShop.entity.Users.User;
-import Midas.cosmeticShop.repository.ProductLikeRepository;
-import Midas.cosmeticShop.repository.ProductRepository;
-import Midas.cosmeticShop.repository.Users.UserRepository;
+
+import Midas.cosmeticshop.dto.product.ProductLikeGetDTO;
+import Midas.cosmeticshop.entity.product.Product;
+import Midas.cosmeticshop.entity.product.ProductLike;
+import Midas.cosmeticshop.entity.user.User;
+import Midas.cosmeticshop.repository.ProductLikeRepository;
+import Midas.cosmeticshop.repository.ProductRepository;
+import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

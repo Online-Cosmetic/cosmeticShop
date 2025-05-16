@@ -1,14 +1,13 @@
-package Midas.cosmeticShop.dto;
+package Midas.cosmeticshop.dto;
 
-import Midas.cosmeticShop.entity.Product;
-import Midas.cosmeticShop.entity.Review;
-import Midas.cosmeticShop.entity.ReviewImage;
-import Midas.cosmeticShop.entity.Users.User;
+import Midas.cosmeticshop.entity.product.Product;
+import Midas.cosmeticshop.entity.Review;
+import Midas.cosmeticshop.entity.ReviewImage;
+import Midas.cosmeticshop.entity.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 import java.util.List;
