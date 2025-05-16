@@ -1,13 +1,11 @@
-import React from "react";
-import Header from "../../components/common/Header.jsx";
-import Footer from "../../components/common/Footer.jsx";
+// src/pages/enterprise/EnterpriseMain.jsx
+import React from 'react';
 import SidebarSection from "./Sidebar.jsx"; // 실제 파일 경로로 수정
-import DashboardSection from "./Dashboard.jsx"; // 실제 파일 경로로 수정
+import DashboardSection from "./Overview.jsx"; // 실제 파일 경로로 수정
 
-function EnterpriseMain() {
+export default function EnterpriseMain() {
     return (
         <>
-            <Header />
             <div className="flex flex-col w-full h-full bg-cool-gray50 overflow-hidden border border-solid border-black">
                 <header className="flex w-full h-[70px] items-center bg-white">
                     <h1 className="ml-2 font-medium text-black text-2xl leading-9">
@@ -24,9 +22,6 @@ function EnterpriseMain() {
                     </main>
                 </div>
             </div>
-            <Footer />
         </>
     );
 }
-
-export default EnterpriseMain;
