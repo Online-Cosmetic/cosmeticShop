@@ -86,4 +86,10 @@ public class User extends BaseUser {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CouponMapping> coupons;
 
+
+    // 양방향 관계 편의 메소드
+    public void addAddress(Address address) {
+        this.addresses.add(address);
+        address.setUser(this);
+    }
 }

@@ -63,20 +63,37 @@ export const authAPI = {
 };
 
 export const userAPI = {
-    getProfile: () => customAxios.get('/api/user/profile'),
-    updateProfile: (data) => customAxios.put('/api/user/profile', data),
-    getCart: () => customAxios.get('/api/user/cart'),
-    addToCart: (productId, quantity) => customAxios.post('/api/user/cart', { productId, quantity }),
-    removeFromCart: (productId) => customAxios.delete(`/api/user/cart/${productId}`)
+    profile: {
+        getProfile: () => customAxios.get('/api/user/profile'),
+        updateProfile: (data) => customAxios.put('/api/user/profile', data),
+    },
+
+    cart: {
+        getCart: () => customAxios.get('/api/user/cart'),
+        addToCart: (productId, quantity) => customAxios.post('/api/user/cart', { productId, quantity }),
+        removeFromCart: (productId) => customAxios.delete(`/api/user/cart/${productId}`),
+    },
+
+    addresses: {
+        getAll: () => customAxios.get('/api/addresses'),
+        add: (addressData) => customAxios.post('/api/addresses', addressData),
+        update: (addressId, addressData) => customAxios.put(`/api/addresses/${addressId}`, addressData),
+        delete: (addressId) => customAxios.delete(`/api/addresses/${addressId}`)
+    }
 };
 
 export const companyAPI = {
-    getProfile: () => customAxios.get('/api/company/profile'),
-    updateProfile: (data) => customAxios.put('/api/company/profile', data),
-    getProducts: () => customAxios.get('/api/company/products'),
-    addProduct: (data) => customAxios.post('/api/company/products', data),
-    updateProduct: (productId, data) => customAxios.put(`/api/company/products/${productId}`, data),
-    deleteProduct: (productId) => customAxios.delete(`/api/company/products/${productId}`)
+    profile: {
+        getProfile: () => customAxios.get('/api/company/profile'),
+        updateProfile: (data) => customAxios.put('/api/company/profile', data),
+    },
+
+    product: {
+        getProducts: () => customAxios.get('/api/company/products'),
+        addProduct: (data) => customAxios.post('/api/company/products', data),
+        updateProduct: (productId, data) => customAxios.put(`/api/company/products/${productId}`, data),
+        deleteProduct: (productId) => customAxios.delete(`/api/company/products/${productId}`)
+    }
 };
 
 export const productAPI = {

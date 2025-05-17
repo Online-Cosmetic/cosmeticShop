@@ -114,10 +114,20 @@ public class SecurityConfig {
                     "/api/auth/validate-token"
                 ).permitAll()
 
-                // 상품 관련
+                // 상품/주문 관련
                 .requestMatchers(
-                    "/carts",
-                    "/api/orders/"
+                    "/api/carts/**",
+                    "/api/orders/**"
+                ).permitAll()
+
+                // 주소관련
+                .requestMatchers(
+                    "/api/adresses/**"
+                ).hasRole("USER")
+
+                // 결제 관련
+                .requestMatchers(
+                    "/api/payment/**"
                 ).permitAll()
 
                 // QNA 관련

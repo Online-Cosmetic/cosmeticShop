@@ -45,7 +45,7 @@ dependencies {
 	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 //	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta'
 
-	implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
+	implementation 'com.github.iamport:iamport-rest-client-java:0.2.21'
 
 	compileOnly 'org.projectlombok:lombok:1.18.26'
 	annotationProcessor 'org.projectlombok:lombok:1.18.26'

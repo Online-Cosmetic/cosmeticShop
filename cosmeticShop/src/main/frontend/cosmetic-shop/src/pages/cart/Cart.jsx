@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";  // 추가
 
 function Cart() {
+    const navigate = useNavigate();               // 추가
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -48,7 +50,12 @@ function Cart() {
                             <div className="flex justify-between mb-6 text-lg font-bold">
                                 <span>Order Total</span><span>₩20,000</span>
                             </div>
-                            <button className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg">Checkout</button>
+                            <button
+                                className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"
+                                onClick={() => navigate("/user/order")}
+                            >
+                                주문하기
+                            </button>
                         </div>
                     </div>
                 </div>
