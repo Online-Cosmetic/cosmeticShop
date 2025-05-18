@@ -1,16 +1,18 @@
 package Midas.cosmeticshop.controller;
 
-import Midas.cosmeticshop.dto.OrderItemDTO;
+import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.dto.order.OrderBatchRequest;
+import Midas.cosmeticshop.dto.order.OrderDTO;
+import Midas.cosmeticshop.dto.order.OrderRequest;
 import Midas.cosmeticshop.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -28,9 +30,9 @@ public class OrderController {
     * 프론트엔드에서 현재 보고있는 상품 상세 페이지의 정보들이 OrderItemDTO 에 담겨서 요청으로 넘어온다.
     * OrderItemDTO 의 productId 는 현재 보고있는 상품 상세 페이지의 url 의 마지막 부분인 {productId} 를 가져와서 채운다.
     * */
-    @PostMapping("")
-    public ResponseEntity<?> makeOrder(@Valid @RequestBody OrderItemDTO orderItemDTO) {
-        orderService.createSingleOrder(orderItemDTO);
+    @PostMapping
+    public ResponseEntity<?> makeOrder(@Valid @RequestBody OrderRequest orderRequest) {
+        orderService.createSingleOrder(orderRequest.getOrderItemDTO(), orderRequest.getAddressDTO());
         return ResponseEntity.ok().build();
     }
 
@@ -40,14 +42,45 @@ public class OrderController {
     * 체크한 아이템 수만큼의 OrderItemDTO 들이 요청에 List 로 넘어온 다음 makeOrder(List<OrderItemDTO>)를 호출한다.
     * */
     @PostMapping("/batch")
-    public ResponseEntity<?> makeOrders(@Valid @RequestBody List<OrderItemDTO> orderItemDTOList) {
-        orderService.createOrders(orderItemDTOList);
+    public ResponseEntity<?> makeOrders(@Valid @RequestBody OrderBatchRequest orderBatchRequest) {
+        orderService.createOrders(orderBatchRequest.getOrderItemDTOList(), orderBatchRequest.getAddressDTO());
         return ResponseEntity.ok().build();
+    }
+
+    /* 단일 주문 상세 조회 : MyPage 기능 구현 때 작성
+    * 리스트에서 각각의 OrderItem 정보 꺼내는건 프론트에서 */
+    @GetMapping("{orderId}")
+    public ResponseEntity<OrderDTO> getSingleOrderDetail(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
+                                                         @PathVariable Long orderId) {
+
+        OrderDTO orderDTO = orderService.getSingleOrderDetail(baseUserDetails, orderId);
+        return ResponseEntity.ok(orderDTO);
+    }
+
+    /* 주문 내역 전체 조회 */
+    @GetMapping
+    public ResponseEntity<List<OrderDTO>> getAllOrders(@AuthenticationPrincipal BaseUserDetails baseUserDetails) {
+
+        List<OrderDTO> orderDTOs = orderService.getAllOrders(baseUserDetails);
+        return ResponseEntity.ok(orderDTOs);
     }
 
     /* 확정X ) DeliveryStatus 가 READY 인 주문 수정 */
 
-    /* 주문 상세 조회 : MyPage 기능 구현 때 작성 */
+    /* 주문 취소 : DeliveryStatus 가 READY 인 상품만 취소 가능 */
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<?> cancelOrder(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
+                                         @PathVariable Long orderId) {
 
-    /* 주문 취소 : MyPage 기능 구현 때 작성 */
+        orderService.cancelOrder(orderId, baseUserDetails);
+        return ResponseEntity.ok().build();
+    }
+
+    /* 여러개 주문 한 번에 취소 */
+    @DeleteMapping("/batch")
+    public ResponseEntity<?> cancelOrders(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
+                                          @RequestBody List<Long> orderIdList) {
+        orderService.cancelOrders(orderIdList, baseUserDetails);
+        return ResponseEntity.ok().build();
+    }
 }
