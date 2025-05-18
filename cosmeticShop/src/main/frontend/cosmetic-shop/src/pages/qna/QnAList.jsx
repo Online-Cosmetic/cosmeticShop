@@ -12,7 +12,7 @@ function QnAList() {
     const currentData = qnaData.slice(startIndex, startIndex + itemsPerPage);
 
      useEffect(() => {
-         customAxios.get("/api/qnas") // API
+         customAxios.get("/api/qnas/all") // API
             .then((response) => {
                 setQnaData(response.data);
             })

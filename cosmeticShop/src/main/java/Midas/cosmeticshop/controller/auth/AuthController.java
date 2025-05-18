@@ -117,4 +117,23 @@ public class AuthController {
     public ResponseEntity<Void> validateToken() {
         return ResponseEntity.ok().build();
     }
+    @PostMapping("/reissue")
+public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
+    // 1. 쿠키에서 refresh 토큰 추출
+    String refreshToken = refreshSvc.getRefreshFromCookie(request);
+    if (refreshToken == null || !refreshSvc.isValid(refreshToken)) {
+        return ResponseEntity.badRequest().body("Refresh token is missing or invalid.");
+    }
+
+    // 2. refreshToken 으로부터 사용자 정보 추출
+    String userId = jwtUtil.getUserId(refreshToken);
+    String role = jwtUtil.getRole(refreshToken);
+
+    // 3. 새로운 access 토큰 발급
+    String newAccessToken = jwtUtil.createJwt("access", userId, role, jwtUtil.getValidity("access"));
+
+    // 4. 클라이언트에 accessToken 전달
+    return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+}
+
 }

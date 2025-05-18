@@ -99,4 +99,9 @@ public class RefreshTokenService {
 
         return null;
     }
+
+    public boolean isValid(String refreshToken) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'isValid'");
+    }
 }
