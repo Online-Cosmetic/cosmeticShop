@@ -18,6 +18,7 @@ import MyPage from "./pages/user/MyPage.jsx";
 // import QnA from "./pages/qna/QnA.jsx";
 import QnA from "./pages/qna/QnAList.jsx";
 import Order from "./pages/order/Order.jsx";
+import OrderComplete from "./pages/order/OrderComplete";
 // import Checkout from "./pages/payment/Checkout.jsx";
 
 import UserLogin from "./pages/auth/UserLogin.jsx";
@@ -138,6 +139,7 @@ const App = () => {
                 <Route path="cart" element={<Cart />} />
                 <Route path="orders" element={<OrderHistory />} />
                 <Route path="order" element={<Order />} />
+                <Route path="order/complete" element={<OrderComplete />} />
                 {/*<Route path="checkout" element={<Checkout />} />*/}
               </Routes>
             </PublicLayout>

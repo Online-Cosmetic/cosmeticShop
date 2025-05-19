@@ -42,7 +42,7 @@ function Cart() {
           {/* Cart */}
           <h2 className="text-3xl font-bold text-neutral-800 mb-6">Cart</h2>
           {/* (좌)상품 목록 + (우)주문 요약 */}
-          <div className="flex gap-6 border rounded-lg p-6 shadow">
+          <div className="flex gap-16 border rounded-lg p-6 shadow">
             {/* 상품 목록 */}
             <div className="flex flex-1 flex-col">
               {cartItems.map((product) => (
@@ -58,7 +58,7 @@ function Cart() {
             {/* 주문 요약 + 버튼 */}
             <div className="w-96 flex-shrink-0 space-y-6">
               <div className="border rounded-lg p-6 shadow">
-                <h3 className="text-2xl font-semibold mb-4">Order Summary</h3>
+                <h3 className="text-2xl font-semibold mb-4">Cart Summary</h3>
                 <div className="flex flex-col gap-6">
                   <CartSummary />
                   <button
