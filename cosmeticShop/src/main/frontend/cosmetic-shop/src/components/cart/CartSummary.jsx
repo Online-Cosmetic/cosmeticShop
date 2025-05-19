@@ -30,11 +30,6 @@ function CartSummary() {
                 <span>Order Total</span>
                 <span>₩20,000</span>
             </div>
-            <button
-                className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"
-                onClick={() => navigate("/order")}>
-                Checkout
-            </button>
         </div>
     );
 }

@@ -1,11 +1,20 @@
-import React from "react";
+import React, {useState} from "react";
 import UserHeader from "../../components/common/UserHeader.jsx";
+import { useNavigate } from "react-router-dom";
 import Footer from "../../components/common/Footer.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import AddressForm from "../../components/user/AddressForm.jsx";
 import ProductCard from "../../components/product/ProductCard.jsx";
 
 function Order() {
+    const navigate = useNavigate();
+    {/* 결제 수단에 따른 라우팅 */}
+    const handlePayment = () => {
+        if (method === "card") navigate("/payment/toss");
+        else if (method === "bank") navigate("/payment/bank");
+        else if (method === "simple") navigate("/payment/simple");
+    };
+    const [method, setMethod] = useState('card');
     const cartItems = [ // 이거 임시 테스트용 더미 데이터. API호출해서 받아와야 함.
         {
             id: 1,
@@ -19,8 +28,8 @@ function Order() {
     ];
     return (
         <>
-            <UserHeader />
             <main className="max-w-screen-xl mx-auto px-8 py-12 flex flex-col lg:flex-row gap-12">
+                {/* 좌측 영역: 주소 + 상품 목록 */}
                 <div className="flex-1 space-y-12">
                     <AddressForm
                         savedAddresses={[
@@ -29,21 +38,61 @@ function Order() {
                         ]}
                     />
                     {/* 상품 목록 */}
-                    <h2 className="text-2xl font-semibold">Order Itmes</h2>
-                    <div className="flex-1 min-w-0 space-y-8">
-                        {cartItems.map((product) => (
-                            <ProductCard
-                                key={product.id}
-                                product={product}
-                                onQuantityChange={() => {
-                                    // TODO: 수량변경시 호출해서 반영 후 이 부분 UI만 갱신해야함
-                                }}
-                                editable={false}
-                            />
-                        ))}
-                    </div>
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">Order Items</h2>
+                        <div className="flex-1 min-w-0 space-y-8">
+                            {cartItems.map((product) => (
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    onQuantityChange={() => {
+                                        // TODO: 수량변경시 호출해서 반영 후 이 부분 UI만 갱신해야함
+                                    }}
+                                    editable={false}
+                                />
+                            ))}
+                        </div>
+                    </section>
                 </div>
-                <CartSummary />
+                {/* 우측 영역: 결제 요약 + 결제 수단 선택 */}
+                <aside className="flex flex-col gap-4 w-full max-w-sm">
+                    <h2 className="text-2xl font-semibold">Order Summary</h2>
+                    <CartSummary />
+
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">Select Payment Method</h2>
+                        <div className="space-y-2">
+                            {[
+                                { label: "신용/체크카드", value: "card" },
+                                { label: "계좌이체", value: "bank" },
+                                { label: "간편결제", value: "simple" },
+                            ].map(({ label, value }) => (
+                                <label key={value} className="block">
+                                    <input
+                                        type="radio"
+                                        name="payment"
+                                        value={value}
+                                        checked={method === value}
+                                        onChange={() => setMethod(value)}
+                                        className="peer hidden"
+                                    />
+                                    <div className="w-full px-4 py-3 border rounded-lg cursor-pointer
+                      peer-checked:border-emerald-600
+                      peer-checked:bg-emerald-50
+                      peer-checked:text-emerald-700
+                      transition-colors">
+                                        {label}
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
+                    </section>
+                    <button
+                        className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"
+                        onClick={handlePayment}>
+                        Proceed with {method === "card" ? "Card" : method === "bank" ? "Bank Transfer" : "Simple Pay"}
+                    </button>
+                </aside>
             </main>
             <Footer />
         </>
