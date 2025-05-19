@@ -66,6 +66,11 @@ export const userAPI = {
     profile: {
         getProfile: () => customAxios.get('/api/user/profile'),
         updateProfile: (data) => customAxios.put('/api/user/profile', data),
+        checkUser: (data) => customAxios.post('/api/user/check', data),
+        sendCode: (data) => customAxios.post('/api/user/send-code', data),
+        verifyCode: (data) => customAxios.post('/api/user/verify-code', data),
+        changePassword: (data) => customAxios.post('/api/user/change-password', data),
+        changeNickname: (data) => customAxios.post('/api/user/me/nickName', data)
     },
 
     cart: {

@@ -34,6 +34,7 @@ import ProductManagement from './pages/product/ProductManagement.jsx';
 
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
+import ForgotPassword from './pages/auth/ForgotPassword.jsx';
 
 // 데이터
 import data from './utils/data.js';
@@ -120,6 +121,15 @@ const App = () => {
                     element={
                         <PublicLayout>
                             <EnterpriseSignUp />
+                        </PublicLayout>
+                    }
+                />
+                
+                <Route 
+                    path="/forgotPassword" 
+                    element={
+                        <PublicLayout>
+                            <ForgotPassword />
                         </PublicLayout>
                     }
                 />

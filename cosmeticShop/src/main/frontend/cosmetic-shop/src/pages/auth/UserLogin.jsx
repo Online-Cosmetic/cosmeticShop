@@ -75,6 +75,9 @@ export default function UserLogin() {
                             Are you a business user?
                             <Link to="/enterpriseLogin" className="ml-2 hover:underline">Business Login</Link>
                         </p>
+                        <p className="text-sm">
+                            <Link to="/forgotPassword" className="ml-2 text-emerald-600 hover:underline">Forgot password?</Link>
+                        </p>
                     </div>
                 </div>
             </main>

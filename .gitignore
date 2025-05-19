@@ -5,6 +5,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# 로컬 환경변수
+cosmeticShop/local.env
+
 # 아래는 /login 이 로직 분리되면 여기서 빠질 애들
 cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserInfoDTO.java
 cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserResponse.java

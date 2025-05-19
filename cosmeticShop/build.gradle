@@ -50,6 +50,10 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok:1.18.26'
 	annotationProcessor 'org.projectlombok:lombok:1.18.26'
 
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	implementation 'me.paulschwarz:spring-dotenv:2.5.4'
+
 
 //	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test' // 테스트 관련 의존성 - JUnit Jupiter 사용

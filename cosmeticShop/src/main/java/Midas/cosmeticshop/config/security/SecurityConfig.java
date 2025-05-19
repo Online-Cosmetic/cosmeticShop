@@ -120,6 +120,17 @@ public class SecurityConfig {
                     "/api/orders/**"
                 ).permitAll()
 
+                // 프로필 변경 관련
+                .requestMatchers(
+                    "/api/user/check",
+                    "/api/user/send-code",
+                    "/api/user/verify-code",
+                    "/api/user/change-password"
+                ).permitAll()
+                .requestMatchers(
+                    "api/user/me/nickName"
+                ).hasRole("USER")
+
                 // 주소관련
                 .requestMatchers(
                     "/api/adresses/**"
