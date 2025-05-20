@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/carts")
@@ -20,8 +22,11 @@ public class CartController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<CartGetDTO>> getCarts(Authentication authentication) {
-        return ResponseEntity.ok().body(cartService.getCarts(authentication.getName()));
+    public ResponseEntity<Map<String, Object>> getCarts(Authentication authentication) {
+        List<CartGetDTO> cartItems = cartService.getCarts(authentication.getName());
+        Map<String, Object> response = new HashMap<>();
+        response.put("items", cartItems);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("")
@@ -40,7 +45,7 @@ public class CartController {
     }
 
     @DeleteMapping("/{cartId}")
-    public ResponseEntity<Void> putCart(@PathVariable Long cartId,
+    public ResponseEntity<Void> deleteCart(@PathVariable Long cartId,
                                         Authentication authentication) {
         cartService.deleteCart(cartId, authentication.getName());
         return ResponseEntity.ok().build();

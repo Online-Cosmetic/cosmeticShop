@@ -114,11 +114,12 @@ public class SecurityConfig {
                     "/api/auth/validate-token"
                 ).permitAll()
 
-                // 상품/주문 관련
+                // 장바구니/주문/주소 관련 (로그인 필요)
                 .requestMatchers(
                     "/api/carts/**",
-                    "/api/orders/**"
-                ).permitAll()
+                    "/api/orders/**",
+                    "/api/addresses/**"
+                ).hasRole("USER")
 
                 // 프로필 변경 관련
                 .requestMatchers(
@@ -128,18 +129,13 @@ public class SecurityConfig {
                     "/api/user/change-password"
                 ).permitAll()
                 .requestMatchers(
-                    "api/user/me/nickName"
+                    "/api/user/me/nickName"
                 ).hasRole("USER")
 
-                // 주소관련
-                .requestMatchers(
-                    "/api/adresses/**"
-                ).hasRole("USER")
-
-                // 결제 관련
+                // 결제 관련 (로그인 필요)
                 .requestMatchers(
                     "/api/payment/**"
-                ).permitAll()
+                ).hasRole("USER")
 
                 // QNA 관련
                 .requestMatchers(
@@ -149,7 +145,6 @@ public class SecurityConfig {
                 .requestMatchers(
                     HttpMethod.POST, "/api/products"
                 ).hasRole("COMPANY")
-//                hasRole("COMPANY")  // 이후에 이걸로 교체
 
                 // HTML 페이지
                 .requestMatchers(

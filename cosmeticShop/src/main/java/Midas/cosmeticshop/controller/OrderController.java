@@ -31,7 +31,7 @@ public class OrderController {
     * OrderItemDTO 의 productId 는 현재 보고있는 상품 상세 페이지의 url 의 마지막 부분인 {productId} 를 가져와서 채운다.
     * */
     @PostMapping
-    public ResponseEntity<?> makeOrder(@Valid @RequestBody OrderRequest orderRequest) {
+    public ResponseEntity<?> createOrder(@Valid @RequestBody OrderRequest orderRequest) {
         orderService.createSingleOrder(orderRequest.getOrderItemDTO(), orderRequest.getAddressDTO());
         return ResponseEntity.ok().build();
     }
@@ -42,7 +42,7 @@ public class OrderController {
     * 체크한 아이템 수만큼의 OrderItemDTO 들이 요청에 List 로 넘어온 다음 makeOrder(List<OrderItemDTO>)를 호출한다.
     * */
     @PostMapping("/batch")
-    public ResponseEntity<?> makeOrders(@Valid @RequestBody OrderBatchRequest orderBatchRequest) {
+    public ResponseEntity<?> createOrders(@Valid @RequestBody OrderBatchRequest orderBatchRequest) {
         orderService.createOrders(orderBatchRequest.getOrderItemDTOList(), orderBatchRequest.getAddressDTO());
         return ResponseEntity.ok().build();
     }
@@ -59,9 +59,9 @@ public class OrderController {
 
     /* 주문 내역 전체 조회 */
     @GetMapping
-    public ResponseEntity<List<OrderDTO>> getAllOrders(@AuthenticationPrincipal BaseUserDetails baseUserDetails) {
+    public ResponseEntity<List<OrderDTO>> getMyOrders(@AuthenticationPrincipal BaseUserDetails baseUserDetails) {
 
-        List<OrderDTO> orderDTOs = orderService.getAllOrders(baseUserDetails);
+        List<OrderDTO> orderDTOs = orderService.getMyOrders(baseUserDetails);
         return ResponseEntity.ok(orderDTOs);
     }
 
