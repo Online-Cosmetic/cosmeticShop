@@ -3,26 +3,93 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+
+.main-bg {
+  height: 400px;
+  background-image: url(../public/bg.png);
+  background-size: cover; /* 배경 이미지 크기 조절 */
+  background-position: center; /* 배경 이미지 위치 설정 */
 }
 
-body {
-  min-height: 100vh;
+.product-list {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  align-content: flex-end;
+  row-gap: 32px;
+  flex-wrap: wrap;
 }
 
-#root {
-  flex: 1 0 auto;
-  display: flex;
-  flex-direction: column;
+
+.product-title {
+  margin-top: 12px;
+  color: #000;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 100%;
+}
+
+.product-content {
+  color: #828282;
+
+  /* Body text */
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 100%;
+}
+
+.product-price {
+  color: #000;
+
+  /* Body text */
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 100%;
+}
+
+/* detail page */
+
+.detail-img-container {
+  width: 90%;
+  height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.detail-img-container img {
   width: 100%;
+  height: 100%;
+  object-fit: cover; /* 이미지 잘라내기, 컨테이너에 맞게 */
+  object-position: center; /* 중앙정렬 */
 }
+/*
+  == html상에서 이미지를 집어 넣으려면 ==
+
+  1. src 폴더 내의 이미지
+  import bg from './img/bg.png';
+  ...
+  <div style={{ backgroundImage : `url(${bg})` }}></div>
+
+  => 동적인 상호아, 컴포넌트 등에서 사용 추천
+
+  2. public 폴더 내의 이미지
+  import 필요없이 가능.
+  리액트는 사이트발행 이전에 html css js를 한 파일로 압축을 함 (bundling)
+  이때 src파일들은 모두 압축이 됨.
+  public 폴더안의 파일들은 압축이 안됨.
+
+  <img src="/logo.png"/>처럼
+  슬래시부터 시작.
+
+  => 수백개의 이미지를 넣을 거라면 public폴더에.
+
+  근데 주의할 점은 서브경로에 발행할때 (home.com/어쩌구) 에는 문제가 생김.
+  CRA기준으로 process.env.PUBLIC_URL + '/logo192.png' 이런식으로 해결 가능
+*/
 
 .qna {
   position: relative;
@@ -30,6 +97,7 @@ body {
   margin: auto;
   margin-top: 40px;
 }
+
 
 .small-button {
   all: unset;
@@ -87,7 +155,7 @@ body {
   font-weight: 600;
   height: 48px;
   left: 0;
-  letter-spacing: -0.8px;
+  letter-spacing: -0.80px;
   line-height: normal;
   position: absolute;
   top: -1px;
@@ -154,42 +222,42 @@ body {
 }
 
 .radio-button {
-  all: unset;
-  border: 1px solid;
-  border-radius: 5px;
-  box-sizing: border-box;
-  height: 40px;
-  position: relative;
-  width: 100px;
+    all: unset;
+    border: 1px solid;
+    border-radius: 5px;
+    box-sizing: border-box;
+    height: 40px;
+    position: relative;
+    width: 100px;
 }
 
 .radio-button .radio-button-text {
-  font-family: "Inter-Bold", Helvetica;
-  font-size: 15px;
-  font-weight: 700;
-  height: 20px;
-  left: 9px;
-  letter-spacing: 0;
-  line-height: 25px;
-  position: absolute;
-  text-align: center;
-  top: 8px;
-  white-space: nowrap;
-  width: 80px;
-  cursor: pointer;
+    font-family: "Inter-Bold", Helvetica;
+    font-size: 15px;
+    font-weight: 700;
+    height: 20px;
+    left: 9px;
+    letter-spacing: 0;
+    line-height: 25px;
+    position: absolute;
+    text-align: center;
+    top: 8px;
+    white-space: nowrap;
+    width: 80px;
+    cursor: pointer;
 }
 
 .radio-button.default {
-  border-color: #999999;
+    border-color: #999999;
 }
 
 .radio-button.selected {
-  background-color: #f07575;
-  border-color: #f07575;
+    background-color: #f07575;
+    border-color: #f07575;
 }
 
 .radio-button.default .radio-button-text {
-  color: #222222;
+    color: #222222;
 }
 
 .radio-button.selected .radio-button-text {
@@ -197,7 +265,7 @@ body {
 }
 
 .line {
-  background-color: #999;
+  background-color:#999;
   height: 1px;
   width: 1093px;
   border-width: 0;
@@ -208,7 +276,7 @@ body {
   height: 26px;
   position: relative;
   width: 1093px;
-  margin-bottom: 17px;
+  margin-bottom:17px;
 }
 
 .post-form .post-id {
@@ -218,7 +286,7 @@ body {
   font-weight: 400;
   height: 24px;
   left: 20px;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.40px;
   line-height: normal;
   position: absolute;
   top: -1px;
@@ -232,7 +300,7 @@ body {
   font-weight: 400;
   height: 24px;
   left: 150px;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.40px;
   line-height: normal;
   position: absolute;
   top: -1px;
@@ -246,7 +314,7 @@ body {
   font-weight: 400;
   height: 24px;
   left: 300px;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.40px;
   line-height: normal;
   position: absolute;
   top: -1px;
@@ -260,7 +328,7 @@ body {
   font-weight: 400;
   height: 24px;
   left: 803px;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.40px;
   line-height: normal;
   position: absolute;
   top: -1px;
@@ -274,7 +342,7 @@ body {
   font-weight: 400;
   height: 24px;
   left: 965px;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.40px;
   line-height: normal;
   position: absolute;
   top: -1px;
@@ -346,8 +414,7 @@ body {
   cursor: pointer;
 }
 
-.page-select-default,
-.page-select-active {
+.page-select-default, .page-select-active {
   font-family: "Inter-Bold", Helvetica;
   font-size: 20px;
   justify-content: center;
@@ -358,7 +425,7 @@ body {
 }
 
 .page-button:disabled {
-  color: #888;
+  color:#888;
 }
 
 .qna-search-bar {
@@ -400,7 +467,7 @@ body {
 }
 
 .vertical-line {
-  background-color: #999;
+  background-color:#999;
   height: 46px;
   width: 1px;
   border-width: 0;
@@ -415,7 +482,7 @@ body {
   cursor: pointer;
   padding: none;
   margin-top: 1px;
-  margin-left: 7px;
+  margin-left:7px;
 }
 
 .qna-search-button:hover {

@@ -1,14 +1,15 @@
+import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
-import React, {useEffect} from "react";
-import {Routes, Route, Navigate, useNavigate} from "react-router-dom";
-import {AuthProvider} from "./contexts/AuthContext";
-import {emitter} from "./utils/customAxios.js";
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { emitter } from "./utils/customAxios.js";
 
 // 공통 컴포넌트
-import UserHeader from "./components/common/UserHeader.jsx";
+import UserHeader from './components/common/UserHeader.jsx';
 import Footer from "./components/common/Footer.jsx";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from './components/ProtectedRoute';
 
 // 사용자 페이지
 import ProductList from "./pages/product/ProductList.jsx";
@@ -17,44 +18,44 @@ import Cart from "./pages/cart/Cart.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
 // import QnA from "./pages/qna/QnA.jsx";
 import QnA from "./pages/qna/QnAList.jsx";
+import QnADetaill from "./pages/qna/QnADetaill.jsx";
+import QnAWrite from './pages/qna/QnAWrite.jsx';
+
 import Order from "./pages/order/Order.jsx";
-import OrderComplete from "./pages/order/OrderComplete";
 // import Checkout from "./pages/payment/Checkout.jsx";
 
-import UserLogin from "./pages/auth/UserLogin.jsx";
-import SignUp from "./pages/auth/SignUp.jsx";
-import OrderHistory from "./pages/order/OrderHistory.jsx";
+import UserLogin from './pages/auth/UserLogin.jsx';
+import SignUp from './pages/auth/SignUp.jsx';
+import OrderHistory from './pages/order/OrderHistory.jsx';
 
 // 기업 페이지
-import EnterpriseMain from "./pages/enterprise/EnterpriseMain.jsx";
+import EnterpriseMain from './pages/enterprise/EnterpriseMain.jsx';
 import ProductRegister from "./pages/product/ProductRegister.jsx";
-import EnterpriseLogin from "./pages/auth/EnterpriseLogin.jsx";
+import EnterpriseLogin from './pages/auth/EnterpriseLogin.jsx';
 import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
-import ProductManagement from "./pages/product/ProductManagement.jsx";
+import ProductManagement from './pages/product/ProductManagement.jsx';
 
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
 
 // 데이터
-import data from "./utils/data.js";
+import data from './utils/data.js';
 
-const PublicLayout = ({children}) => (
-    <div className="flex flex-col min-h-screen">
-        <UserHeader/>
-        <main className="flex-grow flex items-start justify-center py-16 px-20">
-            {children}
-        </main>
-        <Footer/>
-    </div>
+const PublicLayout = ({ children }) => (
+    <>
+        <UserHeader />
+        {children}
+        <Footer />
+    </>
 );
 
 const App = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        emitter.on("logout", () => {
-            localStorage.removeItem("accessToken");
-            navigate("/login", {replace: true});
+        emitter.on('logout', () => {
+            localStorage.removeItem('accessToken');
+            navigate('/login', { replace: true });
         });
     }, [navigate]);
 
@@ -66,7 +67,7 @@ const App = () => {
                     path="/"
                     element={
                         <PublicLayout>
-                            <ProductList products={data} title="Best Seller"/>
+                            <ProductList products={data} title="Best Seller" />
                         </PublicLayout>
                     }
                 />
@@ -75,7 +76,7 @@ const App = () => {
                     path="/detail/:id"
                     element={
                         <PublicLayout>
-                            <ProductDetail products={data} title="Related products"/>
+                            <ProductDetail products={data} title="Related products" />
                         </PublicLayout>
                     }
                 />
@@ -84,7 +85,24 @@ const App = () => {
                     path="/qna"
                     element={
                         <PublicLayout>
-                            <QnA/>
+                            <QnA />
+                        </PublicLayout>
+                    }
+                />
+                <Route
+                    path="/QnADetaill/:id"
+                    element={
+                        <PublicLayout>
+                            <QnADetaill />
+                        </PublicLayout>
+                    }
+                >
+                </Route>
+                <Route
+                    path="/QnAWrite"
+                    element={
+                        <PublicLayout>
+                            <QnAWrite />
                         </PublicLayout>
                     }
                 />
@@ -94,7 +112,7 @@ const App = () => {
                     path="/login"
                     element={
                         <PublicLayout>
-                            <UserLogin/>
+                            <UserLogin />
                         </PublicLayout>
                     }
                 />
@@ -103,7 +121,7 @@ const App = () => {
                     path="/enterpriseLogin"
                     element={
                         <PublicLayout>
-                            <EnterpriseLogin/>
+                            <EnterpriseLogin />
                         </PublicLayout>
                     }
                 />
@@ -112,7 +130,7 @@ const App = () => {
                     path="/signup"
                     element={
                         <PublicLayout>
-                            <SignUp/>
+                            <SignUp />
                         </PublicLayout>
                     }
                 />
@@ -121,28 +139,29 @@ const App = () => {
                     path="/enterpriseSignUp"
                     element={
                         <PublicLayout>
-                            <EnterpriseSignUp/>
+                            <EnterpriseSignUp />
                         </PublicLayout>
                     }
                 />
 
                 {/* 로그아웃 */}
-                <Route path="/logout" element={<Logout/>}/>
+                <Route path="/logout" element={<Logout />} />
 
                 {/* 일반 회원 전용 페이지 */}
                 <Route
                     path="/user/*"
                     element={
-                        <PublicLayout>
-                            <Routes>
-                                <Route path="mypage" element={<MyPage/>}/>
-                                <Route path="cart" element={<Cart/>}/>
-                                <Route path="orders" element={<OrderHistory/>}/>
-                                <Route path="order" element={<Order/>}/>
-                                <Route path="order/complete" element={<OrderComplete/>}/>
-                                {/*<Route path="checkout" element={<Checkout />} />*/}
-                            </Routes>
-                        </PublicLayout>
+                        <ProtectedRoute requiredRole="ROLE_USER">
+                            <PublicLayout>
+                                <Routes>
+                                    <Route path="mypage" element={<MyPage />} />
+                                    <Route path="cart" element={<Cart />} />
+                                    <Route path="orders" element={<OrderHistory />} />
+                                    <Route path="order" element={<Order />} />
+                                    {/*<Route path="checkout" element={<Checkout />} />*/}
+                                </Routes>
+                            </PublicLayout>
+                        </ProtectedRoute>
                     }
                 />
 
@@ -153,13 +172,10 @@ const App = () => {
                         <ProtectedRoute requiredRole="ROLE_COMPANY">
                             <PublicLayout>
                                 <Routes>
-                                    <Route path="/" element={<EnterpriseMain/>}/>
-                                    <Route path="dashboard" element={<EnterpriseMain/>}/>
-                                    <Route
-                                        path="product/register"
-                                        element={<ProductRegister/>}
-                                    />
-                                    <Route path="products" element={<ProductManagement/>}/>
+                                    <Route path="/" element={<EnterpriseMain />} />
+                                    <Route path="dashboard" element={<EnterpriseMain />} />
+                                    <Route path="product/register" element={<ProductRegister />} />
+                                    <Route path="products" element={<ProductManagement />} />
                                 </Routes>
                             </PublicLayout>
                         </ProtectedRoute>
@@ -167,7 +183,7 @@ const App = () => {
                 />
 
                 {/* 404 및 리다이렉트 */}
-                <Route path="*" element={<Navigate to="/" replace/>}/>
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </AuthProvider>
     );
