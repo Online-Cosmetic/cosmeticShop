@@ -1,6 +1,6 @@
-package Midas.cosmeticShop.repository;
+package Midas.cosmeticshop.repository;
 
-import Midas.cosmeticShop.entity.RefreshToken;
+import Midas.cosmeticshop.entity.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

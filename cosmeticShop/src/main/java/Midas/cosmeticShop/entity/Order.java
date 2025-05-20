@@ -1,13 +1,17 @@
-package Midas.cosmeticShop.entity;
+package Midas.cosmeticshop.entity;
 
-import Midas.cosmeticShop.entity.Users.User;
+import Midas.cosmeticshop.dto.order.OrderDTO;
+import Midas.cosmeticshop.dto.order.OrderItemDTO;
+import Midas.cosmeticshop.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "orders")
@@ -44,4 +48,35 @@ public class Order {
     /* 주문 상세와의 연관관계 */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
+
+    public Order makeOrder(User user, OrderDTO dto) {
+        this.user = user;
+        this.totalPrice = dto.getTotalPrice();
+        this.orderAddress = new OrderAddress(dto.getCity(), dto.getStreet(), dto.getDetail());
+        this.createdAt = LocalDateTime.now();
+        this.orderItems = new ArrayList<>();
+        if (dto.getOrderItems() != null) {
+            for (var itemDto : dto.getOrderItems()) {
+                // Product는 서비스 계층에서 주입해야 함. 예시로 null 처리
+                OrderItem orderItem = OrderItem.fromDTO(itemDto, this, null);
+                this.orderItems.add(orderItem);
+            }
+        }
+        return this;
+    }
+
+    /* 엔티티 -> DTO 매핑 */
+    public OrderDTO toDTO() {
+        List<OrderItemDTO> orderItemDTOs = this.orderItems.stream()
+            .map(OrderItem::toDTO)
+            .collect(Collectors.toList());
+
+        return OrderDTO.builder()
+            .totalPrice(this.totalPrice)
+            .city(this.orderAddress.getCity())
+            .street(this.orderAddress.getStreet())
+            .detail(this.orderAddress.getDetail())
+            .orderItems(orderItemDTOs)
+            .build();
+    }
 }

@@ -1,8 +1,8 @@
-package Midas.cosmeticShop.service;
+package Midas.cosmeticshop.service;
 
-import Midas.cosmeticShop.dto.BaseUserDetails;
-import Midas.cosmeticShop.entity.Users.BaseUser;
-import Midas.cosmeticShop.repository.Users.BaseUserRepository;
+import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.entity.user.BaseUser;
+import Midas.cosmeticshop.repository.user.BaseUserRepository;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

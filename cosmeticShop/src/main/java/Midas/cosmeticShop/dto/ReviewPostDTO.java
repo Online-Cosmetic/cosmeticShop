@@ -1,6 +1,5 @@
-package Midas.cosmeticShop.dto;
+package Midas.cosmeticshop.dto;
 
-import Midas.cosmeticShop.entity.ReviewImage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

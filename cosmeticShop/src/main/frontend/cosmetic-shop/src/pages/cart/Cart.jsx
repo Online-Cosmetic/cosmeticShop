@@ -1,5 +1,4 @@
 import React from "react";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProductCard from "../../components/product/ProductCard.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";

@@ -1,8 +1,8 @@
-package Midas.cosmeticShop.controller;
+package Midas.cosmeticshop.controller;
 
-import Midas.cosmeticShop.dto.BadKeywordDTO;
-import Midas.cosmeticShop.dto.ReviewDTO;
-import Midas.cosmeticShop.service.AdminService;
+import Midas.cosmeticshop.dto.BadKeywordDTO;
+import Midas.cosmeticshop.dto.ReviewDTO;
+import Midas.cosmeticshop.service.AdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

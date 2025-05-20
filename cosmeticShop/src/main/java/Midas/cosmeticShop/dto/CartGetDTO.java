@@ -1,7 +1,7 @@
-package Midas.cosmeticShop.dto;
+package Midas.cosmeticshop.dto;
 
-import Midas.cosmeticShop.entity.Cart;
-import Midas.cosmeticShop.entity.ProductImage;
+import Midas.cosmeticshop.entity.Cart;
+import Midas.cosmeticshop.entity.product.ProductImage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +18,7 @@ public class CartGetDTO {
     private Long productId;
     private String productName;
     private int quantity;
+    private String companyName;
     private int price;
     private String productImage;
 
@@ -25,11 +26,12 @@ public class CartGetDTO {
         this.id = cart.getId();
         this.productId = cart.getProduct().getId();
         this.productName = cart.getProduct().getProductName();
-        this.quantity = cart.getQuantity();
+        this.companyName = cart.getProduct().getCompany().getCompanyName();
         this.price = cart.getProduct().getPrice() * (100-cart.getProduct().getDiscountRate()/100);
         List<ProductImage> productImages = cart.getProduct().getProductImages();
         if (productImages != null && !productImages.isEmpty()) {
             this.productImage = productImages.get(0).getImageUrl();
         }
+        this.quantity = cart.getQuantity();
     }
 }

@@ -1,12 +1,12 @@
-package Midas.cosmeticShop.service;
+package Midas.cosmeticshop.service;
 
-import Midas.cosmeticShop.dto.QnaDTO;
-import Midas.cosmeticShop.dto.QnaListDTO;
-import Midas.cosmeticShop.dto.QnaPostDTO;
-import Midas.cosmeticShop.entity.Qna;
-import Midas.cosmeticShop.entity.Users.User;
-import Midas.cosmeticShop.repository.QnaRepository;
-import Midas.cosmeticShop.repository.Users.UserRepository;
+import Midas.cosmeticshop.dto.QnaDTO;
+import Midas.cosmeticshop.dto.QnaListDTO;
+import Midas.cosmeticshop.dto.QnaPostDTO;
+import Midas.cosmeticshop.entity.Qna;
+import Midas.cosmeticshop.entity.user.User;
+import Midas.cosmeticshop.repository.QnaRepository;
+import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;

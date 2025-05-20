@@ -1,9 +1,9 @@
-package Midas.cosmeticShop.controller;
+package Midas.cosmeticshop.controller;
 
-import Midas.cosmeticShop.dto.QnaDTO;
-import Midas.cosmeticShop.dto.QnaListDTO;
-import Midas.cosmeticShop.dto.QnaPostDTO;
-import Midas.cosmeticShop.service.QnaService;
+import Midas.cosmeticshop.dto.QnaDTO;
+import Midas.cosmeticshop.dto.QnaListDTO;
+import Midas.cosmeticshop.dto.QnaPostDTO;
+import Midas.cosmeticshop.service.QnaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/qnas")
+@RequestMapping("/api/qnas")
 public class QnaController {
 
     private final QnaService qnaService;
@@ -37,15 +37,13 @@ public class QnaController {
         return ResponseEntity.ok().body(qnaService.getQnasByUser(nickname));
     }
 
-
     @GetMapping("/search/title")
     public ResponseEntity<List<QnaListDTO>> getQnasByTitle(@RequestParam("title") String title) {
         return ResponseEntity.ok().body(qnaService.getQnasByTitle(title));
     }
 
-
     //Qna 상세 정보 반환 (상세페이지용)
-    @GetMapping("detail/{qnaId}")
+    @GetMapping("/detail/{qnaId}")
     public ResponseEntity<QnaDTO> getQnaDetail(@PathVariable Long id) {
         return ResponseEntity.ok().body(qnaService.getQnaDetail(id));
     }
@@ -78,7 +76,8 @@ public class QnaController {
 
     //Qna 삭제
     @DeleteMapping("/{qnaId}")
-    public  ResponseEntity<Void> deleteQna(@PathVariable Long id, Authentication authentication) {
+    public  ResponseEntity<Void> deleteQna(@PathVariable Long id,
+                                           Authentication authentication) {
         qnaService.deleteQna(id, authentication.getName());
         return ResponseEntity.ok().build();
     }

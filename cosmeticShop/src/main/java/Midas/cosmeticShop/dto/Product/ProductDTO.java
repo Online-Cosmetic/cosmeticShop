@@ -1,7 +1,6 @@
-package Midas.cosmeticShop.dto.Product;
+package Midas.cosmeticshop.dto.product;
 
-import Midas.cosmeticShop.entity.Product;
-import Midas.cosmeticShop.entity.Users.Company;
+import Midas.cosmeticshop.entity.product.Product;
 import lombok.*;
 
 
@@ -16,7 +15,7 @@ public class ProductDTO {
     private String description;
     private int price;
     private int stock;
-    private Company company;
+    private Long companyId;
 
 
     public static ProductDTO from(Product product) {
@@ -27,7 +26,7 @@ public class ProductDTO {
             product.getDescription(),
             product.getPrice(),
             product.getStock(),
-            product.getCompany()
+            product.getCompany().getId()
         );
     }
 

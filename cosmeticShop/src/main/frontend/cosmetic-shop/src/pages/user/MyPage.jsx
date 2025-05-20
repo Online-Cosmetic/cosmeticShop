@@ -24,6 +24,7 @@ const MyPage = () => {
                             <li>Q&A</li>
                         </ul>
                     </div>
+
                     <div>
                         <h2 className="text-2xl font-semibold mb-4">Info</h2>
                         <ul className="space-y-2 text-lg text-gray-700">

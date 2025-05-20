@@ -1,4 +1,4 @@
-package Midas.cosmeticShop.exception;
+package Midas.cosmeticshop.exception;
 
 public class TokenRefreshException extends RuntimeException {
     public TokenRefreshException(String token, String msg) {

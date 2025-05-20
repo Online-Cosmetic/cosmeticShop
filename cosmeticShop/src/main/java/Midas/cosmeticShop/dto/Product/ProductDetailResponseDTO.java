@@ -1,4 +1,4 @@
-package Midas.cosmeticShop.dto.Product;
+package Midas.cosmeticshop.dto.product;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
