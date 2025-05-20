@@ -1,72 +1,64 @@
 import React from "react";
 
-function MyPage() {
-
+const MyPage = () => {
     return (
-        <>
-            <div className="flex min-h-screen bg-white text-gray-900 p-10 font-sans">
-                {/* Sidebar */}
-                <div className="w-[200px] text-sm mr-12">
-                    <h1 className="text-xl font-bold mb-8">Welcome! UserID</h1>
+        <div className="max-w-7xl mx-auto px-8 py-10 flex flex-col gap-10">
+            <h1 className="text-4xl font-semibold text-neutral-800">My Page</h1>
 
-                    <div className="mb-6">
-                        <h2 className="font-bold mb-2">Orders</h2>
-                        <ul className="space-y-1 text-gray-600">
+            <div className="flex gap-10">
+                {/* 사이드 메뉴 */}
+                <aside className="w-40 flex flex-col gap-10">
+                    <div>
+                        <h2 className="text-2xl font-semibold mb-4">Orders</h2>
+                        <ul className="space-y-2 text-lg text-gray-700">
                             <li>Order History</li>
-                            <li>Cancelled orders</li>
+                            <li>Return Orders</li>
                             <li>List</li>
                         </ul>
                     </div>
-
-                    <div className="mb-6">
-                        <h2 className="font-bold mb-2">Activities</h2>
-                        <ul className="space-y-1 text-gray-600">
+                    <div>
+                        <h2 className="text-2xl font-semibold mb-4">Activities</h2>
+                        <ul className="space-y-2 text-lg text-gray-700">
                             <li>Wishlist</li>
                             <li>Review</li>
-                            <li>Q&amp;A</li>
+                            <li>Q&A</li>
                         </ul>
                     </div>
 
                     <div>
-                        <h2 className="font-bold mb-2">Informations</h2>
-                        <ul className="space-y-1 text-gray-600">
+                        <h2 className="text-2xl font-semibold mb-4">Info</h2>
+                        <ul className="space-y-2 text-lg text-gray-700">
                             <li>Edit Info</li>
                             <li>Address</li>
                             <li>Payments</li>
                         </ul>
                     </div>
-                </div>
+                </aside>
 
-                {/* Main */}
-                <div className="flex-1 space-y-10">
-                    {/* Order History */}
+                {/* 콘텐츠 */}
+                <section className="flex-1 flex flex-col gap-12">
+                    {/* Orders History */}
                     <div>
-                        <h2 className="text-2xl font-bold mb-4">Order History</h2>
-                        <div className="bg-gray-400 p-6 rounded-md flex items-center justify-between text-white font-semibold text-center text-sm">
-                            <div className="flex-1">#<br />Order<br />Received</div>
-                            <div className="text-2xl px-2">➤</div>
-                            <div className="flex-1">#<br />Payment<br />Complete</div>
-                            <div className="text-2xl px-2">➤</div>
-                            <div className="flex-1">#<br />State</div>
-                            <div className="text-2xl px-2">➤</div>
-                            <div className="flex-1">#<br />Shipping</div>
-                            <div className="text-2xl px-2">➤</div>
-                            <div className="flex-1">#<br />Delivered</div>
+                        <h2 className="text-3xl font-semibold mb-6">Orders History</h2>
+                        <div className="grid grid-cols-5 gap-4 bg-neutral-400 text-white text-center font-medium py-4 rounded-lg">
+                            <div>#</div>
+                            <div>State</div>
+                            <div>State</div>
+                            <div>State</div>
+                            <div>State</div>
                         </div>
                     </div>
 
                     {/* Wishlist */}
                     <div>
-                        <h2 className="text-2xl font-bold mb-4">Wishlist</h2>
-                        <div className="flex space-x-4">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="w-[100px] h-[100px] bg-gray-100 rounded overflow-hidden relative">
-                                    <img
-                                        src="../../../public/product(1).png"
-                                        alt="wishlist item"
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <span className="absolute top-1 right-1 text-gray-400 text-xl">♡</span>
+                        <h2 className="text-3xl font-semibold mb-6">Wishlist</h2>
+                        <div className="flex gap-6">
+                            {[1, 2, 3].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="w-44 h-44 bg-gray-200 rounded-xl flex items-center justify-center text-xl text-gray-600"
+                                >
+                                    상품 {i + 1}
                                 </div>
                             ))}
                         </div>
@@ -74,34 +66,31 @@ function MyPage() {
 
                     {/* Q&A */}
                     <div>
-                        <h2 className="text-2xl font-bold mb-4">Q&amp;A</h2>
-                        <table className="w-full border-t border-gray-300 text-sm">
-                            <thead>
-                                <tr className="border-b">
-                                    <th className="p-2 text-left">#</th>
-                                    <th className="p-2 text-left">State</th>
-                                    <th className="p-2 text-left">Title</th>
-                                    <th className="p-2 text-left">Author</th>
-                                    <th className="p-2 text-left">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[1, 2, 3].map(i => (
-                                    <tr key={i} className="border-b">
-                                        <td className="p-2">#</td>
-                                        <td className="p-2">State</td>
-                                        <td className="p-2">Title</td>
-                                        <td className="p-2">Author</td>
-                                        <td className="p-2">Date</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <h2 className="text-3xl font-semibold mb-6">Q&A</h2>
+                        <div className="grid grid-cols-5 bg-white border border-gray-300 text-neutral-800 font-medium text-lg py-4 px-2 rounded-lg">
+                            <div>#</div>
+                            <div>State</div>
+                            <div>Title</div>
+                            <div>Author</div>
+                            <div>Date</div>
+                        </div>
+                        {[1, 2].map((_, i) => (
+                            <div
+                                key={i}
+                                className="grid grid-cols-5 border-t border-gray-300 text-neutral-800 py-4 px-2"
+                            >
+                                <div>{i + 1}</div>
+                                <div>답변완료</div>
+                                <div>상품 관련 문의</div>
+                                <div>User{i + 1}</div>
+                                <div>2025-05-19</div>
+                            </div>
+                        ))}
                     </div>
-                </div>
+                </section>
             </div>
-        </>
+        </div>
     );
-}
+};
 
 export default MyPage;
