@@ -20,12 +20,12 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<List<ReviewDTO>> getReview (@RequestParam("ProductId") Long productId) {
         return ResponseEntity.ok().body(reviewService.getReview(productId));
     }
 
-    @PostMapping("")
+    @PostMapping
     public ResponseEntity<Void> postReview (@RequestBody ReviewPostDTO reviewPostDTO,
                                             Authentication authentication) {
         reviewService.postReview(reviewPostDTO, authentication.getName());
