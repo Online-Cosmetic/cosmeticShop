@@ -62,7 +62,7 @@ function AddressForm({onNewAddress}) {
 
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 border rounded-lg p-6 shadow">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Shipping Address</h2>
                 {/* 드롭다운 */}
@@ -71,7 +71,7 @@ function AddressForm({onNewAddress}) {
                         <button
                             onClick={() => setShowDropdown(!showDropdown)}
                             disabled={loadingAddresses}
-                            className="w-40 px-4 py-1.5 border border-black rounded-xl text-semibold"
+                            className="w-40 px-4 py-1.5 border border-neutral-400 rounded-xl text-semibold text-neutral-600"
                         >
                           <span className="flex justify-between w-full">
                             <span>{loadingAddresses ? "Loading..." : "My Address"}</span>
@@ -124,12 +124,13 @@ function AddressForm({onNewAddress}) {
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <div className="flex justify-end">
+            <div className="flex justify-end relative">
                 <button
                     type="button"
                     onClick={handleSave}
                     disabled={loading}
-                    className={`w-full py-2 font-semibold rounded-lg ${
+                    className={`className="w-full py-2 text-neutral-600 font-semibold border border-neutral-400 rounded-lg 
+                    ${
                         loading
                             ? "bg-gray-400 text-gray-200 cursor-not-allowed"
                             : "bg-neutral-600 text-white hover:bg-neutral-700"

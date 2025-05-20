@@ -1,96 +1,148 @@
-import React, {useMemo} from "react";
-import Footer from "../../components/common/Footer.jsx";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import AddressForm from "../../components/user/AddressForm.jsx";
 import ProductCard from "../../components/product/ProductCard.jsx";
-import BankPaymentForToss from "../../components/payment/BankTransferPayment.jsx";
-// import EasyPayment from "../../components/payment/EasyPayment.jsx";
-// import CardPaymentForToss from "../../components/payment/CardPaymentForToss.jsx";
-
 
 function Order() {
-    const cartItems = [ // 이거 임시 테스트용 더미 데이터. API호출해서 받아와야 함.
-        {
-            id: 1,
-            brand: "Brand A",
-            name: "Product A",
-            quantity: 2,
-            price: 12000,
-            image: "/product(1).png",
-            promotion: "10% off",
-        }
-    ];
+  const navigate = useNavigate();
+  const [method, setMethod] = useState("card");
+  const cartItems = [
+    {
+      id: 1,
+      brand: "Brand A",
+      name: "Product A",
+      quantity: 2,
+      price: 12000,
+      image: "/product(1).png",
+      promotion: "10% off",
+    },
+    {
+      id: 2,
+      brand: "Brand B",
+      name: "Product B",
+      quantity: 1,
+      price: 15000,
+      image: "/product(2).png",
+      promotion: "10% off",
+    },
+    {
+      id: 3,
+      brand: "Brand C",
+      name: "Product C",
+      quantity: 3,
+      price: 8000,
+      image: "/product(3).png",
+      promotion: "10% off",
+    },
+  ];
 
-    // 총액 계산
-    const totalPrice = useMemo(
-        () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
-        [cartItems]
-    );
-    // 프로모션(%) 파싱
-    const discountRate = useMemo(
-        () =>
-            cartItems.reduce((acc, item) => {
-                const pct = parseInt(item.promotion.match(/\d+/)?.[0] || "0", 10);
-                return acc + (item.price * item.quantity * pct) / 100;
-            }, 0),
-        [cartItems]
-    );
-    const orderTotal = totalPrice - discountRate;
+  const handlePayment = () => {
+    if (method === "card") navigate("/payment/toss");
+    else if (method === "bank") navigate("/payment/bank");
+    else if (method === "simple") navigate("/payment/simple");
+  };
 
-
-    return (
-        <>
-            <main className="max-w-screen-xl mx-auto px-8 py-12 flex flex-col lg:flex-row gap-12">
-                {/* 좌측: 주소 + 상품목록 */}
-                <div className="flex-1 space-y-12">
-                    <AddressForm
-                        savedAddresses={[
-                            { id: "1", city: "경상북도", street: "경산시", detail: "대학로 280" },
-                            { id: "2", city: "대구광역시", street: "수성구", detail: "달구벌대로 3109" },
-                        ]}
+  return (
+    <div className="w-full max-w-5xl mx-auto my-auto">
+      <main className="flex-grow">
+        <div className="">
+          {/* Order */}
+          <h2 className="text-3xl font-bold text-neutral-800 mb-6">Order</h2>
+          {/* (좌)주소, 상품 목록 + (우)주문 요약, 결제 수단 */}
+          <div className="flex gap-6 max-h-[calc(100vh-200px)] overflow-hidden border rounded-lg p-6 shadow">
+            {/* 좌측 영역: 주소 + 상품 목록 */}
+            <div className="flex-1 min-w-0 space-y-8">
+              <AddressForm
+                savedAddresses={[
+                  {
+                    id: "1",
+                    city: "경상북도",
+                    street: "경산시",
+                    detail: "대학로 280",
+                  },
+                  {
+                    id: "2",
+                    city: "대구광역시",
+                    street: "수성구",
+                    detail: "달구벌대로 3109",
+                  },
+                ]}
+              />
+              {/* 상품 목록 */}
+              <section className="flex-1 flex flex-col border rounded-lg p-6 shadow">
+                <h3 className="text-2xl font-semibold mb-4">Order Items</h3>
+                <div className="space-y-4 max-h-[320px] overflow-y-scroll pr-2">
+                  {cartItems.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onQuantityChange={() => {}}
+                      editable={false}
+                      isOrderPage={true}
                     />
-                    <h2 className="text-2xl font-semibold">Order Items</h2>
-                    <div className="space-y-8">
-                        {cartItems.map((product) => (
-                            <ProductCard
-                                key={product.id}
-                                product={product}
-                                onQuantityChange={() => {
-                                    // TODO: 수량변경시 호출해서 반영 후 이 부분 UI만 갱신해야함
-                                }}
-                                editable={false}
-                            />
-                        ))}
-                    </div>
+                  ))}
                 </div>
+              </section>
+            </div>
 
-                {/* 우측: 결제 정보 */}
-                <div className="w-full max-w-sm flex-shrink-0 border rounded-lg p-6 shadow">
-                    <div className="flex justify-between mb-3 text-lg">
-                        <span>Total Price</span>
-                        <span>₩{totalPrice.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between mb-3 text-lg text-red-500">
-                        <span>Discount</span>
-                        <span>- ₩{discountRate.toLocaleString()}</span>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="flex justify-between mb-6 text-xl font-bold">
-                        <span>Order Total</span>
-                        <span>₩{orderTotal.toLocaleString()}</span>
-                    </div>
-                    {/* 카드 / 계좌 / 간편결제 선택해서 호출*/}
-                    {/*<CardPaymentForToss />*/}
-                    <BankPaymentForToss />
-                    {/*<EasyPayment/>*/}
+            {/* 우측 영역: 결제 요약 + 결제 수단 선택 */}
+            <div className="w-96 flex-shrink-0 space-y-6">
+              <div className="border rounded-lg p-6 shadow">
+                <h3 className="text-2xl font-semibold mb-4">Order Summary</h3>
+                <CartSummary />
+              </div>
+
+              <div className="border rounded-lg p-6 shadow">
+                <h3 className="text-2xl font-semibold mb-4">
+                  Select Payment Method
+                </h3>
+                <div className="space-y-2">
+                  {[
+                    { label: "신용/체크카드", value: "card" },
+                    { label: "계좌이체", value: "bank" },
+                    { label: "간편결제", value: "simple" },
+                  ].map(({ label, value }) => (
+                    <label key={value} className="block">
+                      <input
+                        type="radio"
+                        name="payment"
+                        value={value}
+                        checked={method === value}
+                        onChange={() => setMethod(value)}
+                        className="peer hidden"
+                      />
+                      <div
+                        className="w-full px-4 py-3 border rounded-lg cursor-pointer
+                          peer-checked:border-emerald-600
+                          peer-checked:bg-emerald-50
+                          peer-checked:text-emerald-700
+                          transition-colors"
+                      >
+                        {label}
+                      </div>
+                    </label>
+                  ))}
                 </div>
+              </div>
 
-                {/*<CartSummary />*/}
-            </main>
-            <Footer />
-        </>
-    );
+              <button
+                className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"
+                onClick={handlePayment}
+              >
+                Proceed with{" "}
+                {method === "card"
+                  ? "Card"
+                  : method === "bank"
+                    ? "Bank Transfer"
+                    : "Simple Pay"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }
 
 export default Order;
-

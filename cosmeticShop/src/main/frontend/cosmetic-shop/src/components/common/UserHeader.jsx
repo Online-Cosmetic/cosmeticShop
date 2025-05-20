@@ -1,10 +1,10 @@
 // src/components/common/Header.jsx
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext.jsx';
+import React from "react";
+import {Link, useNavigate} from "react-router-dom";
+import {useAuth} from "../../contexts/AuthContext.jsx";
 
 export default function Header() {
-    const { user, logout } = useAuth();
+    const {user, logout} = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -19,34 +19,50 @@ export default function Header() {
             return (
                 <nav className="border-b border-gray-300">
                     <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
-                        <Link to="/user/mypage" className="text-gray-700 hover:text-emerald-600">
+                        <Link
+                            to="/user/mypage"
+                            className="text-gray-700 hover:text-emerald-600"
+                        >
                             <i className="fas fa-user mr-1"></i> My Page
                         </Link>
-                        <Link to="/user/cart" className="text-gray-700 hover:text-emerald-600">
+                        <Link
+                            to="/user/cart"
+                            className="text-gray-700 hover:text-emerald-600"
+                        >
                             <i className="fas fa-shopping-cart mr-1"></i> Cart
                         </Link>
-                        <Link to="/user/orders" className="text-gray-700 hover:text-emerald-600">
+                        <Link
+                            to="/user/orders"
+                            className="text-gray-700 hover:text-emerald-600"
+                        >
                             <i className="fas fa-history mr-1"></i> Order History
                         </Link>
-                        <Link to="/qna">
-                            Q&A
-                        </Link>
+                        <Link to="/qna">Q&A</Link>
                     </div>
                 </nav>
             );
         }
 
-        if (user.role === 'ROLE_COMPANY') {
+        if (user.role === "ROLE_COMPANY") {
             return (
                 <nav className="border-b border-gray-300">
                     <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
-                        <Link to="/company/dashboard" className="text-gray-700 hover:text-emerald-600">
+                        <Link
+                            to="/company/dashboard"
+                            className="text-gray-700 hover:text-emerald-600"
+                        >
                             <i className="fas fa-tachometer-alt mr-1"></i> Dashboard
                         </Link>
-                        <Link to="/company/product/register" className="text-gray-700 hover:text-emerald-600">
+                        <Link
+                            to="/company/product/register"
+                            className="text-gray-700 hover:text-emerald-600"
+                        >
                             <i className="fas fa-plus-circle mr-1"></i> Add Product
                         </Link>
-                        <Link to="/company/products" className="text-gray-700 hover:text-emerald-600">
+                        <Link
+                            to="/company/products"
+                            className="text-gray-700 hover:text-emerald-600"
+                        >
                             <i className="fas fa-box mr-1"></i> Products
                         </Link>
                     </div>
@@ -112,7 +128,7 @@ export default function Header() {
                                 </Link>
                                 <Link
                                     to="/enterpriseLogin"
-                                    className="px-4 py-2 text-gray-700 hover:text-emerald-600 transition"
+                                    className="px-4 py-2 border border-gray-700 text-gray-700 rounded-lg hover:text-emerald-600 transition"
                                 >
                                     Business Login
                                 </Link>

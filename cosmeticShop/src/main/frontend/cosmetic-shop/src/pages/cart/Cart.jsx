@@ -1,67 +1,79 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";  // 추가
+import { useNavigate } from "react-router-dom";
+import ProductCard from "../../components/product/ProductCard.jsx";
+import CartSummary from "../../components/cart/CartSummary.jsx";
 
 function Cart() {
-    const navigate = useNavigate();               // 추가
+  const navigate = useNavigate();
+  const cartItems = [
+    {
+      id: 1,
+      brand: "Brand A",
+      name: "Product A",
+      quantity: 2,
+      price: 12000,
+      image: "/product(1).png",
+      promotion: "10% off",
+    },
+    {
+      id: 2,
+      brand: "Brand B",
+      name: "Product B",
+      quantity: 1,
+      price: 15000,
+      image: "/product(2).png",
+      promotion: "10% off",
+    },
+    {
+      id: 3,
+      brand: "Brand C",
+      name: "Product C",
+      quantity: 3,
+      price: 8000,
+      image: "/product(3).png",
+      promotion: "10% off",
+    },
+  ];
+  return (
+    <div className="w-full max-w-5xl mx-auto">
+      <main className="flex-grow">
+        <div className="">
+          {/* Cart */}
+          <h2 className="text-3xl font-bold text-neutral-800 mb-6">Cart</h2>
+          {/* (좌)상품 목록 + (우)주문 요약 */}
+          <div className="flex gap-16 border rounded-lg p-6 shadow">
+            {/* 상품 목록 */}
+            <div className="flex flex-1 flex-col">
+              {cartItems.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onQuantityChange={() => {}}
+                  editable={false}
+                />
+              ))}
+            </div>
 
-    return (
-        <div className="flex flex-col min-h-screen">
-            <main className="flex-grow">
-                <div className="max-w-screen-xl mx-auto px-20 py-8">
-                    {/* Cart */}
-                    <h2 className="text-3xl font-bold text-neutral-800 mb-6">Cart</h2>
-                    {/* 상품 목록 + 주문 요약 */}
-                    <div className="flex flex-col lg:flex-row gap-8 items-start">
-                        {/* 상품 목록 */}
-                        <div className="flex-1 min-w-0 space-y-8">
-                            {[1, 2].map((item) => (
-                                <div key={item} className="flex gap-4 border-b pb-4 w-full">
-                                    <input type="checkbox" className="mt-2" />
-                                    <img src="/product(1).png" className="w-44 h-44 rounded-xl" />
-                                    <div className="flex flex-col gap-1">
-                                        <p className="text-xl font-bold">Product brand</p>
-                                        <p>Product name</p>
-                                        <div className="flex items-center gap-2">
-                                            <button className="text-2xl">−</button>
-                                            <span>Count</span>
-                                            <button className="text-2xl">+</button>
-                                        </div>
-                                        <p className="font-semibold">Price</p>
-                                        <p className="text-red-400 font-bold">Promotion</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* 주문 요약 */}
-                        <div className="w-full max-w-sm flex-shrink-0 border rounded-lg p-6 shadow self-left lg:self-auto">
-                            <div className="flex justify-between mb-3 text-lg">
-                                <span>Total Price</span>
-                                <span>₩25,000</span>
-                            </div>
-                            <div className="flex justify-between mb-3 text-lg">
-                                <span>Shipping Fee</span><span>₩2,500</span>
-                            </div>
-                            <div className="flex justify-between mb-3 text-lg font-bold">
-                                <span>Promo Info</span>
-                                <span>- ₩7,500</span>
-                            </div>
-                            <hr className="my-4" />
-                            <div className="flex justify-between mb-6 text-lg font-bold">
-                                <span>Order Total</span><span>₩20,000</span>
-                            </div>
-                            <button
-                                className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"
-                                onClick={() => navigate("/user/order")}
-                            >
-                                주문하기
-                            </button>
-                        </div>
-                    </div>
+            {/* 주문 요약 + 버튼 */}
+            <div className="w-96 flex-shrink-0 space-y-6">
+              <div className="border rounded-lg p-6 shadow">
+                <h3 className="text-2xl font-semibold mb-4">Cart Summary</h3>
+                <div className="flex flex-col gap-6">
+                  <CartSummary />
+                  <button
+                    className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"
+                    onClick={() => navigate("/user/order")}
+                  >
+                    Checkout
+                  </button>
                 </div>
-            </main>
+              </div>
+            </div>
+          </div>
         </div>
-    );
+      </main>
+    </div>
+  );
 }
 
 export default Cart;
