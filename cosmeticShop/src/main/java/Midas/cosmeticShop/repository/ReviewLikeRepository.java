@@ -2,6 +2,7 @@ package Midas.cosmeticshop.repository;
 
 import Midas.cosmeticshop.entity.ReviewLike;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +23,6 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, Long> {
     void decrementLiked (@Param("reviewId") Long reviewId);
 
     Optional<ReviewLike> findByReviewIdAndUserUserId (Long ReviewId, String UserId);
+
+    boolean existsByReviewIdAndUserUserId(Long reviewId, String userId);
 }

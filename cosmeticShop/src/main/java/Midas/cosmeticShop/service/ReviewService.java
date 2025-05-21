@@ -1,6 +1,6 @@
 package Midas.cosmeticshop.service;
 
-import Midas.cosmeticshop.dto.ReviewDTO;
+import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.dto.ReviewPostDTO;
 import Midas.cosmeticshop.dto.ReviewPutDTO;
 import Midas.cosmeticshop.entity.product.Product;
@@ -9,6 +9,7 @@ import Midas.cosmeticshop.entity.ReviewImage;
 import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.repository.ProductRepository;
 import Midas.cosmeticshop.repository.ReviewImageRepository;
+import Midas.cosmeticshop.repository.ReviewLikeRepository;
 import Midas.cosmeticshop.repository.ReviewRepository;
 import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -26,21 +28,43 @@ public class ReviewService {
     private final ProductRepository ProductRepo;
     private final UserRepository UserRepo;
     private final ReviewImageRepository ReviewImageRepo;
+    private final ReviewLikeRepository ReviewLikeRepo;
 
-    public ReviewService(ReviewRepository ReviewRepo, ProductRepository ProductRepo, UserRepository UserRepo, ReviewImageRepository ReviewImageRepo) {
+    public ReviewService(ReviewRepository ReviewRepo, ProductRepository ProductRepo, UserRepository UserRepo, ReviewImageRepository ReviewImageRepo, ReviewLikeRepository ReviewLikeRepo) {
         this.ReviewRepo = ReviewRepo;
         this.ProductRepo = ProductRepo;
         this.UserRepo = UserRepo;
         this.ReviewImageRepo = ReviewImageRepo;
+        this.ReviewLikeRepo = ReviewLikeRepo;
     }
 
-    public List<ReviewDTO> getReview(Long productId) {
+    public List<ReviewGetDTO> getReview(Long productId, String userId) {
         List<Review> reviewList = ReviewRepo.findByProductIdOrderByLikedDesc(productId);
-        List<ReviewDTO> reviewDTOList = new ArrayList<>();
-        for (Review review : reviewList) {
-            reviewDTOList.add(new ReviewDTO(review));
+        List<ReviewGetDTO> reviewDTOList = new ArrayList<>();
+        if(userId==null) {
+            for(Review review : reviewList) {
+                reviewDTOList.add(new ReviewGetDTO(review, false));
+            }
+            return reviewDTOList;
         }
+
+        for (Review review : reviewList) {
+            if(ReviewLikeRepo.existsByReviewIdAndUserUserId(review.getId(), userId))
+                reviewDTOList.add(new ReviewGetDTO(review, true));
+            else
+                reviewDTOList.add(new ReviewGetDTO(review, false));
+        }
+        reviewDTOList.sort(Comparator.comparing(ReviewGetDTO::isLiked).reversed());
         return reviewDTOList;
+    }
+
+    public List<ReviewGetDTO> getMyReview(Long productId, String userId) {
+        List<Review> reviewList = ReviewRepo.findByProductIdAndUserUserId(productId, userId);
+        List<ReviewGetDTO> reviewGetDTOList = new ArrayList<>();
+        for(Review review : reviewList) {
+            reviewGetDTOList.add(new ReviewGetDTO(review, false));
+        }
+        return reviewGetDTOList;
     }
 
     public void postReview(ReviewPostDTO reviewPostDTO, String userId) {

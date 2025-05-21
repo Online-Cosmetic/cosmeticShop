@@ -43,8 +43,10 @@ public class Review {
     private int liked;
 
     /* 싫어요 수 */
+    /*
     @Column(columnDefinition = "int default 0")
     private int disliked;
+    */
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

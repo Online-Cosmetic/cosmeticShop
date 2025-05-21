@@ -1,10 +1,11 @@
 package Midas.cosmeticshop.controller;
 
-import Midas.cosmeticshop.dto.ReviewDTO;
+import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.dto.ReviewPostDTO;
 import Midas.cosmeticshop.dto.ReviewPutDTO;
 import Midas.cosmeticshop.service.ReviewService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +22,18 @@ public class ReviewController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReviewDTO>> getReview (@RequestParam("ProductId") Long productId) {
-        return ResponseEntity.ok().body(reviewService.getReview(productId));
+    public ResponseEntity<List<ReviewGetDTO>> getReview (@RequestParam("ProductId") Long productId,
+                                                         Authentication authentication) {
+        if (authentication==null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken)
+            return ResponseEntity.ok().body(reviewService.getReview(productId, null));
+        else
+            return ResponseEntity.ok().body(reviewService.getReview(productId, authentication.getName()));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<ReviewGetDTO>> getMyReview (@RequestParam("productId") Long productId,
+                                                           Authentication authentication) {
+        return ResponseEntity.ok().body(reviewService.getMyReview(productId, authentication.getName()));
     }
 
     @PostMapping

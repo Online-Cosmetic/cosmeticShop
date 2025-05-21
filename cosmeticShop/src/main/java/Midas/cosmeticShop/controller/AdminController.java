@@ -1,7 +1,7 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BadKeywordDTO;
-import Midas.cosmeticshop.dto.ReviewDTO;
+import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.service.AdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -41,7 +41,7 @@ public class AdminController {
     }
 
     @GetMapping("/admin/reviews/bad")
-    public ResponseEntity<List<ReviewDTO>> getBadReviews(Authentication authentication) {
+    public ResponseEntity<List<ReviewGetDTO>> getBadReviews(Authentication authentication) {
         return ResponseEntity.ok().body(adminService.getBadReviews(authentication.getName()));
     }
 

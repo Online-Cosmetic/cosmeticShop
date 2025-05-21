@@ -1,7 +1,7 @@
 package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.BadKeywordDTO;
-import Midas.cosmeticshop.dto.ReviewDTO;
+import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.entity.BadKeyword;
 import Midas.cosmeticshop.entity.Review;
 import Midas.cosmeticshop.entity.user.User;
@@ -65,7 +65,7 @@ public class AdminService {
         BadKeywordRepo.delete(badKeyword);
     }
 
-    public List<ReviewDTO> getBadReviews (String userId) {
+    public List<ReviewGetDTO> getBadReviews (String userId) {
         User user = UserRepo.findByUserId(userId)
             .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
@@ -77,9 +77,9 @@ public class AdminService {
             reviewSet.addAll(reviewList);
         }
         List<Review> badReviewList = new ArrayList<>(reviewSet);
-        List<ReviewDTO> reviewDTOList = new ArrayList<>();
+        List<ReviewGetDTO> reviewDTOList = new ArrayList<>();
         for (Review review : badReviewList) {
-            reviewDTOList.add(new ReviewDTO(review));
+            reviewDTOList.add(new ReviewGetDTO(review));
         }
         return reviewDTOList;
     }
