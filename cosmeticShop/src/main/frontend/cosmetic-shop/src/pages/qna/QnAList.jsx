@@ -57,7 +57,14 @@ function QnAList() {
                 });
         }
     };
-
+    const handleLinkClick = (e) => {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            e.preventDefault(); // 중단 기본 링크 이동
+            alert("로그인 후 작성할 수 있습니다.");
+        }
+        // 로그인되어 있으면 Link가 정상 동작함
+    };
     return (
         <>
             <div className="w-full min-h-screen bg-white p-10">
@@ -129,7 +136,13 @@ function QnAList() {
                 </div>
 
                 <div className="flex justify-end">
-                    <Link to="/QnAWrite" className="border px-4 py-2">Button</Link>
+                    <Link
+                        to="/QnAWrite"
+                        onClick={handleLinkClick}
+                        className="border px-4 py-2"
+                    >
+                        글쓰기
+                    </Link>
                 </div>
             </div>
         </>
