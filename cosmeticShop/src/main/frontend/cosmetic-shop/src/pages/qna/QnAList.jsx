@@ -1,18 +1,23 @@
-import React, {useEffect, useState} from "react";
-import customAxios from '../../utils/customAxios.js';
-
+import React, { useEffect, useState } from "react";
+import { userAPI } from '../../utils/customAxios.js';
+import { SmallButton, Pagination }  from '../../components/ui/Button/index.jsx';
+import { Title } from '../../components/ui/Text/index.jsx';
+import { QnASearchBar } from '../../components/ui/QnASearchBar.jsx';
+import { PostForm } from '../../components/ui/PostForm.jsx';
+import { Link } from 'react-router-dom';
 
 function QnAList() {
     const [qnaData, setQnaData] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
+    const [searchTerm, setSearchTerm] = useState('');
 
     const totalPages = Math.ceil(qnaData.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const currentData = qnaData.slice(startIndex, startIndex + itemsPerPage);
 
-     useEffect(() => {
-         customAxios.get("/api/qnas") // API
+    useEffect(() => {
+        userAPI.qna.getAllQnas() // API
             .then((response) => {
                 setQnaData(response.data);
             })
@@ -38,6 +43,32 @@ function QnAList() {
         if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
     };
 
+    const handleSearch = () => {
+        if (searchTerm.trim() === '') {
+            // 빈 검색어면 전체 목록 다시 조회
+            userAPI.qna.getAllQnas()
+                .then((response) => setQnaData(response.data))
+                .catch((error) => console.error("전체 QnA 불러오기 오류:", error));
+        } else {
+            // 예: 제목 기준 검색
+            userAPI.qna.searchByTitle(searchTerm)
+                .then((response) => {
+                    setQnaData(response.data);
+                    setCurrentPage(1); // 검색 시 페이지 초기화
+                })
+                .catch((error) => {
+                    console.error("검색 오류:", error);
+                });
+        }
+    };
+    const handleLinkClick = (e) => {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            e.preventDefault(); // 중단 기본 링크 이동
+            alert("로그인 후 작성할 수 있습니다.");
+        }
+        // 로그인되어 있으면 Link가 정상 동작함
+    };
     return (
         <>
             <div className="w-full min-h-screen bg-white p-10">
@@ -51,9 +82,12 @@ function QnAList() {
                             type="text"
                             placeholder="Search"
                             className="px-4 py-2 flex-1 outline-none pr-12"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <button
                             id="searchBtn"
+                            onClick={handleSearch}
                             className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
                         >
                             <svg
@@ -88,7 +122,9 @@ function QnAList() {
                             <tr key={`${item.id}-${startIndex + index}`} className="border-t">
                                 <td className="py-2 px-4">{startIndex + index + 1}</td>
                                 <td className="py-2 px-4">{item.answered ? 'Answered' : 'Pending'}</td>
-                                <td className="py-2 px-4">{item.questionTitle}</td>
+                                <td className="py-2 px-4 hover:text-blue-800">
+                                    <Link to={`/QnADetaill/${item.id}`}>{item.questionTitle}</Link>
+                                </td>
                                 <td className="py-2 px-4">{item.nickname}</td>
                                 <td className="py-2 px-4">{formatDate(item.questionedAt)}</td>
                             </tr>
@@ -104,7 +140,13 @@ function QnAList() {
                 </div>
 
                 <div className="flex justify-end">
-                    <button className="border px-4 py-2">Button</button>
+                    <Link
+                        to="/QnAWrite"
+                        onClick={handleLinkClick}
+                        className="border px-4 py-2"
+                    >
+                        글쓰기
+                    </Link>
                 </div>
             </div>
         </>
