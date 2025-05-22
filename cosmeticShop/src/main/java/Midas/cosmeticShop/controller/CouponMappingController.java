@@ -11,6 +11,7 @@ public class CouponMappingController {
     @GetMapping("/Mapping")
     public ResponseEntity<List<CouponMappingGetDTO>> getCouponMappings (Authentication authentication) {
 
+
     }
 
     @PostMapping("/Mapping")
