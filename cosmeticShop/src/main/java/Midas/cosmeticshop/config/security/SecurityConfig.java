@@ -134,7 +134,7 @@ public class SecurityConfig {
 
                 // 결제 관련 (로그인 필요)
                 .requestMatchers(
-                    "/api/payment/**"
+                    "/api/payments/**"
                 ).hasRole("USER")
 
                 // QNA 관련

@@ -46,15 +46,17 @@ export const AuthProvider = ({ children }) => {
     const login = async (credentials) => {
         try {
             const response = await authAPI.login(credentials);
-            const { userId, role, accessToken } = response.data;
+            const { userId, role, accessToken, email, username } = response.data;
 
             if (response.data.errorMessage) {
                 throw new Error(response.data.errorMessage);
             }
 
-            const userData = { userId, role };
+            const userData = { userId, role, email, username };
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('userEmail', email);
+            localStorage.setItem('userName', username);
             setUser(userData);
 
             // 사용자 역할에 따른 리다이렉트
@@ -84,6 +86,8 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
             localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
             navigate('/login');
         } catch (error) {
             console.error('Logout failed:', error);
