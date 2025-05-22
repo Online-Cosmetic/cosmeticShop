@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/admin")
 public class AdminController {
 
     private final AdminService adminService;
@@ -18,40 +19,40 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    @GetMapping("/admin")
+    @GetMapping
     public String adminP() {
         return "Admin Controller";
     }
 
-    @GetMapping("/admin/bad-keywords")
+    @GetMapping("/bad-keywords")
     public ResponseEntity<List<BadKeywordDTO>> getBadKeywords (Authentication authentication) {
         return ResponseEntity.ok().body(adminService.getBadkeywords(authentication.getName()));
     }
 
-    @PostMapping("/admin/bad-keywords")
+    @PostMapping("/bad-keywords")
     public ResponseEntity<Void> postBadKeyword(@RequestParam("badKeyword") String badKeyword ,Authentication authentication) {
         adminService.postBadKeyword(badKeyword, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/admin/bad-keywords/{badKeywordId}")
+    @DeleteMapping("/bad-keywords/{badKeywordId}")
     public ResponseEntity<Void> deleteBadKeyword(@PathVariable Long badKeywordId, Authentication authentication) {
         adminService.deleteBadKeyword(badKeywordId, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/admin/reviews/bad")
+    @GetMapping("/reviews/bad")
     public ResponseEntity<List<ReviewGetDTO>> getBadReviews(Authentication authentication) {
         return ResponseEntity.ok().body(adminService.getBadReviews(authentication.getName()));
     }
 
-    @DeleteMapping("/admin/reviews/bad")
+    @DeleteMapping("/reviews/bad")
     public ResponseEntity<Void> deleteBadReviews(Authentication authentication) {
         adminService.deleteBadReviews(authentication.getName());
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/admin/reviews/{reviewId}")
+    @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId, Authentication authentication) {
         adminService.deleteReview(reviewId, authentication.getName());
         return ResponseEntity.ok().build();
