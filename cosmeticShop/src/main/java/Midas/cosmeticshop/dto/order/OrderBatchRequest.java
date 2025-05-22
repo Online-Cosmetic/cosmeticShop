@@ -10,11 +10,12 @@ import java.util.List;
 
 @Getter @Setter
 public class OrderBatchRequest {
-    @Valid
-    @NotEmpty
+    @Valid @NotEmpty
     private List<OrderItemDTO> orderItemDTOList;
 
-    @Valid
-    @NotNull
+    @Valid @NotNull
     private AddressDTO addressDTO;
+
+    @Valid @NotNull
+    int totalPrice;
 }

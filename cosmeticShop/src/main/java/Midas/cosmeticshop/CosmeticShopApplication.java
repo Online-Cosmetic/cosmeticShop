@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @SpringBootApplication
-@EntityScan(basePackages = {"Midas.cosmeticShop.entity"})
+@EntityScan(basePackages = {"Midas.cosmeticshop.entity"})
 public class CosmeticShopApplication {
 
 	public static void main(String[] args) {

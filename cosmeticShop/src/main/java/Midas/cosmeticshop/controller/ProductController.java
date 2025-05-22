@@ -23,7 +23,7 @@ public class ProductController {
     @PostMapping("")
     public ResponseEntity<?> registerProduct(
         @AuthenticationPrincipal BaseUserDetails userDetails,
-        @ModelAttribute ProductDTO productDTO, // multipart 파일을 주고받기 위해 @ModelAttirute 사용
+        @ModelAttribute ProductDTO productDTO,
         @RequestParam("mainImage") MultipartFile mainImage,
         @RequestParam(value = "additionalImages", required=false) MultipartFile[] additionalImages
     ) {
@@ -31,18 +31,14 @@ public class ProductController {
         return ResponseEntity.ok().build();
     }
 
-
     /* 상품 상세 조회  */
     @GetMapping("/{productId}")
     public ResponseEntity<ProductDetailResponseDTO> getProductDetail(@PathVariable Long productId) {
-
         ProductDTO dto = productService.getProductInfo(productId);
         ProductImageDTO imageDTO = productService.getProductImages(productId);
-
         ProductDetailResponseDTO responseDTO = new ProductDetailResponseDTO(dto, imageDTO);
         return ResponseEntity.ok(responseDTO);
     }
-
 
     /* 상품 수정 */
     @PutMapping("/{productId}")

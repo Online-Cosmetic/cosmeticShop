@@ -2,16 +2,19 @@ package Midas.cosmeticshop.entity;
 
 import Midas.cosmeticshop.dto.order.OrderItemDTO;
 import Midas.cosmeticshop.entity.product.Product;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "order_items")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class OrderItem {
 
     @Id
@@ -20,6 +23,7 @@ public class OrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonBackReference
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
