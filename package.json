@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "cosmetic-shop-new",
   "version": "0.1.0",
   "private": true,
@@ -45,5 +46,16 @@
     "postcss": "^8.5.3",
     "postcss-loader": "^8.1.1",
     "tailwindcss": "^4.1.5"
+=======
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.1.0",
+    "@mui/material": "^7.1.0",
+    "axios": "^1.9.0",
+    "formik": "^2.4.6",
+    "react-router-dom": "^7.6.0",
+    "yup": "^1.6.1"
+>>>>>>> feat/yongsu
   }
 }
