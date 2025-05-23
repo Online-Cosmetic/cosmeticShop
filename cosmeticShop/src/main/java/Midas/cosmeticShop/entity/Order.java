@@ -47,21 +47,14 @@ public class Order {
 
     /* 주문 상세와의 연관관계 */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> orderItems;
+    private List<OrderItem> orderItems = new ArrayList<>();;
 
     public Order makeOrder(User user, OrderDTO dto) {
         this.user = user;
         this.totalPrice = dto.getTotalPrice();
         this.orderAddress = new OrderAddress(dto.getCity(), dto.getStreet(), dto.getDetail());
         this.createdAt = LocalDateTime.now();
-        this.orderItems = new ArrayList<>();
-        if (dto.getOrderItems() != null) {
-            for (var itemDto : dto.getOrderItems()) {
-                // Product는 서비스 계층에서 주입해야 함. 예시로 null 처리
-                OrderItem orderItem = OrderItem.fromDTO(itemDto, this, null);
-                this.orderItems.add(orderItem);
-            }
-        }
+//        this.orderItems = new ArrayList<>();
         return this;
     }
 
@@ -79,4 +72,5 @@ public class Order {
             .orderItems(orderItemDTOs)
             .build();
     }
+
 }

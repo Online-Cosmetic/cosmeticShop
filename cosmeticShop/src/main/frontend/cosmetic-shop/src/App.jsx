@@ -15,15 +15,19 @@ import ProductList from "./pages/product/ProductList.jsx";
 import ProductDetail from "./pages/product/ProductDetail.jsx";
 import Cart from "./pages/cart/Cart.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
+
 // import QnA from "./pages/qna/QnA.jsx";
 import QnA from "./pages/qna/QnAList.jsx";
+import QnADetail from "./pages/qna/QnADetail.jsx";
+import QnAWrite from "./pages/qna/QnAWrite.jsx";
+
 import Order from "./pages/order/Order.jsx";
 import OrderComplete from "./pages/order/OrderComplete";
 // import Checkout from "./pages/payment/Checkout.jsx";
 
 import UserLogin from "./pages/auth/UserLogin.jsx";
 import SignUp from "./pages/auth/SignUp.jsx";
-import OrderHistory from "./pages/order/OrderHistory.jsx";
+import OrderHistory from "./pages/user/MyComponents/OrderHistory.jsx";
 
 // 기업 페이지
 import EnterpriseMain from "./pages/enterprise/EnterpriseMain.jsx";
@@ -34,6 +38,7 @@ import ProductManagement from "./pages/product/ProductManagement.jsx";
 
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
+import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 
 // 데이터
 import data from "./utils/data.js";
@@ -89,6 +94,24 @@ const App = () => {
                     }
                 />
 
+                <Route
+                    path="/QnAWrite"
+                    element={
+                        <PublicLayout>
+                            <QnAWrite/>
+                        </PublicLayout>
+                    }
+                />
+
+                <Route
+                    path="/QnADetail/:id"
+                    element={
+                        <PublicLayout>
+                            <QnADetail/>
+                        </PublicLayout>
+                    }
+                />
+
                 {/* 인증 페이지 - 로그인하지 않은 사용자만 접근 가능 */}
                 <Route
                     path="/login"
@@ -113,6 +136,15 @@ const App = () => {
                     element={
                         <PublicLayout>
                             <SignUp/>
+                        </PublicLayout>
+                    }
+                />
+
+                <Route
+                    path={"/forgotPassword"}
+                    element={
+                        <PublicLayout>
+                            <ForgotPassword/>
                         </PublicLayout>
                     }
                 />

@@ -1,4 +1,3 @@
-// src/utils/customAxios.js
 import axios from 'axios';
 import mitt from 'mitt';
 
@@ -77,6 +76,9 @@ export const userAPI = {
         getCart: () => customAxios.get('/api/carts'),
         addToCart: (productId, quantity) => customAxios.post('/api/carts', { productId, quantity }),
         removeFromCart: (productId) => customAxios.delete(`/api/carts/${productId}`),
+        updateQuantity: (cartId, quantity) => customAxios.put(`/api/carts/${cartId}`, null, {
+            params: { quantity }
+        }),
     },
 
     addresses: {
@@ -132,6 +134,35 @@ export const userAPI = {
 
         // QnA 삭제
         delete: (qnaId) => customAxios.delete(`/api/qnas/${qnaId}`)
+    },
+
+    payment: {
+        // 결제 요청 생성
+        createPayment: (paymentData) => customAxios.post('/api/payments', paymentData),
+        
+        // 결제 상태 확인
+        getPaymentStatus: (orderId) => customAxios.get(`/api/payments/${orderId}`),
+        
+        // 결제 완료 처리
+        completePayment: (paymentId, data) => customAxios.post(`/api/payments/${paymentId}/complete`, data),
+        
+        // 결제 취소
+        cancelPayment: (paymentId, reason) => customAxios.post(`/api/payments/${paymentId}/cancel`, { reason }),
+        
+        // 결제 내역 조회
+        getPaymentHistory: () => customAxios.get('/api/payments/history'),
+        
+        // 카드 결제
+        processCardPayment: (paymentData) => customAxios.post('/api/payments/card', paymentData),
+        
+        // 계좌이체
+        processBankTransfer: (paymentData) => customAxios.post('/api/payments/bank-transfer', paymentData),
+        
+        // 간편결제 (카카오페이)
+        processKakaoPay: (paymentData) => customAxios.post('/api/payments/kakao-pay', paymentData),
+        
+        // 간편결제 (KG이니시스)
+        processKGinisis: (paymentData) => customAxios.post('/api/payments/kginisis', paymentData)
     }
 };
 

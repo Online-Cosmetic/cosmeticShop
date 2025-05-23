@@ -13,6 +13,10 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      '/images': {
+        target: 'http://localhost:9000',
+        changeOrigin: true,
       }
     }
   },

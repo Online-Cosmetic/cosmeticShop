@@ -1,148 +1,250 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import AddressForm from "../../components/user/AddressForm.jsx";
 import ProductCard from "../../components/product/ProductCard.jsx";
+import {userAPI} from '../../utils/customAxios';
+import BankTransferPayment from '../../components/payment/BankTransferPayment';
+import CardPaymentForToss from '../../components/payment/CardPaymentForToss';
+import EasyPayment from '../../components/payment/EasyPayment';
 
 function Order() {
-  const navigate = useNavigate();
-  const [method, setMethod] = useState("card");
-  const cartItems = [
-    {
-      id: 1,
-      brand: "Brand A",
-      name: "Product A",
-      quantity: 2,
-      price: 12000,
-      image: "/product(1).png",
-      promotion: "10% off",
-    },
-    {
-      id: 2,
-      brand: "Brand B",
-      name: "Product B",
-      quantity: 1,
-      price: 15000,
-      image: "/product(2).png",
-      promotion: "10% off",
-    },
-    {
-      id: 3,
-      brand: "Brand C",
-      name: "Product C",
-      quantity: 3,
-      price: 8000,
-      image: "/product(3).png",
-      promotion: "10% off",
-    },
-  ];
+    const navigate = useNavigate();
+    const [method, setMethod] = useState("card");
+    const [cartItems, setCartItems] = useState([]);
+    const [addresses, setAddresses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showPayment, setShowPayment] = useState(false);
+    const [orderId, setOrderId] = useState(null);
+    const [errorMsg, setErrorMsg] = useState("");
+    const [orderPrice, setOrderPrice] = useState(0);
+    const [selectedAddress, setSelectedAddress] = useState(null);
 
-  const handlePayment = () => {
-    if (method === "card") navigate("/payment/toss");
-    else if (method === "bank") navigate("/payment/bank");
-    else if (method === "simple") navigate("/payment/simple");
-  };
+    useEffect(() => {
+        async function fetchData() {
+            setLoading(true);
+            try {
+                const cartRes = await userAPI.cart.getCart();
+                const items = cartRes.data.items || [];
+                setCartItems(items);
 
-  return (
-    <div className="w-full max-w-5xl mx-auto my-auto">
-      <main className="flex-grow">
-        <div className="">
-          {/* Order */}
-          <h2 className="text-3xl font-bold text-neutral-800 mb-6">Order</h2>
-          {/* (좌)주소, 상품 목록 + (우)주문 요약, 결제 수단 */}
-          <div className="flex gap-6 max-h-[calc(100vh-200px)] overflow-hidden border rounded-lg p-6 shadow">
-            {/* 좌측 영역: 주소 + 상품 목록 */}
-            <div className="flex-1 min-w-0 space-y-8">
-              <AddressForm
-                savedAddresses={[
-                  {
-                    id: "1",
-                    city: "경상북도",
-                    street: "경산시",
-                    detail: "대학로 280",
-                  },
-                  {
-                    id: "2",
-                    city: "대구광역시",
-                    street: "수성구",
-                    detail: "달구벌대로 3109",
-                  },
-                ]}
-              />
-              {/* 상품 목록 */}
-              <section className="flex-1 flex flex-col border rounded-lg p-6 shadow">
-                <h3 className="text-2xl font-semibold mb-4">Order Items</h3>
-                <div className="space-y-4 max-h-[320px] overflow-y-scroll pr-2">
-                  {cartItems.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onQuantityChange={() => {}}
-                      editable={false}
-                      isOrderPage={true}
-                    />
-                  ))}
-                </div>
-              </section>
-            </div>
+                // 주문 금액 계산
+                const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const shippingFee = totalPrice > 0 ? 2500 : 0;
+                const promo = Math.floor(totalPrice * 0.1); // 10% 할인
+                const total = totalPrice + shippingFee - promo;
+                setOrderPrice(total);
 
-            {/* 우측 영역: 결제 요약 + 결제 수단 선택 */}
-            <div className="w-96 flex-shrink-0 space-y-6">
-              <div className="border rounded-lg p-6 shadow">
-                <h3 className="text-2xl font-semibold mb-4">Order Summary</h3>
-                <CartSummary />
-              </div>
+                const addrRes = await userAPI.addresses.getAll();
+                const addresses = addrRes.data || [];
+                setAddresses(addresses);
+                if (addresses.length > 0) {
+                    setSelectedAddress(addresses[0]);
+                }
+            } catch (e) {
+                alert('주문 정보를 불러오지 못했습니다.');
+            } finally {
+                setLoading(false);
+            }
+        }
 
-              <div className="border rounded-lg p-6 shadow">
-                <h3 className="text-2xl font-semibold mb-4">
-                  Select Payment Method
-                </h3>
-                <div className="space-y-2">
-                  {[
-                    { label: "신용/체크카드", value: "card" },
-                    { label: "계좌이체", value: "bank" },
-                    { label: "간편결제", value: "simple" },
-                  ].map(({ label, value }) => (
-                    <label key={value} className="block">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value={value}
-                        checked={method === value}
-                        onChange={() => setMethod(value)}
-                        className="peer hidden"
-                      />
-                      <div
-                        className="w-full px-4 py-3 border rounded-lg cursor-pointer
+        fetchData();
+    }, []);
+
+    // 구매자 정보
+    const buyerInfo = {
+        email: localStorage.getItem('userEmail'),
+        name: localStorage.getItem('userName'),
+        addr: selectedAddress ? `${selectedAddress.city} ${selectedAddress.street} ${selectedAddress.detail}`.trim() : '',
+    };
+
+    // 필수 구매자 정보 검증
+    const validateBuyerInfo = () => {
+        // if (!buyerInfo.email || !buyerInfo.name || !buyerInfo.tel) {
+        if (!buyerInfo.email || !buyerInfo.name) {
+            setErrorMsg('구매자 정보가 부족합니다. 프로필에서 정보를 확인해주세요.');
+            return false;
+        }
+        return true;
+    };
+
+    // 주문 생성 후 결제창 띄우기
+    const handleProceedOrder = async () => {
+        setErrorMsg("");
+        setShowPayment(false);
+
+        if (!selectedAddress) {
+            setErrorMsg("배송지를 선택해주세요.");
+            return;
+        }
+
+        if (cartItems.length === 0) {
+            setErrorMsg("장바구니가 비어있습니다.");
+            return;
+        }
+
+        if (!validateBuyerInfo()) {
+            return;
+        }
+
+        try {
+            const orderRequest = {
+                orderItemDTO: cartItems.map(item => ({
+                    productId: item.productId,
+                    productName: item.productName,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                addressDTO: selectedAddress,
+                recipientName: buyerInfo.name,
+                totalPrice: orderPrice,
+                orderStatus: 'PENDING',  // 초기 주문 상태
+                orderDate: new Date().toISOString(),  // 주문 일시
+            };
+
+            const res = await userAPI.order.createOrder(orderRequest);
+            const newOrderId = res.data.orderId;
+            if (!newOrderId) {
+                throw new Error('주문 ID를 받지 못했습니다.');
+            }
+            setOrderId(newOrderId);
+            setShowPayment(true);
+        } catch (e) {
+            setErrorMsg('주문 생성에 실패했습니다.');
+        }
+    };
+
+    // 결제 성공 시
+    const handlePaymentSuccess = () => {
+        navigate(`/user/order/complete?orderId=${orderId}`);
+    };
+
+    // 결제 실패 시
+    const handlePaymentFail = () => {
+        setErrorMsg('결제 실패 또는 취소되었습니다.');
+        setShowPayment(false);
+    };
+
+    return (
+        <div className="w-full max-w-5xl mx-auto my-auto">
+            <main className="flex-grow">
+                <div className="">
+                    <h2 className="text-3xl font-bold text-neutral-800 mb-6">Order</h2>
+                    <div className="flex gap-6 border rounded-lg p-6 shadow min-h-[600px]">
+                        <div className="flex-1 min-w-0 space-y-8 overflow-y-auto max-h-[calc(100vh-250px)]">
+                            <AddressForm
+                                savedAddresses={addresses}
+                                onAddressSelect={(addr) => setSelectedAddress(addr)}
+                            />
+                            <section className="flex-1 flex flex-col border rounded-lg p-6 shadow">
+                                <h3 className="text-2xl font-semibold mb-4">Order Items</h3>
+                                <div className="space-y-4 max-h-[320px] overflow-y-auto pr-2">
+                                    {loading ? <div>로딩 중...</div> : cartItems.length === 0 ?
+                                        <div>주문할 상품이 없습니다.</div> : cartItems.map((product) => (
+                                            <ProductCard
+                                                key={product.id}
+                                                product={product}
+                                                onQuantityChange={() => {
+                                                }}
+                                                editable={false}
+                                                isOrderPage={true}
+                                            />
+                                        ))}
+                                </div>
+                            </section>
+                        </div>
+
+                        <div className="w-96 flex-shrink-0 space-y-6 flex flex-col justify-between">
+                            <div className="border rounded-lg p-6 shadow">
+                                <h3 className="text-2xl font-semibold mb-4">Order Summary</h3>
+                                <CartSummary cartItems={cartItems}/>
+                            </div>
+
+                            <div className="border rounded-lg p-6 shadow">
+                                <h3 className="text-2xl font-semibold mb-4">
+                                    Select Payment Method
+                                </h3>
+                                <div className="space-y-2">
+                                    {[
+                                        {label: "신용/체크카드", value: "card"},
+                                        {label: "계좌이체", value: "bank"},
+                                        {label: "간편결제", value: "simple"},
+                                    ].map(({label, value}) => (
+                                        <label key={value} className="block">
+                                            <input
+                                                type="radio"
+                                                name="payment"
+                                                value={value}
+                                                checked={method === value}
+                                                onChange={() => setMethod(value)}
+                                                className="peer hidden"
+                                            />
+                                            <div
+                                                className="w-full px-4 py-3 border rounded-lg cursor-pointer
                           peer-checked:border-emerald-600
                           peer-checked:bg-emerald-50
                           peer-checked:text-emerald-700
                           transition-colors"
-                      >
-                        {label}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
+                                            >
+                                                {label}
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
 
-              <button
-                className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"
-                onClick={handlePayment}
-              >
-                Proceed with{" "}
-                {method === "card"
-                  ? "Card"
-                  : method === "bank"
-                    ? "Bank Transfer"
-                    : "Simple Pay"}
-              </button>
-            </div>
-          </div>
+                            {!showPayment && (
+                                <button
+                                    className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg mt-4"
+                                    onClick={handleProceedOrder}
+                                    disabled={loading || cartItems.length === 0 || !selectedAddress}
+                                    style={{position: 'sticky', bottom: 0, zIndex: 10}}
+                                >
+                                    Proceed
+                                    with {method === "card" ? "Card" : method === "bank" ? "Bank Transfer" : "Simple Pay"}
+                                </button>
+                            )}
+                            {errorMsg && <div className="text-red-600 text-center mt-2">{errorMsg}</div>}
+                            {showPayment && orderId && (
+                                <div className="mt-4">
+                                    {method === 'card' && (
+                                        <CardPaymentForToss
+                                            orderId={orderId}
+                                            amount={orderPrice}
+                                            orderName={cartItems[0]?.productName}
+                                            buyerInfo={buyerInfo}
+                                            onSuccess={handlePaymentSuccess}
+                                            onFail={handlePaymentFail}
+                                        />
+                                    )}
+                                    {method === 'bank' && (
+                                        <BankTransferPayment
+                                            orderId={orderId}
+                                            amount={orderPrice}
+                                            orderName={cartItems[0]?.productName}
+                                            buyerInfo={buyerInfo}
+                                            onSuccess={handlePaymentSuccess}
+                                            onFail={handlePaymentFail}
+                                        />
+                                    )}
+                                    {method === 'simple' && (
+                                        <EasyPayment
+                                            orderId={orderId}
+                                            amount={orderPrice}
+                                            orderName={cartItems[0]?.productName}
+                                            buyerInfo={buyerInfo}
+                                            onSuccess={handlePaymentSuccess}
+                                            onFail={handlePaymentFail}
+                                        />
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
-      </main>
-    </div>
-  );
+    );
 }
 
 export default Order;

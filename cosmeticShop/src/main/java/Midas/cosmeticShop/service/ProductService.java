@@ -11,7 +11,7 @@ import Midas.cosmeticshop.entity.product.ThumbnailImage;
 import Midas.cosmeticshop.jwt.JWTUtil;
 import Midas.cosmeticshop.repository.ProductImageRepository;
 import Midas.cosmeticshop.repository.ProductRepository;
-import Midas.cosmeticshop.repository.ThumnailImageRepository;
+import Midas.cosmeticshop.repository.ThumbnailImageRepository;
 import Midas.cosmeticshop.repository.user.CompanyRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 
 @Service
@@ -30,7 +29,7 @@ import java.util.Optional;
 @Transactional
 public class ProductService {
 
-    private final ThumnailImageRepository thumnailImageRepository;
+    private final ThumbnailImageRepository thumnailImageRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductRepository productRepository;
     private final CompanyRepository companyRepository;
@@ -57,10 +56,10 @@ public class ProductService {
 
 
         // 메인 이미지 저장 후 URL 세팅
-        ThumbnailImage thumbnailImage = null;
+        ThumbnailImage thumbnailImage;
         if (mainImage != null && !mainImage.isEmpty()) {
             String mainImageUrl = fileStorageService.storeFile(mainImage);
-            thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(product.getId(), mainImageUrl), product);
+            thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(product.getId(), mainImageUrl));
             product.setThumbnailImage(thumbnailImage);
         }
 
@@ -80,6 +79,7 @@ public class ProductService {
 
         // 상품 저장 (Cascade 옵션을 이용하면 연관 이미지들도 함께 저장)
         productRepository.save(product);
+        thumnailImageRepository.save(Objects.requireNonNull(product.getThumbnailImage()));
         productImageRepository.saveAll(Objects.requireNonNull(product.getProductImages()));
     }
 
@@ -132,10 +132,7 @@ public class ProductService {
         if (newImages != null) {
             // 메인 이미지 저장 후 URL 세팅
             String mainImage = fileStorageService.storeFile(newImages[0]);
-            ThumbnailImage thumbnailImage = ThumbnailImage.builder()
-                .product(product)
-                .imageUrl(mainImage)
-                .build();
+            ThumbnailImage thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(productId, mainImage));
             product.setThumbnailImage(thumbnailImage);
         }
 

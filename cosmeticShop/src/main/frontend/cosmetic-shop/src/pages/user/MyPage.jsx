@@ -1,96 +1,65 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
+import { userAPI } from '../../utils/customAxios';
+import NavItem from './MyComponents/NavItem';
+import OrderHistory from './MyComponents/OrderHistory';
+import CancelledOrders from './MyComponents/CancelledOrders';
+import OrderList from './MyComponents/OrderList';
+import Wishlist from './MyComponents/Wishlist';
+import Review from './MyComponents/Review';
+import QnASection from './MyComponents/QnASection';
+import EditInfo from './MyComponents/EditInfo';
+import AddressBook from './MyComponents/AddressBook';
+import Payments from './MyComponents/Payments';
 
-const MyPage = () => {
-    return (
-        <div className="max-w-7xl mx-auto px-8 py-10 flex flex-col gap-10">
-            <h1 className="text-4xl font-semibold text-neutral-800">My Page</h1>
+const SECTIONS = [
+  { key: 'orderHistory', label: 'Order History', Component: OrderHistory },
+  { key: 'returnOrders', label: 'Cancelled Orders', Component: CancelledOrders },
+  { key: 'orderList', label: 'List', Component: OrderList },
+  { key: 'wishlist', label: 'Wishlist', Component: Wishlist },
+  { key: 'review', label: 'Review', Component: Review },
+  { key: 'qna', label: 'Q&A', Component: QnASection },
+  { key: 'editInfo', label: 'Edit Info', Component: EditInfo },
+  { key: 'address', label: 'Address', Component: AddressBook },
+  { key: 'payments', label: 'Payments', Component: Payments },
+];
 
-            <div className="flex gap-10">
-                {/* 사이드 메뉴 */}
-                <aside className="w-40 flex flex-col gap-10">
-                    <div>
-                        <h2 className="text-2xl font-semibold mb-4">Orders</h2>
-                        <ul className="space-y-2 text-lg text-gray-700">
-                            <li>Order History</li>
-                            <li>Return Orders</li>
-                            <li>List</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-semibold mb-4">Activities</h2>
-                        <ul className="space-y-2 text-lg text-gray-700">
-                            <li>Wishlist</li>
-                            <li>Review</li>
-                            <li>Q&A</li>
-                        </ul>
-                    </div>
+function MyPage() {
+  const [selected, setSelected] = useState(SECTIONS[0].key);
+  const [qnas, setQnas] = useState([]);
 
-                    <div>
-                        <h2 className="text-2xl font-semibold mb-4">Info</h2>
-                        <ul className="space-y-2 text-lg text-gray-700">
-                            <li>Edit Info</li>
-                            <li>Address</li>
-                            <li>Payments</li>
-                        </ul>
-                    </div>
-                </aside>
+  useEffect(() => {
+    if (selected === 'qna') {
+      userAPI.qna.getMyQnas()
+        .then(res => setQnas(res.data))
+        .catch(err => console.error('QnA 불러오기 실패:', err));
+    }
+  }, [selected]);
 
-                {/* 콘텐츠 */}
-                <section className="flex-1 flex flex-col gap-12">
-                    {/* Orders History */}
-                    <div>
-                        <h2 className="text-3xl font-semibold mb-6">Orders History</h2>
-                        <div className="grid grid-cols-5 gap-4 bg-neutral-400 text-white text-center font-medium py-4 rounded-lg">
-                            <div>#</div>
-                            <div>State</div>
-                            <div>State</div>
-                            <div>State</div>
-                            <div>State</div>
-                        </div>
-                    </div>
+  const Current = SECTIONS.find(s => s.key === selected).Component;
 
-                    {/* Wishlist */}
-                    <div>
-                        <h2 className="text-3xl font-semibold mb-6">Wishlist</h2>
-                        <div className="flex gap-6">
-                            {[1, 2, 3].map((_, i) => (
-                                <div
-                                    key={i}
-                                    className="w-44 h-44 bg-gray-200 rounded-xl flex items-center justify-center text-xl text-gray-600"
-                                >
-                                    상품 {i + 1}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+  return (
+    <div className="min-h-screen bg-white text-gray-900 p-4 md:p-10 flex flex-col md:flex-row">
+      <aside className="w-full md:w-48 mb-8 md:mb-0">
+        <h1 className="text-xl font-bold mb-6">My Page</h1>
+        <h2 className="font-bold mb-2">Orders</h2>
+        {SECTIONS.slice(0,3).map(s => (
+          <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
+        ))}
+        <h2 className="mt-6 font-bold mb-2">Activities</h2>
+        {SECTIONS.slice(3,6).map(s => (
+          <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
+        ))}
+        <h2 className="mt-6 font-bold mb-2">Info</h2>
+        {SECTIONS.slice(6).map(s => (
+          <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
+        ))}
+      </aside>
 
-                    {/* Q&A */}
-                    <div>
-                        <h2 className="text-3xl font-semibold mb-6">Q&A</h2>
-                        <div className="grid grid-cols-5 bg-white border border-gray-300 text-neutral-800 font-medium text-lg py-4 px-2 rounded-lg">
-                            <div>#</div>
-                            <div>State</div>
-                            <div>Title</div>
-                            <div>Author</div>
-                            <div>Date</div>
-                        </div>
-                        {[1, 2].map((_, i) => (
-                            <div
-                                key={i}
-                                className="grid grid-cols-5 border-t border-gray-300 text-neutral-800 py-4 px-2"
-                            >
-                                <div>{i + 1}</div>
-                                <div>답변완료</div>
-                                <div>상품 관련 문의</div>
-                                <div>User{i + 1}</div>
-                                <div>2025-05-19</div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            </div>
-        </div>
-    );
-};
+      <main className="flex-1">
+        {selected === 'qna' ? <Current items={qnas} /> : <Current />}
+      </main>
+    </div>
+  );
+}
 
 export default MyPage;

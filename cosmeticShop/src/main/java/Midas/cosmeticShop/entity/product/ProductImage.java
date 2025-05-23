@@ -6,12 +6,12 @@ import lombok.*;
 @Builder
 @Entity
 @Table(name = "product_images")
-@AllArgsConstructor
+@Getter @Setter
 @NoArgsConstructor
-@Getter
-@Setter
+@AllArgsConstructor
 public class ProductImage {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -21,4 +21,14 @@ public class ProductImage {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
+    public Long getProductId() {
+        return product != null ? product.getId() : null;
+    }
+
+    public void setProductId(Long productId) {
+        if (this.product == null) {
+            this.product = new Product();
+        }
+        this.product.setId(productId);
+    }
 }
