@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.dialect.function.array.ArrayContainsArgumentTypeResolver;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,9 +40,15 @@ public class CouponMappingService {
     public void postCouponMapping (Long couponId, String userId) {
         User user = UserRepo.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다"));
-        Coupon coupon =
+        Coupon coupon = CouponRepo.findById(couponId)
+                .orElseThrow(() -> new EntityNotFoundException("쿠폰이 존재하지 않습니다"));
         CouponMapping couponMapping = new CouponMapping();
-        couponMapping.setCoupon();
-
+        couponMapping.setCoupon(coupon);
+        couponMapping.setUser(user);
+        couponMapping.setIssuedDate(LocalDateTime.now());
+        couponMapping.setExpirationDate(LocalDateTime.now().plusDays(coupon.getDuration()));
+        CouponMappingRepo.save(couponMapping);
     }
+
+
 }
