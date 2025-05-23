@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import EnterpriseHeader from "../../components/enterprise/EnterpriseHeader.jsx";
-import Footer from "../../components/common/Footer.jsx";
-import EnterpriseSidebar from "../../components/enterprise/EnterpriseSidebar.jsx";
 
 function ProductManagement() {
     const [products, setProducts] = useState([]);
@@ -50,17 +47,8 @@ function ProductManagement() {
     return (
 
         <>
-            {/* 헤더 */}
-            <EnterpriseHeader />
-            {/* 사이드바 */}
-            <div className="flex min-h-screen">
-                {/* Sidebar */}
-                <div className="w-1/6 border-r border-gray-500">
-                    <EnterpriseSidebar />
-                </div>
-                {/* 본문 */}
-                <div className="flex-1 flex justify-center">
-                    <div className="w-full mx-auto px-20 py-20 rounded-2xl flex flex-col gap-4">
+                <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-4">
+                    <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-12">
                         <div className="flex justify-between items-end mb-4">
                             <h2 className="text-4xl font-bold text-black">Product Management</h2>
                             <input
@@ -121,8 +109,6 @@ function ProductManagement() {
                         </div>
                     </div>
                 </div>
-            </div>
-            <Footer />
         </>
     );
 }

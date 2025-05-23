@@ -8,5 +8,8 @@
     "formik": "^2.4.6",
     "react-router-dom": "^7.6.0",
     "yup": "^1.6.1"
+  },
+  "devDependencies": {
+    "vite-plugin-svgr": "^4.3.0"
   }
 }

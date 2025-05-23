@@ -23,6 +23,7 @@ import QnAWrite from "./pages/qna/QnAWrite.jsx";
 
 import Order from "./pages/order/Order.jsx";
 import OrderComplete from "./pages/order/OrderComplete";
+
 // import Checkout from "./pages/payment/Checkout.jsx";
 
 import UserLogin from "./pages/auth/UserLogin.jsx";
@@ -30,6 +31,8 @@ import SignUp from "./pages/auth/SignUp.jsx";
 import OrderHistory from "./pages/user/MyComponents/OrderHistory.jsx";
 
 // 기업 페이지
+import EnterpriseHeader from "./components/enterprise/EnterpriseHeader.jsx";
+import EnterpriseSidebar from "./components/enterprise/EnterpriseSidebar.jsx";
 import EnterpriseMain from "./pages/enterprise/EnterpriseMain.jsx";
 import ProductRegister from "./pages/product/ProductRegister.jsx";
 import EnterpriseLogin from "./pages/auth/EnterpriseLogin.jsx";
@@ -43,6 +46,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 // 데이터
 import data from "./utils/data.js";
 
+// User용 Layout 컴포넌트
 const PublicLayout = ({children}) => (
     <div className="flex flex-col min-h-screen">
         <UserHeader/>
@@ -52,6 +56,26 @@ const PublicLayout = ({children}) => (
         <Footer/>
     </div>
 );
+
+// Enterprise용 Layout 컴포넌트
+const EnterpriseLayout = ({children}) => {
+    return (
+        <div className="flex flex-col min-h-screen">
+            <EnterpriseHeader />
+            <main className="flex flex-1 gap-4 bg-neutral-100">
+                {/* Sidebar 1/6 */}
+                <aside className="basis-1/6 bg-white">
+                    <EnterpriseSidebar />
+                </aside>
+                {/* Content 5/6 */}
+                <section className="basis-5/6 bg-neutral-100">
+                    {children}
+                </section>
+            </main>
+            <Footer />
+        </div>
+    );
+};
 
 const App = () => {
     const navigate = useNavigate();
@@ -182,19 +206,14 @@ const App = () => {
                 <Route
                     path="/company/*"
                     element={
-                        <ProtectedRoute requiredRole="ROLE_COMPANY">
-                            <PublicLayout>
-                                <Routes>
-                                    <Route path="/" element={<EnterpriseMain/>}/>
-                                    <Route path="dashboard" element={<EnterpriseMain/>}/>
-                                    <Route
-                                        path="product/register"
-                                        element={<ProductRegister/>}
-                                    />
-                                    <Route path="products" element={<ProductManagement/>}/>
-                                </Routes>
-                            </PublicLayout>
-                        </ProtectedRoute>
+                        <EnterpriseLayout>
+                            <Routes>
+                                <Route path="/" element={<EnterpriseMain />} />
+                                <Route path="dashboard" element={<EnterpriseMain />} />
+                                <Route path="product/register" element={<ProductRegister />} />
+                                <Route path="product/manage" element={<ProductManagement />} />
+                            </Routes>
+                        </EnterpriseLayout>
                     }
                 />
 
