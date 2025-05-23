@@ -38,6 +38,7 @@ import ProductRegister from "./pages/product/ProductRegister.jsx";
 import EnterpriseLogin from "./pages/auth/EnterpriseLogin.jsx";
 import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
 import ProductManagement from "./pages/product/ProductManagement.jsx";
+import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
 
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
@@ -212,6 +213,7 @@ const App = () => {
                                 <Route path="dashboard" element={<EnterpriseMain />} />
                                 <Route path="product/register" element={<ProductRegister />} />
                                 <Route path="product/manage" element={<ProductManagement />} />
+                                <Route path="orders" element={<OrderManagement />} />
                             </Routes>
                         </EnterpriseLayout>
                     }

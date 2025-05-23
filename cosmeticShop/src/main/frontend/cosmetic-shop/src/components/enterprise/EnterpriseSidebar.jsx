@@ -11,7 +11,7 @@ export default function EnterpriseSidebar() {
         { label: "Overview", path: "/company/dashboard" },
         { label: "Register Product", path: "/company/product/register" },
         { label: "Manage Products", path: "/company/product/manage" },
-        { label: "Order & Delivery", path: "/company/orders" },      // 아직 라우팅 안 되어 있음
+        { label: "Order & Delivery", path: "/company/orders" },
         { label: "My Page", path: "/company/profile" }               // 아직 라우팅 안 되어 있음
     ];
 
