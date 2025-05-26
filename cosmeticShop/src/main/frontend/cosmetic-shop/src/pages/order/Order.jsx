@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import CartSummary from "../../components/cart/CartSummary.jsx";
-import AddressForm from "../../components/user/AddressForm.jsx";
+import AddressForm from "../../components/order/AddressForm.jsx";
 import ProductCard from "../../components/product/ProductCard.jsx";
 import {userAPI} from '../../utils/customAxios';
 import BankTransferPayment from '../../components/payment/BankTransferPayment';
@@ -165,45 +165,56 @@ function Order() {
                                     Select Payment Method
                                 </h3>
                                 <div className="space-y-2">
-                                    {[
-                                        {label: "신용/체크카드", value: "card"},
-                                        {label: "계좌이체", value: "bank"},
-                                        {label: "간편결제", value: "simple"},
-                                    ].map(({label, value}) => (
-                                        <label key={value} className="block">
-                                            <input
-                                                type="radio"
-                                                name="payment"
-                                                value={value}
-                                                checked={method === value}
-                                                onChange={() => setMethod(value)}
-                                                className="peer hidden"
+                                    <div className="space-y-2">
+                                        {/* 카드 */}
+                                        <button
+                                            onClick={() => {
+                                                setMethod("card");
+                                                handleProceedOrder();
+                                            }}
+                                            className="relative w-full px-4 py-3 bg-white border rounded-[12px] shadow hover:brightness-95 transition-all flex items-center justify-between overflow-hidden"
+                                        >
+                                            <span className="text-base font-medium text-black z-10">신용/체크카드</span>
+                                            <img
+                                                src="/ui/TossPayments_Logo_Primary.png"
+                                                alt="토스페이먼츠"
+                                                className="h-14 -my-10 -mr-4"
                                             />
-                                            <div
-                                                className="w-full px-4 py-3 border rounded-lg cursor-pointer
-                          peer-checked:border-emerald-600
-                          peer-checked:bg-emerald-50
-                          peer-checked:text-emerald-700
-                          transition-colors"
-                                            >
-                                                {label}
-                                            </div>
-                                        </label>
-                                    ))}
+                                        </button>
+                                        {/* 계좌이체 */}
+                                        <button
+                                            onClick={() => {
+                                                setMethod("card");
+                                                handleProceedOrder();
+                                            }}
+                                            className="relative w-full px-4 py-3 bg-white border rounded-[12px] shadow hover:brightness-95 transition-all flex items-center justify-between overflow-hidden"
+                                        >
+                                            <span className="text-base font-medium text-black z-10">계좌이체</span>
+                                            <img
+                                                src="/ui/kg_inicis.svg"
+                                                alt="KG이니시스"
+                                                className="h-8 -my-10 mr-2"
+                                            />
+                                        </button>
+
+                                        {/* 간편결제 */}
+                                        <button
+                                            onClick={() => {
+                                                setMethod("simple");
+                                                handleProceedOrder();
+                                            }}
+                                            className="w-full px-4 py-3 bg-[#FEE500] rounded-[12px] shadow hover:brightness-95 transition-all"
+                                        >
+                                            <img
+                                                src="/ui/카카오페이_CI_combination.svg"
+                                                alt="카카오페이 결제"
+                                                className="h-5 mx-auto"
+                                            />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            {!showPayment && (
-                                <button
-                                    className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg mt-4"
-                                    onClick={handleProceedOrder}
-                                    disabled={loading || cartItems.length === 0 || !selectedAddress}
-                                    style={{position: 'sticky', bottom: 0, zIndex: 10}}
-                                >
-                                    Proceed
-                                    with {method === "card" ? "Card" : method === "bank" ? "Bank Transfer" : "Simple Pay"}
-                                </button>
-                            )}
                             {errorMsg && <div className="text-red-600 text-center mt-2">{errorMsg}</div>}
                             {showPayment && orderId && (
                                 <div className="mt-4">

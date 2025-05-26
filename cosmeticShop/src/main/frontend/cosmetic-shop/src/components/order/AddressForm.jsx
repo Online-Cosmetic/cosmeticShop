@@ -66,7 +66,7 @@ function AddressForm({onNewAddress}) {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Shipping Address</h2>
                 {/* 드롭다운 */}
-                {savedAddresses.length > 0 && (
+                {savedAddresses && (
                     <div className="relative">
                         <button
                             onClick={() => setShowDropdown(!showDropdown)}
@@ -81,16 +81,22 @@ function AddressForm({onNewAddress}) {
 
                         {showDropdown && (
                             <ul className="absolute right-0 mt-2 w-60 border rounded bg-white shadow z-10">
-                                {savedAddresses.map((addr) => (
-                                    <li
-                                        key={addr.id}
-                                        onClick={() => handleSelect(addr)}
-                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                        {addr.city}, {addr.street}
-                                        {addr.detail && `, ${addr.detail}`}
+                                {savedAddresses.length > 0 ? (
+                                    savedAddresses.map((addr) => (
+                                        <li
+                                            key={addr.id}
+                                            onClick={() => handleSelect(addr)}
+                                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                        >
+                                            {addr.city}, {addr.street}
+                                            {addr.detail && `, ${addr.detail}`}
+                                        </li>
+                                    ))
+                                ) : (
+                                    <li className="px-4 py-3 text-gray-400 text-sm text-center">
+                                        저장된 주소가 없습니다.
                                     </li>
-                                ))}
+                                )}
                             </ul>
                         )}
                     </div>
@@ -129,11 +135,11 @@ function AddressForm({onNewAddress}) {
                     type="button"
                     onClick={handleSave}
                     disabled={loading}
-                    className={`className="w-full py-2 text-neutral-600 font-semibold border border-neutral-400 rounded-lg 
+                    className={`py-2 px-4 text-neutral-600 font-semibold border border-neutral-400 rounded-xl
                     ${
                         loading
                             ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                            : "bg-neutral-600 text-white hover:bg-neutral-700"
+                            : "bg-neutral-600 text-white hover:bg-neutral-400"
                     }`}
                 >
                   <span className="flex justify-center w-full">
