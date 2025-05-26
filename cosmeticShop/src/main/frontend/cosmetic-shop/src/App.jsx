@@ -10,6 +10,9 @@ import UserHeader from "./components/common/UserHeader.jsx";
 import Footer from "./components/common/Footer.jsx";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+// 공통 접근 가능 페이지
+import HomePage from "./pages/common/HomePage.jsx";
+
 // 사용자 페이지
 import ProductList from "./pages/product/ProductList.jsx";
 import ProductDetail from "./pages/product/ProductDetail.jsx";
@@ -121,11 +124,23 @@ const App = () => {
                 <Route
                     path="/"
                     element={
+                        <div className="flex flex-col min-h-screen">
+                            <UserHeader/>
+                            <main className="flex-grow flex items-start justify-center">
+                                <HomePage />
+                            </main>
+                            <Footer/>
+                        </div>
+                    }
+                />
+                {/*<Route
+                    path="/"
+                    element={
                         <PublicLayout>
                             <ProductList products={data} title="Best Seller"/>
                         </PublicLayout>
                     }
-                />
+                />*/}
 
                 <Route
                     path="/detail/:id"
