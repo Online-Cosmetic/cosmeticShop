@@ -40,12 +40,18 @@ import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
 import ProductManagement from "./pages/product/ProductManagement.jsx";
 import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
 
+// 관리자 페이지
+import AdminQnAManagement from "./pages/admin/AdminQnAManagement.jsx";
+
+
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 
 // 데이터
 import data from "./utils/data.js";
+import AdminSidebar from "./components/admin/AdminSidebar.jsx";
+import AdminHeader from "./components/admin/AdminHeader.jsx";
 
 // User용 Layout 컴포넌트
 const PublicLayout = ({children}) => (
@@ -67,6 +73,26 @@ const EnterpriseLayout = ({children}) => {
                 {/* Sidebar 1/6 */}
                 <aside className="basis-1/6 bg-white">
                     <EnterpriseSidebar />
+                </aside>
+                {/* Content 5/6 */}
+                <section className="basis-5/6 bg-neutral-100">
+                    {children}
+                </section>
+            </main>
+            <Footer />
+        </div>
+    );
+};
+
+// admin용 Layout 컴포넌트
+const AdminLayout = ({children}) => {
+    return (
+        <div className="flex flex-col min-h-screen">
+            <AdminHeader />
+            <main className="flex flex-1 gap-4 bg-neutral-100">
+                {/* Sidebar 1/6 */}
+                <aside className="basis-1/6 bg-white">
+                    <AdminSidebar />
                 </aside>
                 {/* Content 5/6 */}
                 <section className="basis-5/6 bg-neutral-100">
@@ -216,6 +242,17 @@ const App = () => {
                                 <Route path="orders" element={<OrderManagement />} />
                             </Routes>
                         </EnterpriseLayout>
+                    }
+                />
+
+                <Route
+                    path="/admin/*"
+                    element={
+                        <AdminLayout>
+                            <Routes>
+                                <Route path="/qna" element={<AdminQnAManagement />} />
+                            </Routes>
+                        </AdminLayout>
                     }
                 />
 
