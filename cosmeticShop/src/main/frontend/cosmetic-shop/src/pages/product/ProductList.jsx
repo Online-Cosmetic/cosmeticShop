@@ -10,7 +10,7 @@ function ProductList({ products, title }) {
         <>
             <div className="max-w-screen-xl mx-auto px-4 pt-5">
                 <div className="mb-6">
-                    <h4 className="text-2xl font-semibold">{title}</h4>
+                    <h4 className="text-2xl font-semibold capitalize">{title}</h4>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -28,11 +28,12 @@ function ProductList({ products, title }) {
         </>
     );
 }
+
 function Product(props) {
     return (
         <div onClick={props.onClick} className="cursor-pointer p-4 w-full">
             <img
-                src={"/product(" + props.i + ").png"}
+                src="https://via.placeholder.com/300x200.png?text=No+Image"
                 alt={props.product.title}
                 className="w-[300px] h-[200px] object-cover rounded-lg"
             />
