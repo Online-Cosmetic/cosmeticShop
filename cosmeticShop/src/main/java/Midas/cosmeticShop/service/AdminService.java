@@ -1,12 +1,17 @@
 package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.BadKeywordDTO;
+import Midas.cosmeticshop.dto.CouponPostDTO;
 import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.entity.BadKeyword;
+import Midas.cosmeticshop.entity.Coupon;
 import Midas.cosmeticshop.entity.Review;
+import Midas.cosmeticshop.entity.user.Company;
 import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.repository.BadKeywordRepository;
+import Midas.cosmeticshop.repository.CouponRepository;
 import Midas.cosmeticshop.repository.ReviewRepository;
+import Midas.cosmeticshop.repository.user.CompanyRepository;
 import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -25,11 +30,19 @@ public class AdminService {
     private final ReviewRepository ReviewRepo;
     private final BadKeywordRepository BadKeywordRepo;
     private final UserRepository UserRepo;
+    private final CompanyRepository CompanyRepo;
+    private final CouponRepository CouponRepo;
 
-    public AdminService (ReviewRepository ReviewRepo, BadKeywordRepository BadKeywordRepo, UserRepository UserRepo) {
+    public AdminService (ReviewRepository ReviewRepo,
+                         BadKeywordRepository BadKeywordRepo,
+                         UserRepository UserRepo,
+                         CompanyRepository CompanyRepo,
+                         CouponRepository CouponRepo) {
         this.ReviewRepo = ReviewRepo;
         this.BadKeywordRepo = BadKeywordRepo;
         this.UserRepo = UserRepo;
+        this.CompanyRepo = CompanyRepo;
+        this.CouponRepo = CouponRepo;
     }
 
     public List<BadKeywordDTO> getBadkeywords (String userId) {
@@ -104,6 +117,21 @@ public class AdminService {
         Review review = ReviewRepo.findById(reviewId)
             .orElseThrow(() -> new EntityNotFoundException("리뷰가 존재하지 않습니다."));
         ReviewRepo.delete(review);
+    }
+
+    public void postCoupon(CouponPostDTO couponPostDTO, String userId) {
+        User user = UserRepo.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+        if(!user.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 접근 가능합니다.");
+        Company company = CompanyRepo.findByCompanyName(couponPostDTO.getCompanyName())
+                .orElseThrow(() -> new EntityNotFoundException("기업이 존재하지 않습니다."));
+        Coupon coupon = new Coupon();
+        coupon.setCouponName(couponPostDTO.getCouponName());
+        coupon.setDiscountRate(coupon.getDiscountRate());
+        coupon.setDuration(couponPostDTO.getDuration());
+        coupon.setCompany(company);
+
     }
 
 }

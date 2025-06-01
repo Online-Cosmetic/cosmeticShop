@@ -1,6 +1,7 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BadKeywordDTO;
+import Midas.cosmeticshop.dto.CouponPostDTO;
 import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.service.AdminService;
 import org.springframework.http.ResponseEntity;
@@ -53,8 +54,15 @@ public class AdminController {
     }
 
     @DeleteMapping("/reviews/{reviewId}")
-    public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId, Authentication authentication) {
+    public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId,
+                                             Authentication authentication) {
         adminService.deleteReview(reviewId, authentication.getName());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/coupons")
+    public ResponseEntity<Void> postCoupon(@RequestBody CouponPostDTO couponPostDTO,
+                                           Authentication authentication) {
+        adminService.
     }
 }
