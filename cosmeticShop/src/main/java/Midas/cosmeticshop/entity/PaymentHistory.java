@@ -4,11 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 /* Iamport API 를 활용한 결제를 위한 엔티티 */
 @Entity
-@Table(name = "payments")
+@Table(name = "payment_history")
 @Getter
 @Setter
 public class PaymentHistory {
@@ -16,21 +14,27 @@ public class PaymentHistory {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String impUid;
 
-    @Column(nullable = false)
+    @Column
+    private String merchantUid;
+
+    @Column
     private Long orderId;
 
-    @Column(nullable = false)
+    @Column
     private Integer amount;
 
-    @Column(nullable = false)
+    @Column
     private String paymentMethod;
 
-    @Column(nullable = false)
-    private String paymentStatus;
+    @Column
+    private String status;
 
-    @Column(nullable = false)
-    private LocalDateTime paidAt;
+    @Column
+    private String buyerName;
+
+    @Column
+    private String buyerEmail;
 }

@@ -38,6 +38,7 @@ function MyPage() {
   const Current = SECTIONS.find(s => s.key === selected).Component;
 
   return (
+    <div className="w-full -mx-4 md:-mx-10">
     <div className="min-h-screen bg-white text-gray-900 p-4 md:p-10 flex flex-col md:flex-row">
       <aside className="w-full md:w-48 mb-8 md:mb-0">
         <h1 className="text-xl font-bold mb-6">My Page</h1>
@@ -58,6 +59,7 @@ function MyPage() {
       <main className="flex-1">
         {selected === 'qna' ? <Current items={qnas} /> : <Current />}
       </main>
+    </div>
     </div>
   );
 }

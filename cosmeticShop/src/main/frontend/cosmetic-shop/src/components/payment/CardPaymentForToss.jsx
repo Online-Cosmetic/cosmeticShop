@@ -1,56 +1,114 @@
 // src/components/CardPaymentForToss.js
 import React from 'react';
+import { userAPI } from '../../utils/customAxios';
 
-const CardPaymentForToss = () => {
+const CardPaymentForToss = ({ orderId, amount, orderName, buyerInfo, onSuccess, onFail }) => {
     const onClickPayment = () => {
-        if (!window.IMP) return;
+        if (!window.IMP) {
+            alert('결제 모듈을 불러오는데 실패했습니다.');
+            return;
+        }
+
+        // 필수 값 검증
+        if (!orderId) {
+            alert('주문 정보가 없습니다.');
+            return;
+        }
+
+        if (!amount || amount <= 0) {
+            alert('결제 금액이 올바르지 않습니다.');
+            return;
+        }
+
+        if (!buyerInfo || !buyerInfo.name || !buyerInfo.email) {
+            alert('구매자 정보가 부족합니다.');
+            return;
+        }
+
         const { IMP } = window;
-        IMP.init('imp86215134'); // 아임포트 관리자에서 발급받은 '가맹점 식별코드' 입력
+        IMP.init('imp86215134');
+
+        const paymentData = {
+            pg: 'uplus',
+            pay_method: 'card',
+            merchant_uid: `mid_${new Date().getTime()}`,
+            name: orderName || '상품 결제',
+            amount: amount,
+            buyer_email: buyerInfo.email,
+            buyer_name: buyerInfo.name,
+            buyer_addr: buyerInfo.addr || '',
+            digital: false,
+            app_scheme: 'cosmetic-shop',
+            currency: 'KRW'
+        };
 
         IMP.request_pay(
-            {
-                pg: `uplus`, // 이거 됐다가 안됐다가 하는데 좀 위험하다잉? 뺄 생각도 해야할듯
-                pay_method: 'card',
-                merchant_uid: `mid_${new Date().getTime()}`,
-                name: '테스트 결제',
-                amount: 1000,
-                buyer_email: 'test@naver.com',
-                buyer_name: '홍길동',
-                buyer_tel: '010-1234-5678',
-                buyer_addr: '서울특별시 강남구 신사동',
-                buyer_postcode: '01181',
-            },
-            function (rsp) {
-                // 결제 후 콜백
+            paymentData,
+            async function (rsp) {
                 if (rsp.success) {
-                    // 결제 성공 시, 백엔드에 결제 검증 요청
-                    fetch('/api/payment/verify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(
-                            {
-                                imp_uid: rsp.imp_uid,
-                                merchant_uid: rsp.merchant_uid
-                            }
-                        ),
-                    })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert('결제 및 검증 성공!');
-                            } else {
-                                alert('결제 검증 실패');
-                            }
+                    try {
+                        // 결제 정보 생성
+                        const paymentData = {
+                            impUid: rsp.imp_uid,
+                            merchantUid: rsp.merchant_uid,
+                            orderId: orderId,
+                            amount: amount,
+                            paymentMethod: 'CARD',
+                            paymentStatus: 'PENDING',
+                            buyerName: buyerInfo.name,
+                            buyerEmail: buyerInfo.email
+                        };
+
+                        // 결제 요청 생성
+                        const createResponse = await userAPI.payment.createPayment(paymentData);
+                        
+                        if (!createResponse.data || !createResponse.data.success) {
+                            throw new Error('결제 정보 생성 실패');
+                        }
+
+                        // 카드 결제 처리
+                        const response = await userAPI.payment.processCardPayment({
+                            impUid: rsp.imp_uid,
+                            merchantUid: rsp.merchant_uid,
+                            orderId: orderId,
+                            amount: amount,
+                            buyerName: buyerInfo.name,
+                            buyerEmail: buyerInfo.email
                         });
+
+                        if (response.data && response.data.success) {
+                            // 결제 완료 처리
+                            await userAPI.payment.completePayment(response.data.paymentId, {
+                                status: 'COMPLETED'
+                            });
+                            
+                            alert('결제가 완료되었습니다.');
+                            if (onSuccess) onSuccess(response.data);
+                        } else {
+                            throw new Error(response.data?.message || '결제 처리 실패');
+                        }
+                    } catch (error) {
+                        console.error('결제 처리 중 오류 발생:', error);
+                        alert(`결제 처리 중 오류가 발생했습니다: ${error.message}`);
+                        if (onFail) onFail(error);
+                    }
                 } else {
-                    alert('결제 실패: ' + rsp.error_msg);
+                    console.error('결제 실패:', rsp);
+                    alert(`결제 실패: ${rsp.error_msg}`);
+                    if (onFail) onFail(rsp);
                 }
             }
         );
     };
 
-    return <button className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"
-                   onClick={onClickPayment}>결제하기</button>;
+    return (
+        <button 
+            className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg transition-colors hover:bg-neutral-700"
+            onClick={onClickPayment}
+        >
+            카드결제
+        </button>
+    );
 };
 
 export default CardPaymentForToss;

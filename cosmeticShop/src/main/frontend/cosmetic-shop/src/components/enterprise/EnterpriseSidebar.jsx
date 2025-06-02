@@ -18,7 +18,7 @@ export default function EnterpriseSidebar() {
     if (user?.role !== 'ROLE_COMPANY') return null;
 
     return (
-        <div className="w-60 min-h-screen bg-white border-r px-6 py-8 flex flex-col gap-4">
+        <div className="min-w-[200px] max-w-[240px] w-full md:w-60 bg-white px-6 py-8 flex flex-col gap-4">
             {menuItems.map((item) => (
                 <Link
                     key={item.path}
@@ -33,10 +33,3 @@ export default function EnterpriseSidebar() {
         </div>
     );
 }
-
-
-// <li>
-//     <NavLink to="/company/product/register" className="hover:underline">
-//         상품 등록
-//     </NavLink>
-// </li>

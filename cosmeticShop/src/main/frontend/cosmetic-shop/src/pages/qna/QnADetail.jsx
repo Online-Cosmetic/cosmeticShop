@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { userAPI } from '../../utils/customAxios';
 
-function QnADetaill() {
+function QnADetail() {
   const { id } = useParams();
   const [qna, setQna] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -58,4 +58,4 @@ function QnADetaill() {
   );
 }
 
-export default QnADetaill;
+export default QnADetail;

@@ -32,22 +32,22 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
-    // private final CustomAuthenticationProvider customAuthenticationProvider;
+//    private final CustomAuthenticationProvider customAuthenticationProvider;
     private final BaseUserRepository baseUserRepository;
 
     public SecurityConfig(JWTUtil jwtUtil,
-            // CustomAuthenticationProvider customAuthenticationProvider, -> SecurityConfig
-            // 와 순환참조 발생
-            BaseUserRepository baseUserRepository) {
+//                          CustomAuthenticationProvider customAuthenticationProvider, -> SecurityConfig 와 순환참조 발생
+                          BaseUserRepository baseUserRepository) {
         this.jwtUtil = jwtUtil;
-        // this.customAuthenticationProvider = customAuthenticationProvider;
+//        this.customAuthenticationProvider = customAuthenticationProvider;
         this.baseUserRepository = baseUserRepository;
     }
 
     /** AuthController 등에 주입하기 위해 AuthenticationManager를 빈으로 노출 */
     @Bean
     public AuthenticationManager authenticationManagerBean(
-            AuthenticationConfiguration authConfig) throws Exception {
+        AuthenticationConfiguration authConfig
+    ) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
@@ -59,103 +59,120 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(
-            HttpSecurity http,
-            CustomAuthenticationProvider customAuthenticationProvider) throws Exception {
+        HttpSecurity http,
+        CustomAuthenticationProvider customAuthenticationProvider
+    ) throws Exception {
 
         // 1) AuthenticationManager 생성
         AuthenticationManager authManager = http
-                .getSharedObject(AuthenticationManagerBuilder.class)
-                .authenticationProvider(customAuthenticationProvider)
-                .build();
+            .getSharedObject(AuthenticationManagerBuilder.class)
+            .authenticationProvider(customAuthenticationProvider)
+            .build();
+
 
         /*
-         * SecurityFilterChain 인터페이스를 리턴하는 메소드를 Bean 으로 하나 등록할 때마다 1개의
-         * SecurityFilterChain 을 생성하는것임.
-         * 만약 이런 메소드를 하나도 작성하지 않았다면 DefaultSecurityFilterChain 하나가 등록된다.
-         */
+            SecurityFilterChain 인터페이스를 리턴하는 메소드를 Bean 으로 하나 등록할 때마다 1개의 SecurityFilterChain 을 생성하는것임.
+            만약 이런 메소드를 하나도 작성하지 않았다면 DefaultSecurityFilterChain 하나가 등록된다.
+        */
 
         // CORS 설정
         http.cors((cors) -> cors
-                .configurationSource(request -> {
-                    CorsConfiguration configuration = new CorsConfiguration();
-                    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
-                    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
-                    configuration.setAllowCredentials(true);
-                    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                    source.registerCorsConfiguration("/**", configuration);
-                    configuration.setMaxAge(3600L);
-                    configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-                    return configuration;
-                }));
+            .configurationSource(request -> {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+                configuration.setAllowCredentials(true);
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                configuration.setMaxAge(3600L);
+                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+                return configuration;
+            }));
 
         http.authenticationManager(authManager);
 
         // csrf, formLogin, httpBasic disable
         http.csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable);
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable);
 
-        // 세션 설정 : stateless
+        //세션 설정 : stateless
         http.sessionManagement((session) -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // 경로별 인가 작업 = url 이 부분적으로 라도 중복되는 경우, role 검증을 하는 requestMatchers 를 먼저 호출해야한다
+        // 경로별 인가 작업  = url 이 부분적으로 라도 중복되는 경우, role 검증을 하는 requestMatchers 를 먼저 호출해야한다
         http.authorizeHttpRequests(auth -> auth
 
                 // 로그인·회원가입 API
                 .requestMatchers(
-                        "/api/auth/me",
-                        "/api/auth/login",
-                        "/api/auth/signup/**",
-                        "/api/auth/logout",
-                        "/api/auth/reissue",
-                        "/api/auth/validate-token")
-                .permitAll()
+                    "/api/auth/me",
+                    "/api/auth/login",
+                    "/api/auth/signup/**",
+                    "/api/auth/logout",
+                    "/api/auth/reissue",
+                    "/api/auth/validate-token"
+                ).permitAll()
 
-                // 상품 관련
+                // 장바구니/주문/주소 관련 (로그인 필요)
                 .requestMatchers(
-                        "/carts",
-                        "/api/orders/")
-                .permitAll()
+                    "/api/carts/**",
+                    "/api/orders/**",
+                    "/api/addresses/**"
+                ).hasRole("USER")
+
+                // 프로필 변경 관련
+                .requestMatchers(
+                    "/api/user/check",
+                    "/api/user/send-code",
+                    "/api/user/verify-code",
+                    "/api/user/change-password"
+                ).permitAll()
+                .requestMatchers(
+                    "/api/user/me/nickName"
+                ).hasRole("USER")
+
+                // 결제 관련 (로그인 필요)
+                .requestMatchers(
+                    "/api/payments/**"
+                ).hasRole("USER")
 
                 // QNA 관련
-                .requestMatchers(HttpMethod.GET, "/api/qnas/**").permitAll() // ✅ 목록/조회만 허용
-                .requestMatchers(HttpMethod.POST, "/api/qnas").hasRole("USER") // ✅ 작성은 로그인 필요
-                .requestMatchers(HttpMethod.PUT, "/api/qnas/**").hasRole("USER")
-                .requestMatchers(HttpMethod.DELETE, "/api/qnas/**").hasRole("USER")
+                .requestMatchers(
+                    "/api/qnas/**"
+                ).permitAll()
 
                 .requestMatchers(
-                        HttpMethod.POST, "/api/products")
-                .hasRole("COMPANY")
-                // hasRole("COMPANY") // 이후에 이걸로 교체
+                    HttpMethod.POST, "/api/products"
+                ).hasRole("COMPANY")
 
                 // HTML 페이지
                 .requestMatchers(
-                        "/",
-                        "/index.html")
-                .permitAll()
+                    "/",
+                    "/index.html"
+                ).permitAll()
 
                 // JS/CSS/이미지
                 .requestMatchers(
-                        "/css/**", "/js/**", "/images/**", "/favicon.ico")
+                    "/css/**", "/js/**", "/images/**", "/favicon.ico")
                 .permitAll()
 
                 // 관리자 화면
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // 그 외
-                .anyRequest().authenticated());
+                .anyRequest().authenticated()
+            );
 
         /* JWT → LoginFilter 순서 보장 */
         http.addFilterBefore(
-                new JWTFilter(jwtUtil, baseUserRepository), UsernamePasswordAuthenticationFilter.class // JWTFilter 먼저
-                                                                                                       // 등록
+            new JWTFilter(jwtUtil, baseUserRepository)
+            , UsernamePasswordAuthenticationFilter.class // JWTFilter 먼저 등록
         );
 
         /*
-         * LoginFilter가 아직 체인에 들어가기 전이라면 예상과 다른 위치에 놓일 가능성이 있으니
-         * 그냥 UsernamePasswordAuthenticationFilter.class 사용
-         */
+            LoginFilter가 아직 체인에 들어가기 전이라면 예상과 다른 위치에 놓일 가능성이 있으니
+            그냥 UsernamePasswordAuthenticationFilter.class 사용
+        */
 
         return http.build();
     }

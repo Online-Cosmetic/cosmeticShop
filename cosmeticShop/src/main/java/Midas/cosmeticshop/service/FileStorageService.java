@@ -11,7 +11,7 @@ import java.util.UUID;
 public class FileStorageService {
 
     private final Path fileStorageLocation = Paths.get(
-        "C:\\Users\\14937\\ideaProjects\\cosMall\\cosmeticShop\\src\\main\\resources\\static\\images")
+        "C:\\Users\\yongsuchoi\\ideaProjects\\cosMall\\cosmeticShop\\src\\main\\resources\\static\\images")
         .toAbsolutePath().normalize();
 
     public FileStorageService() {

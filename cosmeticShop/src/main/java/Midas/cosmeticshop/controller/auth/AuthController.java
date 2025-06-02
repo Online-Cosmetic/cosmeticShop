@@ -4,9 +4,12 @@ import Midas.cosmeticshop.dto.auth.LoginResponse;
 import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.auth.LoginRequest;
 import Midas.cosmeticshop.dto.auth.UserDTO;
+import Midas.cosmeticshop.entity.user.Company;
+import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.jwt.JWTUtil;
 import Midas.cosmeticshop.repository.user.BaseUserRepository;
 import Midas.cosmeticshop.service.RefreshTokenService;
+import Midas.cosmeticshop.entity.user.BaseUser;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -65,8 +68,9 @@ public class AuthController {
         // 역할 검증
         String requestedRole = loginRequest.getRole();
         if (!role.equals(requestedRole)) {
-            return ResponseEntity.status(403)
-                .body(new LoginResponse(null, null, null, "잘못된 로그인 페이지입니다. 올바른 로그인 페이지를 이용해주세요."));
+            String errorMessage = "잘못된 로그인 페이지입니다. 올바른 로그인 페이지를 이용해주세요.";
+            LoginResponse errorResponse = new LoginResponse(errorMessage);
+            return ResponseEntity.status(403).body(errorResponse);
         }
 
         // 3) 토큰 생성
@@ -80,8 +84,38 @@ public class AuthController {
         Cookie refreshCookie = jwtUtil.createCookie("refresh", refreshToken, jwtUtil.getValidity("refresh"));
         response.addCookie(refreshCookie);
 
-        // 6) 응답 본문에 액세스 토큰과 유저 정보 포함
-        LoginResponse body = new LoginResponse(userId, role, accessToken);
+        // 6) 사용자 정보 조회
+        BaseUser user = baseUserRepository.findByUserId(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+
+        // 7) 응답 본문에 액세스 토큰과 유저 정보 포함
+        LoginResponse body;
+        if(user.getRole().equals("USER")) {
+            User commonUser = (User) user;
+            body = new LoginResponse(
+                userId,
+                role,
+                accessToken,
+                commonUser.getEmailAddress(),
+                commonUser.getUsername()
+            );
+        } else if(user.getRole().equals("COMPANY")) {
+            Company company = (Company) user;
+            body = new LoginResponse(
+                userId,
+                role,
+                accessToken,
+                company.getEmailAddress(),
+                company.getCompanyName()
+            );
+        } else { // ADMIN
+            body = new LoginResponse(
+                userId,
+                role,
+                accessToken
+            );
+        }
         return ResponseEntity.ok(body);
     }
 
@@ -96,7 +130,6 @@ public class AuthController {
         );
     }
 
-    // 삭제: @RequestBody LogoutRequest dto
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request,
                                     HttpServletResponse response) {
@@ -117,23 +150,4 @@ public class AuthController {
     public ResponseEntity<Void> validateToken() {
         return ResponseEntity.ok().build();
     }
-    @PostMapping("/reissue")
-public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
-    // 1. 쿠키에서 refresh 토큰 추출
-    String refreshToken = refreshSvc.getRefreshFromCookie(request);
-    if (refreshToken == null || !refreshSvc.isValid(refreshToken)) {
-        return ResponseEntity.badRequest().body("Refresh token is missing or invalid.");
-    }
-
-    // 2. refreshToken 으로부터 사용자 정보 추출
-    String userId = jwtUtil.getUserId(refreshToken);
-    String role = jwtUtil.getRole(refreshToken);
-
-    // 3. 새로운 access 토큰 발급
-    String newAccessToken = jwtUtil.createJwt("access", userId, role, jwtUtil.getValidity("access"));
-
-    // 4. 클라이언트에 accessToken 전달
-    return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
-}
-
 }

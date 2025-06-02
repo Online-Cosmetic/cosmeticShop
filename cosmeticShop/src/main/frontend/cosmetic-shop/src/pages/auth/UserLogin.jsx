@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 
+const OAUTH2_REDIRECT_URI = 'http://localhost:9000/oauth2/authorization';
+
 export default function UserLogin() {
     const navigate = useNavigate();
     const { login } = useAuth();
@@ -32,6 +34,11 @@ export default function UserLogin() {
                 setError('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
             }
         }
+    };
+
+    // 소셜 로그인 버튼 클릭 시 백엔드 OAuth2 엔드포인트로 이동
+    const handleSocialLogin = provider => {
+        window.location.href = `${OAUTH2_REDIRECT_URI}/${provider}`;
     };
 
     return (
@@ -66,6 +73,25 @@ export default function UserLogin() {
                             Log In
                         </button>
                     </form>
+                    
+                    {/* 소셜 로그인 버튼 추가 */}
+                    <div className="flex flex-col gap-2 mt-4">
+                        <button
+                            type="button"
+                            className="w-full py-3 bg-green-600 text-white rounded-xl hover:bg-green-700"
+                            onClick={() => handleSocialLogin('google')}
+                        >
+                            Google로 로그인
+                        </button>
+                        <button
+                            type="button"
+                            className="w-full py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600"
+                            onClick={() => handleSocialLogin('naver')}
+                        >
+                            Naver로 로그인
+                        </button>
+                    </div>
+
                     <div className="text-right space-y-2">
                         <p className="text-sm">
                             Don't have an account?
