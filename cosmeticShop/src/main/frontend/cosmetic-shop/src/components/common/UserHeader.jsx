@@ -87,14 +87,21 @@ export default function Header() {
                         <Link to="/" className="hover:text-emerald-600">
                             Home
                         </Link>
-                        <Link to="/products" className="hover:text-emerald-600">
+                        <Link to="/products/all" className="hover:text-emerald-600">
                             Products
                         </Link>
-                        {/* 아래 4개 메뉴도*/}
-                        <span>Makeup</span>
-                        <span>Skincare</span>
-                        <span>Hair</span>
-                        <span>Body</span>
+                        <Link to="/products/makeup" className="hover:text-emerald-600">
+                            Makeup
+                        </Link>
+                        <Link to="/products/skincare" className="hover:text-emerald-600">
+                            Skincare
+                        </Link>
+                        <Link to="/products/hair" className="hover:text-emerald-600">
+                            Hair
+                        </Link>
+                        <Link to="/products/body" className="hover:text-emerald-600">
+                            Body
+                        </Link>
                     </div>
                 </nav>
 

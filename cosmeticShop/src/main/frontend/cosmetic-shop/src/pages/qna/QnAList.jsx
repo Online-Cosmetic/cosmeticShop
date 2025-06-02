@@ -123,7 +123,7 @@ function QnAList() {
                                 <td className="py-2 px-4">{startIndex + index + 1}</td>
                                 <td className="py-2 px-4">{item.answered ? 'Answered' : 'Pending'}</td>
                                 <td className="py-2 px-4 hover:text-blue-800">
-                                    <Link to={`/QnADetaill/${item.id}`}>{item.questionTitle}</Link>
+                                    <Link to={`/QnADetail${item.id}`}>{item.questionTitle}</Link>
                                 </td>
                                 <td className="py-2 px-4">{item.nickname}</td>
                                 <td className="py-2 px-4">{formatDate(item.questionedAt)}</td>

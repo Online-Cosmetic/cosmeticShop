@@ -1,21 +1,18 @@
-// src/components/enterprise/EnterpriseSidebar.jsx
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext.jsx';
-import {Link, useLocation} from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
-export default function EnterpriseSidebar() {
+export default function AdminSidebar() {
     const { user } = useAuth();
     const { pathname } = useLocation();
 
     const menuItems = [
-        { label: "Overview", path: "/enterprise/overview" },
-        { label: "Register Product", path: "/enterprise/product/register" },
-        { label: "Manage Products", path: "/enterprise/products/manage" },
-        { label: "Order & Delivery", path: "/enterprise/orders" },
-        { label: "My Page", path: "/enterprise/profile" },
+        // { label: "Main", path: "/admin/dashboard" },
+        // { label: "Manage Ent User Sign Up", path: "/admin/enteruser" },
+        // { label: "Manage Product Register", path: "/admin/product/register" },
+        { label: "Manage Q&A", path: "/admin/qna" },
+        // { label: "Coupon Issuance", path: "/admin/coupon" }               // 아직 라우팅 안 되어 있음
     ];
-
-    if (user?.role !== 'ROLE_COMPANY') return null;
 
     return (
         <div className="min-w-[200px] max-w-[240px] w-full md:w-60 bg-white px-6 py-8 flex flex-col gap-4">
