@@ -1,10 +1,8 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
-import Midas.cosmeticshop.dto.product.ProductDTO;
-import Midas.cosmeticshop.dto.product.ProductDetailResponseDTO;
-import Midas.cosmeticshop.dto.product.ProductImageDTO;
-import Midas.cosmeticshop.dto.product.ProductUpdateDTO;
+import Midas.cosmeticshop.dto.product.*;
+import Midas.cosmeticshop.entity.product.Product;
 import Midas.cosmeticshop.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -59,5 +57,26 @@ public class ProductController {
         @PathVariable Long productId) {
         productService.deleteProduct(accessToken, productId);
         return ResponseEntity.noContent().build();
+    }
+
+    /* 카테고리별 상품 조회 */
+    @GetMapping("/batch/{categoryId}")
+    public ResponseEntity<ProductBatchPreviewResponse> categorizedProducts(@PathVariable int categoryId) {
+        ProductBatchPreviewResponse response = productService.getCategorizedProductsPreview(categoryId);
+        return ResponseEntity.ok(response);
+    }
+
+    /* 카테고리 무관 인기순 조회 : liked */
+    @GetMapping("/batch/popular")
+    public ResponseEntity<ProductBatchPreviewResponse> popularProducts() {
+        ProductBatchPreviewResponse response = productService.getPopularProductsPreview();
+        return ResponseEntity.ok(response);
+    }
+
+    /* 카테고리 무관 최신순 조회 */
+    @GetMapping("/batch/latest")
+    public ResponseEntity<ProductBatchPreviewResponse> latestProducts() {
+        ProductBatchPreviewResponse response = productService.getLatestProductsPreview();
+        return ResponseEntity.ok(response);
     }
 }

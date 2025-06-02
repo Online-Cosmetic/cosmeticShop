@@ -1,10 +1,7 @@
 package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
-import Midas.cosmeticshop.dto.product.ProductDTO;
-import Midas.cosmeticshop.dto.product.ProductImageDTO;
-import Midas.cosmeticshop.dto.product.ProductImageItemDTO;
-import Midas.cosmeticshop.dto.product.ProductUpdateDTO;
+import Midas.cosmeticshop.dto.product.*;
 import Midas.cosmeticshop.entity.product.Product;
 import Midas.cosmeticshop.entity.product.ProductImage;
 import Midas.cosmeticshop.entity.product.ThumbnailImage;
@@ -172,5 +169,50 @@ public class ProductService {
         }
         // 3) 레코드 삭제
         productRepository.delete(product);
+    }
+
+    /* 카테고리에 속하는 상품 조회 */
+    public ProductBatchPreviewResponse getCategorizedProductsPreview(int categoryId) {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findAllByCategoryId(categoryId);
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 찜하기 수 많은 상품 조회 */
+    public ProductBatchPreviewResponse getPopularProductsPreview() {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findAllByOrderByLikedDesc();
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 최신순 상품 조회 */
+    public ProductBatchPreviewResponse getLatestProductsPreview() {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findAllByOrderByIdDesc();
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
     }
 }
