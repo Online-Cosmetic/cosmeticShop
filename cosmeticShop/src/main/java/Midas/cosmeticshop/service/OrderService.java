@@ -40,7 +40,7 @@ public class OrderService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         BaseUserDetails baseUserDetails = (BaseUserDetails) auth.getPrincipal();
         User user = userRepository.findByUserId(baseUserDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         // 주문 생성
         Order order = new Order();
@@ -49,18 +49,18 @@ public class OrderService {
         // 각 주문 아이템 처리
         for (OrderItemDTO orderItemDTO : orderItemDTOs) {
             Product product = productRepository.findById(orderItemDTO.getProductId())
-                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다: " + orderItemDTO.getProductId()));
+                    .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다: " + orderItemDTO.getProductId()));
 
             int discountRate = product.getDiscountRate();
             int discountedPrice = orderItemDTO.getPrice() * (100 - discountRate) / 100;
 
             OrderItemDTO calculatedOrderItemDTO = OrderItemDTO.builder()
-                .productId(product.getId())
-                .productName(product.getProductName())
-                .quantity(orderItemDTO.getQuantity())
-                .price(discountedPrice)
-                .deliveryStatus("READY")
-                .build();
+                    .productId(product.getId())
+                    .productName(product.getProductName())
+                    .quantity(orderItemDTO.getQuantity())
+                    .price(discountedPrice)
+                    .deliveryStatus("READY")
+                    .build();
 
             calculatedOrderItems.add(calculatedOrderItemDTO);
 
@@ -72,12 +72,12 @@ public class OrderService {
 
         // OrderDTO 생성
         OrderDTO orderDTO = OrderDTO.builder()
-            .totalPrice(totalPrice)
-            .city(addressDTO.getCity())
-            .street(addressDTO.getStreet())
-            .detail(addressDTO.getDetail())
-            .orderItems(calculatedOrderItems)
-            .build();
+                .totalPrice(totalPrice)
+                .city(addressDTO.getCity())
+                .street(addressDTO.getStreet())
+                .detail(addressDTO.getDetail())
+                .orderItems(calculatedOrderItems)
+                .build();
 
         order = order.makeOrder(user, orderDTO);
         user.getOrders().add(order);
@@ -94,10 +94,9 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderDTO getSingleOrderDetail(BaseUserDetails baseUserDetails, Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(
-            () -> new RuntimeException("주문 정보가 없습니다 !!!")
-        );
+                () -> new RuntimeException("주문 정보가 없습니다 !!!"));
 
-        if(!order.getUser().getUserId().equals(baseUserDetails.getUsername())) {
+        if (!order.getUser().getUserId().equals(baseUserDetails.getUsername())) {
             throw new RuntimeException("주문한 사용자 정보가 다릅니다 !!!");
         }
 
@@ -110,46 +109,48 @@ public class OrderService {
         }
 
         return OrderDTO.builder()
-            .totalPrice(order.getTotalPrice())
-            .city(orderAddress.getCity())
-            .street(orderAddress.getStreet())
-            .detail(orderAddress.getDetail())
-            .orderItems(orderItemDTOs)
-            .build();
+                .totalPrice(order.getTotalPrice())
+                .city(orderAddress.getCity())
+                .street(orderAddress.getStreet())
+                .detail(orderAddress.getDetail())
+                .orderItems(orderItemDTOs)
+                .build();
     }
 
     @Transactional(readOnly = true)
     public List<OrderDTO> getMyOrders(BaseUserDetails baseUserDetails) {
         User user = userRepository.findByUserId(baseUserDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("회원 정보를 불러오지 못했습니다 !!!"));
+                .orElseThrow(() -> new RuntimeException("회원 정보를 불러오지 못했습니다 !!!"));
 
-        List<Order> orderList = orderRepository.findAllByUser(user)
-            .orElseThrow(() -> new RuntimeException("주문 정보가 없습니다 !!!")
-        );
+        List<Order> orderList = orderRepository.findAllByUser(user);
+        if (orderList.isEmpty()) {
+            throw new RuntimeException("주문 정보가 없습니다 !!!");
+        }
+
 
         return orderList.stream()
-            .map(Order::toDTO)
-            .collect(Collectors.toList());
+                .map(Order::toDTO)
+                .collect(Collectors.toList());
     }
 
-
     @Transactional(readOnly = true)
-    public List<PurchasedOrderItemResponse> getMyOrderItemsByDeliveryStatus(BaseUserDetails baseUserDetails, String deliveryStatus) {
+    public List<PurchasedOrderItemResponse> getMyOrderItemsByDeliveryStatus(BaseUserDetails baseUserDetails,
+            String deliveryStatus) {
         User user = userRepository.findByUserId(baseUserDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("회원 정보를 불러오지 못했습니다 !!!"));
+                .orElseThrow(() -> new RuntimeException("회원 정보를 불러오지 못했습니다 !!!"));
 
         DeliveryStatus status = deliveryStatus.equals("COMP") ? DeliveryStatus.COMP
-            : deliveryStatus.equals("READY") ? DeliveryStatus.READY : DeliveryStatus.PROG;
+                : deliveryStatus.equals("READY") ? DeliveryStatus.READY : DeliveryStatus.PROG;
 
         List<Order> allByUser = orderRepository.findAllByUser(user);
 
         List<PurchasedOrderItemResponse> purchasedOrderItemResponses = new ArrayList<>();
-        for(Order order : allByUser) {
+        for (Order order : allByUser) {
             Long orderId = order.getId();
-            for(OrderItem item : order.getOrderItems()) {
-                if(item.getDeliveryStatus().equals(status)) {
+            for (OrderItem item : order.getOrderItems()) {
+                if (item.getDeliveryStatus().equals(status)) {
                     purchasedOrderItemResponses
-                        .add(new PurchasedOrderItemResponse(item.toDTO(), orderId));
+                            .add(new PurchasedOrderItemResponse(item.toDTO(), orderId));
                 }
             }
         }
@@ -157,12 +158,10 @@ public class OrderService {
         return purchasedOrderItemResponses;
     }
 
-
-
     @Transactional
     public void cancelOrder(Long orderId, BaseUserDetails baseUserDetails) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("주문 정보가 없습니다 !!!"));
+                .orElseThrow(() -> new RuntimeException("주문 정보가 없습니다 !!!"));
 
         if (!order.getUser().getUserId().equals(baseUserDetails.getUsername())) {
             throw new RuntimeException("주문한 사용자 정보가 다릅니다 !!!");
