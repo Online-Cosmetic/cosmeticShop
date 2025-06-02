@@ -1,10 +1,7 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
-import Midas.cosmeticshop.dto.order.OrderBatchRequest;
-import Midas.cosmeticshop.dto.order.OrderDTO;
-import Midas.cosmeticshop.dto.order.OrderRequest;
-import Midas.cosmeticshop.entity.product.ThumbnailImage;
+import Midas.cosmeticshop.dto.order.*;
 import Midas.cosmeticshop.repository.ThumbnailImageRepository;
 import Midas.cosmeticshop.service.OrderService;
 import jakarta.validation.Valid;
@@ -72,12 +69,23 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    /* 주문 내역 전체 조회 */
+    /* 주문 내역 전체 조회 : Order가 주내용 */
     @GetMapping
     public ResponseEntity<List<OrderDTO>> getMyOrders(@AuthenticationPrincipal BaseUserDetails baseUserDetails) {
 
         List<OrderDTO> orderDTOs = orderService.getMyOrders(baseUserDetails);
         return ResponseEntity.ok(orderDTOs);
+    }
+
+    /* 배송상태에 따른 '주문상품' 조회 : orderItem이 주내용 */
+    @GetMapping("/{deliveryStatus}")
+    public ResponseEntity<List<PurchasedOrderItemResponse>> getMyOrders(
+        @AuthenticationPrincipal BaseUserDetails baseUserDetails,
+        @PathVariable String deliveryStatus) {
+
+        // PurchasedOrderItemResponse = OrderItemDTO + orderId
+        List<PurchasedOrderItemResponse> purchasedOrderItems = orderService.getMyOrderItemsByDeliveryStatus(baseUserDetails, deliveryStatus);
+        return ResponseEntity.ok(purchasedOrderItems);
     }
 
     /* 확정X ) DeliveryStatus 가 READY 인 주문 수정 */

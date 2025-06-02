@@ -4,6 +4,7 @@ import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.order.OrderDTO;
 import Midas.cosmeticshop.dto.order.OrderItemDTO;
 import Midas.cosmeticshop.dto.AddressDTO;
+import Midas.cosmeticshop.dto.order.PurchasedOrderItemResponse;
 import Midas.cosmeticshop.entity.DeliveryStatus;
 import Midas.cosmeticshop.entity.Order;
 import Midas.cosmeticshop.entity.OrderAddress;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -130,6 +132,33 @@ public class OrderService {
             .collect(Collectors.toList());
     }
 
+
+    @Transactional(readOnly = true)
+    public List<PurchasedOrderItemResponse> getMyOrderItemsByDeliveryStatus(BaseUserDetails baseUserDetails, String deliveryStatus) {
+        User user = userRepository.findByUserId(baseUserDetails.getUsername())
+            .orElseThrow(() -> new RuntimeException("회원 정보를 불러오지 못했습니다 !!!"));
+
+        DeliveryStatus status = deliveryStatus.equals("COMP") ? DeliveryStatus.COMP
+            : deliveryStatus.equals("READY") ? DeliveryStatus.READY : DeliveryStatus.PROG;
+
+        List<Order> allByUser = orderRepository.findAllByUser(user);
+
+        List<PurchasedOrderItemResponse> purchasedOrderItemResponses = new ArrayList<>();
+        for(Order order : allByUser) {
+            Long orderId = order.getId();
+            for(OrderItem item : order.getOrderItems()) {
+                if(item.getDeliveryStatus().equals(status)) {
+                    purchasedOrderItemResponses
+                        .add(new PurchasedOrderItemResponse(item.toDTO(), orderId));
+                }
+            }
+        }
+
+        return purchasedOrderItemResponses;
+    }
+
+
+
     @Transactional
     public void cancelOrder(Long orderId, BaseUserDetails baseUserDetails) {
         Order order = orderRepository.findById(orderId)
@@ -156,6 +185,4 @@ public class OrderService {
             cancelOrder(orderId, baseUserDetails);
         }
     }
-
-
 }
