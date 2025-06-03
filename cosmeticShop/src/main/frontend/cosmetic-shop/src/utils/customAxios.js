@@ -117,6 +117,7 @@ export const userAPI = {
         searchByTitle: (title) => customAxios.get(`/api/qnas/search/title`, {
             params: { title }
         }),
+        searchMyQnasByTitle: (title) => customAxios.get('/api/qnas/me/search/title', { params: { title } }),
 
         // QnA 상세 정보 조회
         getDetail: (qnaId) => customAxios.get(`/api/qnas/detail/${qnaId}`),
@@ -139,28 +140,28 @@ export const userAPI = {
     payment: {
         // 결제 요청 생성
         createPayment: (paymentData) => customAxios.post('/api/payments', paymentData),
-        
+
         // 결제 상태 확인
         getPaymentStatus: (orderId) => customAxios.get(`/api/payments/${orderId}`),
-        
+
         // 결제 완료 처리
         completePayment: (paymentId, data) => customAxios.post(`/api/payments/${paymentId}/complete`, data),
-        
+
         // 결제 취소
         cancelPayment: (paymentId, reason) => customAxios.post(`/api/payments/${paymentId}/cancel`, { reason }),
-        
+
         // 결제 내역 조회
         getPaymentHistory: () => customAxios.get('/api/payments/history'),
-        
+
         // 카드 결제
         processCardPayment: (paymentData) => customAxios.post('/api/payments/card', paymentData),
-        
+
         // 계좌이체
         processBankTransfer: (paymentData) => customAxios.post('/api/payments/bank-transfer', paymentData),
-        
+
         // 간편결제 (카카오페이)
         processKakaoPay: (paymentData) => customAxios.post('/api/payments/kakao-pay', paymentData),
-        
+
         // 간편결제 (KG이니시스)
         processKGinisis: (paymentData) => customAxios.post('/api/payments/kginisis', paymentData)
     }

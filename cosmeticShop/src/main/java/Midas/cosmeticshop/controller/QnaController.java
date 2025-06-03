@@ -16,17 +16,17 @@ public class QnaController {
 
     private final QnaService qnaService;
 
-    public QnaController (QnaService qnaService) {
+    public QnaController(QnaService qnaService) {
         this.qnaService = qnaService;
     }
 
-    //사용자가 작성한 Qna 목록 반환
+    // 사용자가 작성한 Qna 목록 반환
     @GetMapping("/me")
     public ResponseEntity<List<QnaListDTO>> getMyQnas(Authentication authentication) {
         return ResponseEntity.ok().body(qnaService.getMyQnas(authentication.getName()));
     }
 
-    //모든 Qna 목록 반환
+    // 모든 Qna 목록 반환
     @GetMapping("/all")
     public ResponseEntity<List<QnaListDTO>> getAllQnas() {
         return ResponseEntity.ok().body(qnaService.getAllQnas());
@@ -42,42 +42,48 @@ public class QnaController {
         return ResponseEntity.ok().body(qnaService.getQnasByTitle(title));
     }
 
-    //Qna 상세 정보 반환 (상세페이지용)
-    @GetMapping("/detail/{qnaId}")
+    @GetMapping("/me/search/title")
+    public ResponseEntity<List<QnaListDTO>> searchMyQnasByTitle(@RequestParam("title") String title,
+            Authentication authentication) {
+        return ResponseEntity.ok().body(qnaService.searchMyQnasByTitle(title, authentication.getName()));
+    }
+
+    // Qna 상세 정보 반환 (상세페이지용)
+    @GetMapping("/detail/{id}")
     public ResponseEntity<QnaDTO> getQnaDetail(@PathVariable Long id) {
         return ResponseEntity.ok().body(qnaService.getQnaDetail(id));
     }
 
-    //Qna 작성(추가)
+    // Qna 작성(추가)
     @PostMapping
     public ResponseEntity<Void> postQna(@RequestBody QnaPostDTO qnaPostDTO,
-                                        Authentication authentication) {
+            Authentication authentication) {
         qnaService.postQna(qnaPostDTO, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
-    //Qna 제목/내용 수정
+    // Qna 제목/내용 수정
     @PutMapping("/{qnaId}")
     public ResponseEntity<Void> putQna(@PathVariable Long id,
-                                       @RequestBody QnaPostDTO qnaPostDTO,
-                                       Authentication authentication) {
+            @RequestBody QnaPostDTO qnaPostDTO,
+            Authentication authentication) {
         qnaService.putQna(id, qnaPostDTO, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
-    //Qna 답변 작성
+    // Qna 답변 작성
     @PutMapping("/{qnaId}/answers")
     public ResponseEntity<Void> putQnaAnswer(@PathVariable Long id,
-                                             @RequestParam("answer") String answer,
-                                             Authentication authentication) {
+            @RequestParam("answer") String answer,
+            Authentication authentication) {
         qnaService.putQnaAnswer(id, answer, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
-    //Qna 삭제
+    // Qna 삭제
     @DeleteMapping("/{qnaId}")
-    public  ResponseEntity<Void> deleteQna(@PathVariable Long id,
-                                           Authentication authentication) {
+    public ResponseEntity<Void> deleteQna(@PathVariable Long id,
+            Authentication authentication) {
         qnaService.deleteQna(id, authentication.getName());
         return ResponseEntity.ok().build();
     }
