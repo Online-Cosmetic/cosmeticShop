@@ -20,6 +20,7 @@ import Midas.cosmeticshop.repository.user.CompanyRepository;
 import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -162,7 +163,43 @@ public class OrderService {
         return purchasedOrderItemResponses;
     }
 
+    /* 단일 상품주문 삭제 */
+    @Transactional
+    public void cancelOrderItem(Long orderItemId, BaseUserDetails baseUserDetails) {
+        OrderItem item = orderItemRepository.findById(orderItemId)
+            .orElseThrow(() -> new RuntimeException("상품주문 정보가 없습니다 !!!"));
 
+        Order order = item.getOrder();
+        if (!order.getUser().getUserId().equals(baseUserDetails.getUsername())) {
+            throw new RuntimeException("주문한 사용자 정보가 다릅니다 !!!");
+        }
+
+        if (item.getDeliveryStatus() != DeliveryStatus.READY) {
+            throw new RuntimeException("이미 배송이 시작된 상품입니다");
+        }
+
+        order.removeOrderItem(item);
+        orderItemRepository.delete(item);
+    }
+
+    /* 여러개 상품주문 삭제 */
+    @Transactional
+    public void cancelOrderItems(List<Long> orderItemIds, BaseUserDetails baseUserDetails) {
+        List<OrderItem> items = orderItemRepository.findAllById(orderItemIds);
+
+        for(OrderItem item : items) {
+            Order order = item.getOrder();
+            if (!order.getUser().getUserId().equals(baseUserDetails.getUsername())) {
+                throw new RuntimeException("주문한 사용자 정보가 다릅니다 !!!");
+            }
+            if (item.getDeliveryStatus() != DeliveryStatus.READY) {
+                throw new RuntimeException("이미 배송이 시작된 상품입니다");
+            }
+
+            order.removeOrderItem(item);
+            orderItemRepository.delete(item);
+        }
+    }
 
     @Transactional
     public void cancelOrder(Long orderId, BaseUserDetails baseUserDetails) {
@@ -223,5 +260,16 @@ public class OrderService {
         DeliveryStatus deliveryStatus = DeliveryStatus.valueOf(deliveryStatusDTO.getDeliveryStatus());
 
         return orderItemRepository.updateDeliveryStatus(orderItemId, deliveryStatus);
+    }
+
+    @Transactional
+    public ResponseEntity<String> changeItemDeliveryStatus(Long orderItemId, String deliveryStatus) {
+        DeliveryStatus status = DeliveryStatus.valueOf(deliveryStatus);
+        try {
+            orderItemRepository.updateDeliveryStatus(orderItemId, status);
+            return ResponseEntity.ok("배송 상태가 성공적으로 변경되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("배송 상태 변경에 실패했습니다.");
+        }
     }
 }

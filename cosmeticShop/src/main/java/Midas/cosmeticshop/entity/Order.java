@@ -47,14 +47,13 @@ public class Order {
 
     /* 주문 상세와의 연관관계 */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> orderItems = new ArrayList<>();;
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     public Order makeOrder(User user, OrderDTO dto) {
         this.user = user;
         this.totalPrice = dto.getTotalPrice();
         this.orderAddress = new OrderAddress(dto.getCity(), dto.getStreet(), dto.getDetail());
         this.createdAt = LocalDateTime.now();
-//        this.orderItems = new ArrayList<>();
         return this;
     }
 
@@ -71,6 +70,11 @@ public class Order {
             .detail(this.orderAddress.getDetail())
             .orderItems(orderItemDTOs)
             .build();
+    }
+
+    public void removeOrderItem(OrderItem orderItem) {
+        orderItems.remove(orderItem);
+        this.totalPrice -= orderItem.getOrderPrice();
     }
 
 }

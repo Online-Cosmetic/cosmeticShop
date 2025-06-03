@@ -1,7 +1,6 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
-import Midas.cosmeticshop.dto.UserInfo.NicknameChangeDTO;
 import Midas.cosmeticshop.dto.order.*;
 import Midas.cosmeticshop.repository.ThumbnailImageRepository;
 import Midas.cosmeticshop.service.OrderService;
@@ -92,9 +91,27 @@ public class OrderController {
 
     /* 확정X ) DeliveryStatus 가 READY 인 주문 수정 */
 
-    /* 주문 취소 : DeliveryStatus 가 READY 인 상품만 취소 가능 */
-    @DeleteMapping("/{orderId}")
+    /* 단일 상품주문 취소(OrderItem) */
+    @DeleteMapping("/{orderItemId}")
     public ResponseEntity<?> cancelOrderItem(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
+                                         @PathVariable Long orderItemId) {
+
+        orderService.cancelOrderItem(orderItemId, baseUserDetails);
+        return ResponseEntity.ok().build();
+    }
+
+    /* 여러개 상품주문 취소(OrderItem) */
+    @DeleteMapping("/all")
+    public ResponseEntity<?> cancelOrderItems(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
+                                              @RequestBody List<Long> orderItemIdList) {
+
+        orderService.cancelOrderItems(orderItemIdList, baseUserDetails);
+        return ResponseEntity.ok().build();
+    }
+
+    /* 주문 취소(Order) : DeliveryStatus 가 READY 인 상품만 취소 가능 */
+    @DeleteMapping("/batch/{orderId}")
+    public ResponseEntity<?> cancelOrder(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
                                          @PathVariable Long orderId) {
 
         orderService.cancelOrder(orderId, baseUserDetails);
@@ -102,7 +119,7 @@ public class OrderController {
     }
 
     /* 여러개 주문 한 번에 취소 */
-    @DeleteMapping("/batch")
+    @DeleteMapping("/batch/all")
     public ResponseEntity<?> cancelOrders(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
                                           @RequestBody List<Long> orderIdList) {
         orderService.cancelOrders(orderIdList, baseUserDetails);
