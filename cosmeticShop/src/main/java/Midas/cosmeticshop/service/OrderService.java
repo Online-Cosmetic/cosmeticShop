@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -124,8 +123,7 @@ public class OrderService {
             .orElseThrow(() -> new RuntimeException("회원 정보를 불러오지 못했습니다 !!!"));
 
         List<Order> orderList = orderRepository.findAllByUser(user)
-            .orElseThrow(() -> new RuntimeException("주문 정보가 없습니다 !!!")
-        );
+            .orElseThrow(() -> new RuntimeException("주문 정보가 없습니다 !!!"));
 
         return orderList.stream()
             .map(Order::toDTO)
@@ -141,7 +139,8 @@ public class OrderService {
         DeliveryStatus status = deliveryStatus.equals("COMP") ? DeliveryStatus.COMP
             : deliveryStatus.equals("READY") ? DeliveryStatus.READY : DeliveryStatus.PROG;
 
-        List<Order> allByUser = orderRepository.findAllByUser(user);
+        List<Order> allByUser = orderRepository.findAllByUser(user)
+            .orElseThrow(() -> new RuntimeException("주문 정보가 없습니다 !!!"));
 
         List<PurchasedOrderItemResponse> purchasedOrderItemResponses = new ArrayList<>();
         for(Order order : allByUser) {

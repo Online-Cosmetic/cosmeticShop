@@ -57,9 +57,9 @@ public class User extends BaseUser {
     @Column
     private String provider;
 
-    /* 소셜로그인을 위한 Id */
+    /* 소셜로그인을 위한 Id  -> 삭제하고 ID 는 userId 에 넣기로 변경 */
     @Column
-    private String providerId;
+    private String providerId; // 삭제 예정
 
     /* 사용자의 주소지(배송지) 목록 */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
