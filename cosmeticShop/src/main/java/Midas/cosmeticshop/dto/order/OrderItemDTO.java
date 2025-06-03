@@ -12,23 +12,14 @@ public class OrderItemDTO {
     private Integer price; // 단일 상품의 원래 가격
     private String productName; // 상품명
     private String deliveryStatus; // 배송상태
+    private String mainImageUrl; // 썸네일 url
 
-    public OrderItemDTO(Long productId, Integer quantity, Integer price, String productName, String deliveryStatus) {
+    public OrderItemDTO(Long productId, Integer quantity, Integer price, String productName, String deliveryStatus, String mainImageUrl) {
         this.productId = productId;
         this.quantity = quantity;
         this.price = price;
         this.productName = productName;
         this.deliveryStatus = deliveryStatus;
-    }
-
-    @Override
-    public String toString() {
-        return "OrderItemDTO{" +
-                "productId=" + productId +
-                ", quantity=" + quantity +
-                ", price=" + price +
-                ", productName='" + productName + '\'' +
-                ", deliveryStatus='" + deliveryStatus + '\'' +
-                '}';
+        this.mainImageUrl = mainImageUrl;
     }
 }

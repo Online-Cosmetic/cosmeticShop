@@ -1,6 +1,7 @@
 package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.dto.order.DeliveryStatusDTO;
 import Midas.cosmeticshop.dto.order.OrderDTO;
 import Midas.cosmeticshop.dto.order.OrderItemDTO;
 import Midas.cosmeticshop.dto.AddressDTO;
@@ -10,12 +11,16 @@ import Midas.cosmeticshop.entity.Order;
 import Midas.cosmeticshop.entity.OrderAddress;
 import Midas.cosmeticshop.entity.OrderItem;
 import Midas.cosmeticshop.entity.product.Product;
+import Midas.cosmeticshop.entity.user.Company;
 import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.repository.OrderItemRepository;
 import Midas.cosmeticshop.repository.OrderRepository;
 import Midas.cosmeticshop.repository.ProductRepository;
+import Midas.cosmeticshop.repository.user.CompanyRepository;
 import Midas.cosmeticshop.repository.user.UserRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,6 +37,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
 
     @Transactional
     public Long createSingleOrder(List<OrderItemDTO> orderItemDTOs, AddressDTO addressDTO, int totalPrice) {
@@ -183,5 +189,39 @@ public class OrderService {
         for (Long orderId : orderIdList) {
             cancelOrder(orderId, baseUserDetails);
         }
+    }
+
+    /* 해당 기업의 상품을 주문상품 내역을 모두 반환 */
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<PurchasedOrderItemResponse>> getAllOrderItemsByCompany(String companyName) {
+        List<OrderItem> orderItems = orderItemRepository.findAllByCompanyName(companyName);
+        List<OrderItemDTO> orderItemDTOs = orderItems.stream()
+            .map(OrderItem::toDTO)
+            .toList();
+
+        Long orderId = orderItems.get(0).getOrder().getId();
+        List<PurchasedOrderItemResponse> purchasedOrderItemResponses = new ArrayList<>();
+        for(OrderItemDTO dto : orderItemDTOs) {
+            purchasedOrderItemResponses
+                .add(new PurchasedOrderItemResponse(dto, orderId));
+        }
+
+        return ResponseEntity.ok(purchasedOrderItemResponses);
+    }
+
+    /* 기업의 주문상품 배송상태 변경 메소드 */
+    @Transactional
+    public ResponseEntity<Void> changeItemDeliveryStatus(
+        BaseUserDetails baseUserDetails, @Valid DeliveryStatusDTO deliveryStatusDTO) {
+
+        Company company = companyRepository.findByUserId(baseUserDetails.getUsername());
+        if(company == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Long orderItemId = deliveryStatusDTO.getOrderItemId();
+        DeliveryStatus deliveryStatus = DeliveryStatus.valueOf(deliveryStatusDTO.getDeliveryStatus());
+
+        return orderItemRepository.updateDeliveryStatus(orderItemId, deliveryStatus);
     }
 }

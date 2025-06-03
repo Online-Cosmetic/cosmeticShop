@@ -68,7 +68,8 @@ public class OrderItem {
             this.quantity,
             this.orderPrice,
             this.product.getProductName(),
-            this.deliveryStatus != null ? this.deliveryStatus.name() : "READY"
+            this.deliveryStatus != null ? this.deliveryStatus.name() : "READY",
+            product.getThumbnailImage().getImageUrl()
         );
     }
 }

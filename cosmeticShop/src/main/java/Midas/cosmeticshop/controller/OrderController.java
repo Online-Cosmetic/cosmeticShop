@@ -1,6 +1,7 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.dto.UserInfo.NicknameChangeDTO;
 import Midas.cosmeticshop.dto.order.*;
 import Midas.cosmeticshop.repository.ThumbnailImageRepository;
 import Midas.cosmeticshop.service.OrderService;
@@ -55,8 +56,9 @@ public class OrderController {
     /* 단일 주문 상세 조회 : MyPage 기능 구현 때 작성
     * 리스트에서 각각의 OrderItem 정보 꺼내는건 프론트에서 */
     @GetMapping("{orderId}")
-    public ResponseEntity<Map<String, Object>> getSingleOrderDetail(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
-                                                         @PathVariable Long orderId) {
+    public ResponseEntity<Map<String, Object>> getSingleOrderDetail(
+        @AuthenticationPrincipal BaseUserDetails baseUserDetails,
+        @PathVariable Long orderId) {
 
         OrderDTO orderDTO = orderService.getSingleOrderDetail(baseUserDetails, orderId);
         Long productId = orderDTO.getOrderItems().get(0).getProductId();
@@ -92,7 +94,7 @@ public class OrderController {
 
     /* 주문 취소 : DeliveryStatus 가 READY 인 상품만 취소 가능 */
     @DeleteMapping("/{orderId}")
-    public ResponseEntity<?> cancelOrder(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
+    public ResponseEntity<?> cancelOrderItem(@AuthenticationPrincipal BaseUserDetails baseUserDetails,
                                          @PathVariable Long orderId) {
 
         orderService.cancelOrder(orderId, baseUserDetails);
@@ -105,5 +107,20 @@ public class OrderController {
                                           @RequestBody List<Long> orderIdList) {
         orderService.cancelOrders(orderIdList, baseUserDetails);
         return ResponseEntity.ok().build();
+    }
+
+    /* 기업회원) 자사 상품에 대한 모든 orderItem 내역 조회 */
+    @GetMapping("/{companyName}")
+    public ResponseEntity<List<PurchasedOrderItemResponse>> getCompanyOrderItems(@PathVariable String companyName) {
+        return orderService.getAllOrderItemsByCompany(companyName);
+    }
+
+    /* 기업회원) OrderItem 의 deliveryStatus 변경 : READY -> PROG, PROG -> COMP */
+    @PatchMapping("/{orderItemId}")
+    public ResponseEntity<Void> changeItemDeliveryStatus(
+        @AuthenticationPrincipal BaseUserDetails baseUserDetails,
+        @Valid @RequestBody DeliveryStatusDTO deliveryStatusDTO) {
+
+        return orderService.changeItemDeliveryStatus(baseUserDetails, deliveryStatusDTO);
     }
 }
