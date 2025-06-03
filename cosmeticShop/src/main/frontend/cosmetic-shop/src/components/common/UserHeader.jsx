@@ -3,7 +3,7 @@ import React from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {useAuth} from "../../contexts/AuthContext.jsx";
 
-export default function Header() {
+export default function UserHeader() {
     const {user, logout} = useAuth();
     const navigate = useNavigate();
 
@@ -17,7 +17,7 @@ export default function Header() {
 
         if (user.role === 'ROLE_USER') {
             return (
-                <nav className="border-b border-gray-300">
+                <nav className="">
                     <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
                         <Link
                             to="/user/mypage"
@@ -45,7 +45,7 @@ export default function Header() {
 
         if (user.role === "ROLE_COMPANY") {
             return (
-                <nav className="border-b border-gray-300">
+                <nav className="">
                     <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
                         <Link
                             to="/company/dashboard"
@@ -75,18 +75,77 @@ export default function Header() {
 
     return (
         <header className="w-full bg-white shadow-md">
-            <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-                {/* 로고 */}
-                <Link to="/" className="text-2xl font-bold text-gray-800">
-                    CosMall
-                </Link>
+            <div className="container mx-auto items-center justify-between">
+                {/* 첫째줄 */}
+                <div className="flex items-center justify-end border-b py-2">
+                    {/* 사용자 상태별 메뉴 */}
+                    <div className="flex  space-x-6">
+                        {renderUserMenu()}
+                        <div className="flex items-center space-x-4">
+                            {user ? (
+                                <>
+                                    <span className="text-gray-700">Hello, {user.username}</span>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        to="/login"
+                                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
+                                    >
+                                        Login
+                                    </Link>
+                                    <Link
+                                        to="/signup"
+                                        className="px-4 py-2 border border-emerald-500 text-emerald-500 rounded-lg hover:bg-emerald-50 transition"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                    <Link
+                                        to="/enterpriseLogin"
+                                        className="px-4 py-2 border border-gray-700 text-gray-700 rounded-lg hover:text-emerald-600 transition"
+                                    >
+                                        Business Login
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* 둘째줄 */}
+                <div className="flex justify-end border-b py-4">
+                    {/* 로고 */}
+                    <Link to="/" className="text-2xl font-bold text-gray-800">
+                        CosMall
+                    </Link>
+                    {/* Search box */}
+                    <div className="mx-auto relative w-[600px] h-[40px]">
+                        <div className="absolute inset-0 bg-zinc-100 rounded-[5px]" />
+                        <input
+                            type="text"
+                            placeholder="Search"
+                            className="absolute inset-0 pl-4 pr-12 py-4 bg-transparent text-xl text-neutral-400 font-['Inter'] focus:outline-none"
+                        />
+                        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6">
+                            <div className="w-5 h-5 border-[3px] border-neutral-400 rounded-full mx-auto" />
+                            <div
+                                className="absolute w-3 h-1 bg-neutral-400 rounded-[10px] border border-neutral-400"
+                                style={{ top: "14px", left: "16.85px", transform: "rotate(45.39deg)" }}
+                            />
+                        </div>
+                    </div>
+
+                </div>
 
                 {/* 기본 내비게이션 메뉴 */}
-                <nav className="border-b border-gray-300">
+                <nav className="border-b border-gray-300 py-2">
                     <div className="flex justify-center space-x-10 py-2 text-xl">
-                        <Link to="/" className="hover:text-emerald-600">
-                            Home
-                        </Link>
                         <Link to="/products/all" className="hover:text-emerald-600">
                             Products
                         </Link>
@@ -105,44 +164,6 @@ export default function Header() {
                     </div>
                 </nav>
 
-                {/* 사용자 상태별 메뉴 */}
-                <div className="flex items-center space-x-6">
-                    {renderUserMenu()}
-                    <div className="flex items-center space-x-4">
-                        {user ? (
-                            <>
-                                <span className="text-gray-700">Hello, {user.userId}</span>
-                                <button
-                                    onClick={handleLogout}
-                                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                                >
-                                    Logout
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <Link
-                                    to="/login"
-                                    className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
-                                >
-                                    Login
-                                </Link>
-                                <Link
-                                    to="/signup"
-                                    className="px-4 py-2 border border-emerald-500 text-emerald-500 rounded-lg hover:bg-emerald-50 transition"
-                                >
-                                    Sign Up
-                                </Link>
-                                <Link
-                                    to="/enterpriseLogin"
-                                    className="px-4 py-2 border border-gray-700 text-gray-700 rounded-lg hover:text-emerald-600 transition"
-                                >
-                                    Business Login
-                                </Link>
-                            </>
-                        )}
-                    </div>
-                </div>
             </div>
         </header>
     );

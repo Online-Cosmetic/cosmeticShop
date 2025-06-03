@@ -26,7 +26,6 @@ import QnAWrite from "./pages/qna/QnAWrite.jsx";
 
 import Order from "./pages/order/Order.jsx";
 import OrderComplete from "./pages/order/OrderComplete";
-
 // import Checkout from "./pages/payment/Checkout.jsx";
 
 import UserLogin from "./pages/auth/UserLogin.jsx";
@@ -242,16 +241,18 @@ const App = () => {
                 <Route
                     path="/user/*"
                     element={
-                        <PublicLayout>
-                            <Routes>
-                                <Route path="mypage" element={<MyPage/>}/>
-                                <Route path="cart" element={<Cart/>}/>
-                                <Route path="orders" element={<OrderHistory/>}/>
-                                <Route path="order" element={<Order/>}/>
-                                <Route path="order/complete" element={<OrderComplete/>}/>
-                                {/*<Route path="checkout" element={<Checkout />} />*/}
-                            </Routes>
-                        </PublicLayout>
+                        <ProtectedRoute requiredRole="ROLE_USER">
+                            <PublicLayout>
+                                <Routes>
+                                    <Route path="mypage" element={<MyPage/>}/>
+                                    <Route path="cart" element={<Cart/>}/>
+                                    <Route path="orders" element={<OrderHistory/>}/>
+                                    <Route path="order" element={<Order/>}/>
+                                    <Route path="order/complete" element={<OrderComplete/>}/>
+                                    {/*<Route path="checkout" element={<Checkout />} />*/}
+                                </Routes>
+                            </PublicLayout>
+                        </ProtectedRoute>
                     }
                 />
 
