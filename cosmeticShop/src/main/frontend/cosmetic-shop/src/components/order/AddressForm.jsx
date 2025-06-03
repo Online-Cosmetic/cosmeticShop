@@ -96,7 +96,7 @@ function AddressForm({onNewAddress}) {
                                     <li className="px-4 py-3 text-gray-400 text-sm text-center">
                                         저장된 주소가 없습니다.
                                     </li>
-                                ))}
+                                )}
                             </ul>
                         )}
                     </div>

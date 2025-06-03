@@ -45,6 +45,7 @@ import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
 
 // 관리자 페이지
 import AdminQnAManagement from "./pages/admin/AdminQnAManagement.jsx";
+import AdminQnAResponse from "./pages/admin/AdminQnAResponse.jsx";
 
 
 // 인증 관련 페이지
@@ -284,6 +285,7 @@ const App = () => {
                         <AdminLayout>
                             <Routes>
                                 <Route path="/qna" element={<AdminQnAManagement />} />
+                                <Route path="/qna/:id/response" element={<AdminQnAResponse />} />
                             </Routes>
                         </AdminLayout>
                     }
