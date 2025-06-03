@@ -92,7 +92,7 @@ public class AdminService {
         List<Review> badReviewList = new ArrayList<>(reviewSet);
         List<ReviewGetDTO> reviewDTOList = new ArrayList<>();
         for (Review review : badReviewList) {
-            reviewDTOList.add(new ReviewGetDTO(review));
+            reviewDTOList.add(new ReviewGetDTO(review, false));
         }
         return reviewDTOList;
     }
@@ -131,7 +131,7 @@ public class AdminService {
         coupon.setDiscountRate(coupon.getDiscountRate());
         coupon.setDuration(couponPostDTO.getDuration());
         coupon.setCompany(company);
-
+        CouponRepo.save(coupon);
     }
 
 }
