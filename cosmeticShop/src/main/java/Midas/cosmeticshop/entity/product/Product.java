@@ -43,6 +43,7 @@ public class Product {
         this.categoryId = dto.getCategoryId();
         this.productName = dto.getProductName();
         this.description = dto.getDescription();
+        this.discountRate = dto.getDiscountRate();
         this.price = dto.getPrice();
         this.stock = dto.getStock();
     }

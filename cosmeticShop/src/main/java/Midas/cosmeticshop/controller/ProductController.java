@@ -43,10 +43,10 @@ public class ProductController {
     public ResponseEntity<Void> replaceProduct(
         @RequestHeader(value = "Authorization", required = false) String accessToken,
         @PathVariable Long productId,
-        @ModelAttribute ProductUpdateDTO dto,
-        @RequestParam(value = "newImages", required = false) MultipartFile[] newImages
+        @ModelAttribute ProductUpdateDTO dto, // MultipartFile 을 받기 위해 @ModelAttribute 필요
+        @RequestParam(value = "newImage", required = false) MultipartFile newImage
     ) {
-        productService.replaceProduct(accessToken, productId, dto, newImages);
+        productService.replaceProduct(accessToken, productId, dto, newImage);
         return ResponseEntity.noContent().build();
     }
 
