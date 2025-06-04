@@ -7,7 +7,7 @@ function ProductManagement() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 9; // 페이지당 상품 수
 
-    // 임시 더미 데이터
+    // 임시 더미 데이터에 discountRate 필드를 추가
     useEffect(() => {
         const dummy = [
             {
@@ -17,6 +17,7 @@ function ProductManagement() {
                 category: "Hair",
                 price: 4000,
                 stock: 10,
+                discountRate: 5, // 5%
             },
             {
                 id: 2,
@@ -25,91 +26,86 @@ function ProductManagement() {
                 category: "Makeup",
                 price: 12000,
                 stock: 5,
+                discountRate: 10, // 10%
             },
+            // … 필요에 따라 더 추가
         ];
         setProducts(dummy);
     }, []);
 
     const totalPages = 78;
-    const startIndex = 1;
-    // const currentItems = products.slice(startIndex, startIndex + itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
 
-    {/* 상품목록 이동
-    useEffect(() => {
-        axios.get(`/api/products?page=${page}&size=${PAGE_SIZE}`)
-            .then(res => {
-                setProducts(res.data.products);
-                setTotalPages(res.data.totalPages);
-                setTotalCount(res.data.totalCount);
-            });
-    }, [page]);
-    */}
     return (
+        <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-4">
+            <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-12">
+                <div className="flex justify-between items-end mb-4">
+                    <h2 className="text-4xl font-bold text-black">Product Management</h2>
+                    <input
+                        type="text"
+                        placeholder="Search product name"
+                        className="w-64 px-4 py-2 border border-gray-300 rounded-full shadow-sm"
+                    />
+                </div>
 
-        <>
-                <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-4">
-                    <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-12">
-                        <div className="flex justify-between items-end mb-4">
-                            <h2 className="text-4xl font-bold text-black">Product Management</h2>
-                            <input
-                                type="text"
-                                placeholder="Search product name"
-                                className="w-64 px-4 py-2 border border-gray-300 rounded-full shadow-sm"
-                            />
+                {/* 표 Header (7컬럼) */}
+                <div className="grid grid-cols-7 gap-4 font-semibold text-sm text-gray-700 border-b border-gray-300 pb-2">
+                    <div>Image</div>
+                    <div>Product Name</div>
+                    <div>Category</div>
+                    <div>Price</div>
+                    <div>Stock</div>
+                    <div>Discount Rate</div>
+                    <div>Actions</div>
+                </div>
+
+                {/* 상품 목록 (각 행에 discountRate 추가) */}
+                {products.slice(startIndex, startIndex + itemsPerPage).map((product) => (
+                    <div
+                        key={product.id}
+                        className="grid grid-cols-7 gap-4 items-center border-b border-gray-100 py-2"
+                    >
+                        <img src={product.image} alt={product.name} className="rounded" />
+                        <div className="font-medium text-gray-800">{product.name}</div>
+                        <div className="text-gray-500">{product.category}</div>
+                        <div className="text-gray-800 font-semibold">
+                            ₩{product.price.toLocaleString()}
                         </div>
-
-                        {/* 표 Header */}
-                        <div className="grid grid-cols-6 gap-4 font-semibold text-sm text-gray-700 border-b border-gray-300 pb-2">
-                            <div>Image</div>
-                            <div>Product Name</div>
-                            <div>Category</div>
-                            <div>Price</div>
-                            <div>Stock</div>
-                            <div>Actions</div>
+                        <div className="text-gray-600">{product.stock}</div>
+                        <div className="text-gray-600">
+                            {product.discountRate != null ? `${product.discountRate}%` : "-"}
                         </div>
-
-                        {/* 상품 목록 */}
-                        {products.map((product) => (
-                            <div
-                                key={product.id}
-                                className="grid grid-cols-6 gap-4 items-center border-b border-gray-100 py-2"
-                            >
-                                <img src={product.image} alt={product.name} className="rounded" />
-                                <div className="font-medium text-gray-800">{product.name}</div>
-                                <div className="text-gray-500">{product.category}</div>
-                                <div className="text-gray-800 font-semibold">₩{product.price.toLocaleString()}</div>
-                                <div className="text-gray-600">{product.stock}</div>
-                                <div className="flex gap-2">
-                                    <button className="text-blue-600 hover:underline">Edit</button>
-                                    <button className="text-red-600 hover:underline">Delete</button>
-                                </div>
-                            </div>
-                        ))}
-                        {/* 페이지네이션 */}
-                        <div className="flex items-center justify-between mt-6 700 border-t pt-6 border-gray-300">
-                            <span className="text-sm text-gray-600">
-                              Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, products.length)} of {products.length}
-                            </span>
-                            <div className="flex gap-2">
-                                <button
-                                    // onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                                    className="px-2 py-1 border rounded disabled:opacity-50"
-                                    // disabled={currentPage === 1}
-                                >
-                                    &lt;
-                                </button>
-                                <button
-                                    // onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                                    className="px-2 py-1 border rounded disabled:opacity-50"
-                                    // disabled={currentPage === totalPages}
-                                >
-                                    &gt;
-                                </button>
-                            </div>
+                        <div className="flex gap-2">
+                            <button className="text-blue-600 hover:underline">Edit</button>
+                            <button className="text-red-600 hover:underline">Delete</button>
                         </div>
                     </div>
+                ))}
+
+                {/* 페이지네이션 */}
+                <div className="flex items-center justify-between mt-6 border-t pt-6 border-gray-300">
+          <span className="text-sm text-gray-600">
+            Showing {startIndex + 1}–{Math.min(startIndex + itemsPerPage, products.length)} of {products.length}
+          </span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                            className="px-2 py-1 border rounded disabled:opacity-50"
+                            disabled={currentPage === 1}
+                        >
+                            &lt;
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                            className="px-2 py-1 border rounded disabled:opacity-50"
+                            disabled={currentPage === totalPages}
+                        >
+                            &gt;
+                        </button>
+                    </div>
                 </div>
-        </>
+            </div>
+        </div>
     );
 }
 

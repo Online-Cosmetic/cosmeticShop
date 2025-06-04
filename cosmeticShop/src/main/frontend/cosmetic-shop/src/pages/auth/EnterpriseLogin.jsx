@@ -35,32 +35,32 @@ export default function EnterpriseLogin() {
 
   return (
       <>
-        <div className="min-h-screen flex justify-center items-center bg-gray-100">
-          <div className="w-[816px] bg-white rounded-[30px] p-12 shadow-md">
+        <div className="min-h-screen flex justify-center items-center bg-gray-100 py-6">
+          <div className="w-[700px] bg-white rounded-[30px] p-8 shadow-md max-h-[calc(100vh-60px)] overflow-auto">
             <div className="mb-12 text-center">
-              <h1 className="text-4xl font-semibold">Welcome Back 👋</h1>
-              <p className="text-2xl mt-4">Let's grow your business.</p>
+              <h1 className="text-3xl font-semibold text-gray-900">Welcome Back</h1>
+              <p className="text-xl text-slate-700 mt-4">Let's grow your business.</p>
             </div>
-            <form className="space-y-8" onSubmit={handleSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label className="block mb-2">ID</label>
+                <label className="text-gray-900 text-sm block mb-2">ID</label>
                 <input
                     name="userId"
                     value={creds.userId}
                     onChange={handleChange}
-                    className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
+                    className="w-full h-10 px-4 bg-slate-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400"
                     placeholder="User ID"
                     required
                 />
               </div>
               <div>
-                <label className="block mb-2">Password</label>
+                <label className="text-gray-900 text-sm block mb-2">Password</label>
                 <input
                     name="password"
                     type="password"
                     value={creds.password}
                     onChange={handleChange}
-                    className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
+                    className="w-full h-10 px-4 bg-slate-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400"
                     placeholder="Password"
                     required
                 />
@@ -72,18 +72,18 @@ export default function EnterpriseLogin() {
               )}
               <button
                   type="submit"
-                  className="w-full py-4 bg-emerald-500 text-white font-medium rounded-xl hover:bg-emerald-600"
+                  className="w-full py-4 bg-emerald-500 text-white text-lg font-medium rounded-xl hover:bg-emerald-600"
               >
                 Sign in
               </button>
             </form>
             <div className="text-center mt-10">
               <span>Don't have an account? </span>
-              <Link to="/enterpriseSignUp" className="text-emerald-600 hover:underline">
+              <Link to="/enterprise/signup" className="text-emerald-600 hover:underline">
                 Sign up
               </Link>
             </div>
-            <div className="text-center text-gray-500 text-sm mt-10">
+            <div className="text-center text-gray-500 text-sm mt-6">
               © 2025 CosMall, LLC. All rights reserved.
             </div>
           </div>

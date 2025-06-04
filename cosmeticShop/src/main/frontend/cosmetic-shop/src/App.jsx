@@ -198,14 +198,6 @@ const App = () => {
                     }
                 />
 
-                <Route
-                    path="/enterpriseLogin"
-                    element={
-                        <PublicLayout>
-                            <EnterpriseLogin/>
-                        </PublicLayout>
-                    }
-                />
 
                 <Route
                     path="/signup"
@@ -221,15 +213,6 @@ const App = () => {
                     element={
                         <PublicLayout>
                             <ForgotPassword/>
-                        </PublicLayout>
-                    }
-                />
-
-                <Route
-                    path="/enterpriseSignUp"
-                    element={
-                        <PublicLayout>
-                            <EnterpriseSignUp/>
                         </PublicLayout>
                     }
                 />
@@ -257,8 +240,10 @@ const App = () => {
                 />
 
                 {/* 기업 회원 전용 페이지 */}
-                <Route
-                    path="/company/*"
+                <Route path="/enterprise/login" element={<EnterpriseLogin />} />
+                <Route path="/enterprise/signup" element={<EnterpriseSignUp />} />
+                    <Route
+                        path="/enterprise/*"
                     element={
                         <EnterpriseLayout>
                             <Routes>
