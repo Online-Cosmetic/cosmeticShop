@@ -103,7 +103,7 @@ public class ProductService {
     /* 상품 정보 수정 */
     @Transactional // dirty checking
     public void replaceProduct(String accessToken, Long productId,
-                               ProductUpdateDTO dto, MultipartFile[] newImages) {
+                               ProductUpdateDTO dto, MultipartFile newImage) {
         // 1. 권한 검증 (COMPANY)
         String role = jwtUtil.getRole(accessToken);
         if (!"ROLE_COMPANY".equals(role)) throw new IllegalArgumentException("권한이 없습니다.");
@@ -115,37 +115,39 @@ public class ProductService {
         // 3. 필드 전체 교체
         product.modifyFields(dto);
 
-        // 4. 이미지 전부 삭제 (orphanRemoval + 파일 삭제)
+        // 4. 썸네일 이미지 삭제
         if (product.getThumbnailImage() != null) {
             fileStorageService.deleteFile(product.getThumbnailImage().getImageUrl());
             product.setThumbnailImage(null);
         }
-        for (ProductImage img : new ArrayList<>(product.getProductImages())) {
-            fileStorageService.deleteFile(img.getImageUrl());
-            product.getProductImages().remove(img);
-        }
 
-        // 5. 새 이미지 저장 & 연관 설정
-        if (newImages != null) {
+        // 나머지 이미지 삭제
+//        for (ProductImage img : new ArrayList<>(product.getProductImages())) {
+//            fileStorageService.deleteFile(img.getImageUrl());
+//            product.getProductImages().remove(img);
+//        }
+
+        // 5. 새 썸네일 이미지 저장 & 연관 설정
+        if (newImage != null) {
             // 메인 이미지 저장 후 URL 세팅
-            String mainImage = fileStorageService.storeFile(newImages[0]);
+            String mainImage = fileStorageService.storeFile(newImage);
             ThumbnailImage thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(productId, mainImage));
             product.setThumbnailImage(thumbnailImage);
         }
 
-        if (Objects.requireNonNull(newImages).length > 1) {
-            for (int i = 1; i < newImages.length; i++) {
-                MultipartFile file = newImages[i];
-                if (!file.isEmpty()) {
-                    String url = fileStorageService.storeFile(file);
-                    ProductImage img = new ProductImage();
-                    img.setProduct(product);
-                    img.setImageUrl(url);
-                    product.getProductImages().add(img);
-                }
-            }
-        }
-
+        // 나머지 이미지들 저장
+//        if (Objects.requireNonNull(newImages).length > 1) {
+//            for (int i = 1; i < newImages.length; i++) {
+//                MultipartFile file = newImages[i];
+//                if (!file.isEmpty()) {
+//                    String url = fileStorageService.storeFile(file);
+//                    ProductImage img = new ProductImage();
+//                    img.setProduct(product);
+//                    img.setImageUrl(url);
+//                    product.getProductImages().add(img);
+//                }
+//            }
+//        }
         // 6. 자동으로 변경 내용이 Flush
     }
 
@@ -160,7 +162,7 @@ public class ProductService {
         // 1) DB에서 불러오기
         Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. id=" + productId));
-        // 2) 물리 파일 삭제
+        // 2) 이미지 전체 삭제
         if (product.getThumbnailImage() != null) {
             fileStorageService.deleteFile(product.getThumbnailImage().getImageUrl());
         }
