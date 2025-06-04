@@ -30,7 +30,7 @@ import OrderComplete from "./pages/order/OrderComplete";
 
 import UserLogin from "./pages/auth/UserLogin.jsx";
 import SignUp from "./pages/auth/SignUp.jsx";
-import OrderHistory from "./pages/user/MyComponents/OrderHistory.jsx";
+// import OrderHistory from "./pages/user/MyComponents/OrderHistory.jsx";
 
 // 기업 페이지
 import EnterpriseHeader from "./components/enterprise/EnterpriseHeader.jsx";
@@ -246,7 +246,7 @@ const App = () => {
                                 <Routes>
                                     <Route path="mypage" element={<MyPage/>}/>
                                     <Route path="cart" element={<Cart/>}/>
-                                    <Route path="orders" element={<OrderHistory/>}/>
+                                    {/* <Route path="orders" element={<OrderHistory/>}/> */}
                                     <Route path="order" element={<Order/>}/>
                                     <Route path="order/complete" element={<OrderComplete/>}/>
                                     {/*<Route path="checkout" element={<Checkout />} />*/}

@@ -31,13 +31,11 @@ export default function UserHeader() {
                         >
                             <i className="fas fa-shopping-cart mr-1"></i> Cart
                         </Link>
-                        <Link
-                            to="/user/orders"
-                            className="text-gray-700 hover:text-emerald-600"
+                        <Link to="/qna"
+                              className="text-gray-700 hover:text-emerald-600"
                         >
-                            <i className="fas fa-history mr-1"></i> Order History
+                            <i className="fas fa-user mr-1"></i> Q&A
                         </Link>
-                        <Link to="/qna">Q&A</Link>
                     </div>
                 </nav>
             );
@@ -119,12 +117,12 @@ export default function UserHeader() {
                 </div>
 
                 {/* 둘째줄 */}
-                <div className="flex justify-end border-b py-4">
+                <div className="flex border-b px-4 py-4">
                     {/* 로고 */}
                     <Link to="/" className="text-2xl font-bold text-gray-800">
                         CosMall
                     </Link>
-                    {/* Search box */}
+                    {/* Search box
                     <div className="mx-auto relative w-[600px] h-[40px]">
                         <div className="absolute inset-0 bg-zinc-100 rounded-[5px]" />
                         <input
@@ -139,7 +137,7 @@ export default function UserHeader() {
                                 style={{ top: "14px", left: "16.85px", transform: "rotate(45.39deg)" }}
                             />
                         </div>
-                    </div>
+                    </div> */}
 
                 </div>
 
