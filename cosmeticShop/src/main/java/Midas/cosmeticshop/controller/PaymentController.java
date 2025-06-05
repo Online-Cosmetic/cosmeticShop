@@ -1,10 +1,7 @@
 package Midas.cosmeticshop.controller;
 
+import Midas.cosmeticshop.dto.payment.*;
 import com.siot.IamportRestClient.IamportClient;
-import Midas.cosmeticshop.dto.payment.PaymentCreateRequest;
-import Midas.cosmeticshop.dto.payment.PaymentProcessRequest;
-import Midas.cosmeticshop.dto.payment.PaymentCompleteRequest;
-import Midas.cosmeticshop.dto.payment.PaymentResponseDTO;
 import Midas.cosmeticshop.entity.PaymentHistory;
 import Midas.cosmeticshop.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -154,5 +152,32 @@ public class PaymentController {
             .build();
             
         return ResponseEntity.ok(response);
+    }
+
+    /* 특정기업 최근 1주일간 판매 금액 통계 반환 */
+    @GetMapping("/statistics/weekly/{companyName}")
+    public ResponseEntity<Map<String, Integer>> getWeeklySalesStatistics(
+        @PathVariable String companyName) {
+        Map<String, Integer> statistics = paymentService.getWeeklySalesStatistics(companyName);
+        return ResponseEntity.ok(statistics);
+    }
+
+    /* 특정 기업 가장 많이 팔린 제품 top 5 정보 반환 */
+    @GetMapping("/statistics/top-products/{companyName}")
+    public ResponseEntity<List<TopProductDTO>> getTop5Products(
+        @PathVariable String companyName) {
+        List<TopProductDTO> topProducts = paymentService.getTop5ProductsByCompany(companyName);
+        return ResponseEntity.ok(topProducts);
+    }
+
+    /* 특정 기업의 최신순 payment 트랜잭션 기록 반환 */
+    @GetMapping("/transactions/{companyName}")
+    public ResponseEntity<List<TransactionDTO>> getLatestTransactions(
+        @PathVariable String companyName,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "5") int size) {
+        List<TransactionDTO> transactions = paymentService.getLatestTransactionsByCompany(
+            companyName, page, size);
+        return ResponseEntity.ok(transactions);
     }
 }

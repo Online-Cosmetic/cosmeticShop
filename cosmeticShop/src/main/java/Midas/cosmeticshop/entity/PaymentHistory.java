@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 /* Iamport API 를 활용한 결제를 위한 엔티티 */
 @Entity
 @Table(name = "payment_history")
@@ -37,4 +39,7 @@ public class PaymentHistory {
 
     @Column
     private String buyerEmail;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

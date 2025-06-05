@@ -51,6 +51,8 @@ public class ProductService {
         // dto 기반으로 엔티티 생성
         Product product = Product.from(dto, companyRepository.findByUserId(userId));
 
+        // 상품 저장 (Cascade 옵션을 이용하면 연관 이미지들도 함께 저장)
+        productRepository.save(product);
 
         // 메인 이미지 저장 후 URL 세팅
         ThumbnailImage thumbnailImage;
@@ -59,6 +61,8 @@ public class ProductService {
             thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(product.getId(), mainImageUrl));
             product.setThumbnailImage(thumbnailImage);
         }
+
+        thumnailImageRepository.save(Objects.requireNonNull(product.getThumbnailImage()));
 
         List<ProductImage> productImages = new ArrayList<>();
         if (additionalImages != null) {
@@ -73,10 +77,6 @@ public class ProductService {
             }
         }
         product.getProductImages().addAll(productImages);
-
-        // 상품 저장 (Cascade 옵션을 이용하면 연관 이미지들도 함께 저장)
-        productRepository.save(product);
-        thumnailImageRepository.save(Objects.requireNonNull(product.getThumbnailImage()));
         productImageRepository.saveAll(Objects.requireNonNull(product.getProductImages()));
     }
 
