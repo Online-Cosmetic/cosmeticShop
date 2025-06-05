@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("""
-        SELECT new com.example.dto.TodayOrderStatsDTO(
+        SELECT new Midas.cosmeticshop.dto.DailyOrderStatsBatchDTO(
             (SELECT SUM(o.totalPrice) FROM Order o WHERE o.createdAt BETWEEN :start AND :end),
             (SELECT COUNT(o) FROM Order o WHERE o.createdAt BETWEEN :start AND :end),
             (SELECT SUM(oi.quantity) FROM OrderItem oi WHERE oi.order.createdAt BETWEEN :start AND :end)
