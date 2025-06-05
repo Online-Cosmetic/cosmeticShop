@@ -2,14 +2,26 @@
 import React from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {useAuth} from "../../contexts/AuthContext.jsx";
+import {authAPI} from "../../utils/customAxios.js";
 
 export default function Header() {
     const {user, logout} = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        await logout();
-        navigate('/login');
+        try {
+            // authAPI.logout() 직접 호출로 변경
+            await authAPI.logout();
+            // 로컬 스토리지 정리
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            // 로그인 페이지로 이동
+            navigate('/login');
+        } catch (error) {
+            console.error("로그아웃 실패:", error);
+        }
     };
 
     const renderUserMenu = () => {
@@ -43,31 +55,11 @@ export default function Header() {
             );
         }
 
+        // 기업 회원인 경우 빈 메뉴 반환 (기업 회원은 기업 페이지로만 접근해야 함)
         if (user.role === "ROLE_COMPANY") {
-            return (
-                <nav className="border-b border-gray-300">
-                    <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
-                        <Link
-                            to="/company/dashboard"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-tachometer-alt mr-1"></i> Dashboard
-                        </Link>
-                        <Link
-                            to="/company/product/register"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-plus-circle mr-1"></i> Add Product
-                        </Link>
-                        <Link
-                            to="/company/products"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-box mr-1"></i> Products
-                        </Link>
-                    </div>
-                </nav>
-            );
+            // 기업 회원이 일반 페이지에 접근하면 기업 대시보드로 리다이렉트
+            navigate('/company/dashboard');
+            return null;
         }
 
         return null;
