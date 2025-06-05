@@ -15,7 +15,7 @@ function EnterpriseSignUp() {
     const [loading, setLoading] = useState(false);
 
     const inputClass =
-        "w-full h-12 px-4 bg-slate-50 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400";
+        "w-full h-10 px-4 bg-slate-50 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400";
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -54,12 +54,12 @@ function EnterpriseSignUp() {
 
     return (
         <>
-            <div className="min-h-screen flex justify-center items-center bg-gray-100">
-                <div className="w-[816px] bg-white rounded-[30px] p-12 shadow-md">
+            <div className="min-h-screen flex justify-center items-center bg-gray-100 py-6">
+                <div className="w-[700px] bg-white rounded-[30px] p-8 shadow-md max-h-[calc(100vh-60px)] overflow-auto">
                     {/* 헤더 */}
                     <div className="mb-12 text-center">
-                        <h1 className="text-4xl font-semibold text-gray-900">Sign Up 👋</h1>
-                        <p className="text-2xl text-slate-700 mt-4">
+                        <h1 className="text-3xl font-semibold text-gray-900">Sign Up</h1>
+                        <p className="text-xl text-slate-700 mt-4">
                             Your seller journey starts here.
                         </p>
                     </div>
@@ -67,7 +67,7 @@ function EnterpriseSignUp() {
                     {/* 회원가입 폼 */}
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label className="text-gray-900 text-base block mb-2">ID</label>
+                            <label className="text-gray-900 text-sm block mb-2">ID</label>
                             <input
                                 name="userId"
                                 value={form.userId}
@@ -80,7 +80,7 @@ function EnterpriseSignUp() {
                         </div>
 
                         <div>
-                            <label className="text-gray-900 text-base block mb-2">
+                            <label className="text-gray-900 text-sm block mb-2">
                                 Password
                             </label>
                             <input
@@ -95,7 +95,7 @@ function EnterpriseSignUp() {
                         </div>
 
                         <div>
-                            <label className="text-gray-900 text-base block mb-2">
+                            <label className="text-gray-900 text-sm block mb-2">
                                 Company Name
                             </label>
                             <input
@@ -110,7 +110,7 @@ function EnterpriseSignUp() {
                         </div>
 
                         <div>
-                            <label className="text-gray-900 text-base block mb-2">
+                            <label className="text-gray-900 text-sm block mb-2">
                                 Business Email
                             </label>
                             <input
@@ -125,7 +125,7 @@ function EnterpriseSignUp() {
                         </div>
 
                         <div>
-                            <label className="text-gray-900 text-base block mb-2">
+                            <label className="text-gray-900 text-sm block mb-2">
                                 Business Phone Number
                             </label>
                             <input
@@ -147,7 +147,7 @@ function EnterpriseSignUp() {
 
                         <button
                             type="submit"
-                            className="w-full py-4 bg-emerald-500 text-white text-xl font-medium rounded-xl hover:bg-emerald-600 transition"
+                            className="w-full py-4 bg-emerald-500 text-white text-lg font-medium rounded-xl hover:bg-emerald-600 transition"
                             disabled={loading}
                         >
                             {loading ? "처리 중..." : "Sign Up"}
@@ -165,7 +165,7 @@ function EnterpriseSignUp() {
                     </form>
 
                     {/* 푸터 */}
-                    <div className="text-center text-gray-500 text-sm mt-10">
+                    <div className="text-center text-gray-500 text-sm mt-6">
                         © 2025 CosMall, LLC. All rights reserved.
                     </div>
                 </div>

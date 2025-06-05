@@ -46,6 +46,11 @@ public class QnaService {
         return qnaListDTOList;
     }
 
+    public List<QnaListDTO> searchMyQnasByTitle(String title, String userId) {
+        List<Qna> qnas = QnaRepo.findByQuestionTitleContainingAndUser_UserId(title, userId);
+        return qnas.stream().map(QnaListDTO::new).toList();
+    }
+
     public List<QnaListDTO> getQnasByUser (String nickname) {
         List<Qna> qnaList = QnaRepo.findByUserNickNameContaining(nickname);
         List<QnaListDTO> qnaListDTOList = new ArrayList<>();

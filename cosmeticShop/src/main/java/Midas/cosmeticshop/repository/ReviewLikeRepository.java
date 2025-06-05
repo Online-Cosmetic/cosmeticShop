@@ -22,4 +22,6 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, Long> {
     void decrementLiked (@Param("reviewId") Long reviewId);
 
     Optional<ReviewLike> findByReviewIdAndUserUserId (Long ReviewId, String UserId);
+
+    boolean existsByReviewIdAndUserUserId(Long reviewId, String userId);
 }

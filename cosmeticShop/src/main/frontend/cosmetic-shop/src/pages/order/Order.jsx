@@ -1,12 +1,13 @@
-import React, {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+// src/pages/order/Order.jsx
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import AddressForm from "../../components/order/AddressForm.jsx";
 import ProductCard from "../../components/product/ProductCard.jsx";
-import {userAPI} from '../../utils/customAxios';
-import BankTransferPayment from '../../components/payment/BankTransferPayment';
-import CardPaymentForToss from '../../components/payment/CardPaymentForToss';
-import EasyPayment from '../../components/payment/EasyPayment';
+import { userAPI } from "../../utils/customAxios";
+import BankTransferPayment from "../../components/payment/BankTransferPayment.jsx";
+import CardPaymentForToss from "../../components/payment/CardPaymentForToss.jsx";
+import EasyPayment from "../../components/payment/EasyPayment.jsx";
 
 function Order() {
     const navigate = useNavigate();
@@ -60,9 +61,8 @@ function Order() {
 
     // 필수 구매자 정보 검증
     const validateBuyerInfo = () => {
-        // if (!buyerInfo.email || !buyerInfo.name || !buyerInfo.tel) {
         if (!buyerInfo.email || !buyerInfo.name) {
-            setErrorMsg('구매자 정보가 부족합니다. 프로필에서 정보를 확인해주세요.');
+            setErrorMsg("구매자 정보가 부족합니다. 프로필에서 정보를 확인해주세요.");
             return false;
         }
         return true;
@@ -77,12 +77,10 @@ function Order() {
             setErrorMsg("배송지를 선택해주세요.");
             return;
         }
-
         if (cartItems.length === 0) {
             setErrorMsg("장바구니가 비어있습니다.");
             return;
         }
-
         if (!validateBuyerInfo()) {
             return;
         }
@@ -130,22 +128,24 @@ function Order() {
             <main className="flex-grow">
                 <div className="">
                     <h2 className="text-3xl font-bold text-neutral-800 mb-6">Order</h2>
-                    <div className="flex gap-6 border rounded-lg p-6 shadow min-h-[600px]">
-                        <div className="flex-1 min-w-0 space-y-8 overflow-y-auto max-h-[calc(100vh-250px)]">
+                    <div className="flex gap-6 border rounded-lg p-6 shadow min-h-[600px] h-[calc(100vh-200px)]">
+                        <div className="flex-1 flex flex-col space-y-8 overflow-y-auto min-h-0">
                             <AddressForm
                                 savedAddresses={addresses}
                                 onAddressSelect={(addr) => setSelectedAddress(addr)}
                             />
-                            <section className="flex-1 flex flex-col border rounded-lg p-6 shadow">
+                            <section className="flex-1 flex flex-col border rounded-lg p-6 shadow min-h-0">
                                 <h3 className="text-2xl font-semibold mb-4">Order Items</h3>
-                                <div className="space-y-4 max-h-[320px] overflow-y-auto pr-2">
-                                    {loading ? <div>로딩 중...</div> : cartItems.length === 0 ?
-                                        <div>주문할 상품이 없습니다.</div> : cartItems.map((product) => (
+                                <div className="space-y-4 overflow-y-auto flex-1 pr-2 min-h-0">
+                                    {loading ?
+                                        <div>로딩 중...</div>
+                                        : cartItems.length === 0 ?
+                                        <div>주문할 상품이 없습니다.</div>
+                                            : cartItems.map((product) => (
                                             <ProductCard
                                                 key={product.id}
                                                 product={product}
-                                                onQuantityChange={() => {
-                                                }}
+                                                onQuantityChange={() => {}}
                                                 editable={false}
                                                 isOrderPage={true}
                                             />
@@ -154,61 +154,77 @@ function Order() {
                             </section>
                         </div>
 
-                        <div className="w-96 flex-shrink-0 space-y-6 flex flex-col justify-between">
+                        {/* 오른쪽: 요약 + 결제 */}
+                        <div className="w-96 flex-shrink-0 flex flex-col justify-between space-y-6 min-h-0">
+                            {/* Order Summary */}
                             <div className="border rounded-lg p-6 shadow">
                                 <h3 className="text-2xl font-semibold mb-4">Order Summary</h3>
                                 <CartSummary cartItems={cartItems}/>
                             </div>
 
+                            {/* Select Payment Method */}
                             <div className="border rounded-lg p-6 shadow">
                                 <h3 className="text-2xl font-semibold mb-4">
                                     Select Payment Method
                                 </h3>
-                                <div className="space-y-2">
+                                <div className="space-y-4">
+                                    {/* 신용/체크카드 섹션 */}
                                     <div className="space-y-2">
-                                        {/* 카드 */}
+                                        <label className="block text-md font-medium text-neutral-700">
+                                            신용/체크카드
+                                        </label>
+                                        {/* TossPayments 버튼 */}
                                         <button
                                             onClick={() => {
                                                 setMethod("card");
                                                 handleProceedOrder();
                                             }}
-                                            className="relative w-full px-4 py-3 bg-white border rounded-[12px] shadow hover:brightness-95 transition-all flex items-center justify-between overflow-hidden"
+                                            className="w-full px-4 py-1 bg-white border rounded-lg shadow hover:brightness-95 transition flex items-center justify-center"
                                         >
-                                            <span className="text-base font-medium text-black z-10">신용/체크카드</span>
                                             <img
                                                 src="/ui/TossPayments_Logo_Primary.png"
                                                 alt="토스페이먼츠"
-                                                className="h-14 -my-10 -mr-4"
+                                                className="h-10"
                                             />
                                         </button>
-                                        {/* 계좌이체 */}
+                                    </div>
+                                    {/* 계좌이체 섹션 */}
+                                    <div className="space-y-2">
+                                        <label className="block text-md font-medium text-neutral-700">
+                                            계좌이체
+                                        </label>
+                                        {/* KG이니시스 버튼 */}
                                         <button
                                             onClick={() => {
-                                                setMethod("card");
+                                                setMethod("bank");
                                                 handleProceedOrder();
                                             }}
-                                            className="relative w-full px-4 py-3 bg-white border rounded-[12px] shadow hover:brightness-95 transition-all flex items-center justify-between overflow-hidden"
+                                            className="w-full px-4 py-1 bg-white border rounded-lg shadow hover:brightness-95 transition flex items-center justify-center"
                                         >
-                                            <span className="text-base font-medium text-black z-10">계좌이체</span>
                                             <img
                                                 src="/ui/kg_inicis.svg"
                                                 alt="KG이니시스"
-                                                className="h-8 -my-10 mr-2"
+                                                className="h-8"
                                             />
                                         </button>
+                                    </div>
 
-                                        {/* 간편결제 */}
+                                    {/* 간편결제 (예: 카카오페이) 섹션 */}
+                                    <div className="space-y-2">
+                                        <label className="block text-md font-medium text-neutral-700">
+                                            간편결제
+                                        </label>
                                         <button
                                             onClick={() => {
                                                 setMethod("simple");
                                                 handleProceedOrder();
                                             }}
-                                            className="w-full px-4 py-3 bg-[#FEE500] rounded-[12px] shadow hover:brightness-95 transition-all"
+                                            className="w-full px-4 py-3 bg-[#FEE500] rounded-lg shadow hover:brightness-95 transition flex items-center justify-center"
                                         >
                                             <img
                                                 src="/ui/카카오페이_CI_combination.svg"
                                                 alt="카카오페이 결제"
-                                                className="h-5 mx-auto"
+                                                className="h-6"
                                             />
                                         </button>
                                     </div>

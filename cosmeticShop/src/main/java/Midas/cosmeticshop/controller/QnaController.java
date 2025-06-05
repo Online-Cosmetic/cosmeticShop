@@ -42,8 +42,15 @@ public class QnaController {
         return ResponseEntity.ok().body(qnaService.getQnasByTitle(title));
     }
 
+
+    @GetMapping("/me/search/title")
+    public ResponseEntity<List<QnaListDTO>> searchMyQnasByTitle(
+        @RequestParam("title") String title, Authentication authentication) {
+        return ResponseEntity.ok().body(qnaService.searchMyQnasByTitle(title, authentication.getName()));
+    }
+
     //Qna 상세 정보 반환 (상세페이지용)
-    @GetMapping("/detail/{qnaId}")
+    @GetMapping("/detail/{id}")
     public ResponseEntity<QnaDTO> getQnaDetail(@PathVariable Long id) {
         return ResponseEntity.ok().body(qnaService.getQnaDetail(id));
     }

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 
-const OAUTH2_REDIRECT_URI = 'http://localhost:9000/oauth2/authorization';
+// const OAUTH2_REDIRECT_URI = 'http://localhost:9000/oauth2/authorization';
 
 export default function UserLogin() {
     const navigate = useNavigate();
@@ -99,7 +99,7 @@ export default function UserLogin() {
                         </p>
                         <p className="text-sm">
                             Are you a business user?
-                            <Link to="/enterpriseLogin" className="ml-2 hover:underline">Business Login</Link>
+                            <Link to="/enterprise/login" className="ml-2 hover:underline">Business Login</Link>
                         </p>
                         <p className="text-sm">
                             <Link to="/forgotPassword" className="ml-2 text-emerald-600 hover:underline">Forgot password?</Link>

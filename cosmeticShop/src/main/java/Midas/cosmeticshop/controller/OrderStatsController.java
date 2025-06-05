@@ -38,7 +38,7 @@ public class OrderStatsController {
         return ResponseEntity.ok().body(orderStatsService.getMonthlyOrderStats(startDate, endDate, authentication.getName()));
     }
 
-    @GetMapping("/day")
+    @GetMapping("/year")
     public ResponseEntity<List<YearlyOrderStatsDTO>> getYearlyOrderStats (@RequestParam LocalDate startDate,
                                                                           @RequestParam LocalDate endDate,
                                                                           Authentication authentication) {

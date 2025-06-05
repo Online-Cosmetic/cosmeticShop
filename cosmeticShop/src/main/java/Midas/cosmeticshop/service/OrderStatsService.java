@@ -6,7 +6,6 @@ import Midas.cosmeticshop.dto.YearlyOrderStatsDTO;
 import Midas.cosmeticshop.entity.DailyOrderStats;
 import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.repository.DailyOrderStatsRepository;
-import Midas.cosmeticshop.repository.OrderRepository;
 import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;

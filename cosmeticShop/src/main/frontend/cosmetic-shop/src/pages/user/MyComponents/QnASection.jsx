@@ -13,6 +13,10 @@ function QnASection({ items = [], onQnaClick }) {
     const currentData = qnaData.slice(startIndex, startIndex + itemsPerPage);
 
     useEffect(() => {
+        fetchMyQnas();
+    }, []);
+
+    const fetchMyQnas = () => {
         userAPI.qna.getMyQnas()
             .then((response) => {
                 setQnaData(response.data);
@@ -20,7 +24,7 @@ function QnASection({ items = [], onQnaClick }) {
             .catch((error) => {
                 console.error("내 QnA 데이터를 가져오는 중 오류 발생:", error);
             });
-    }, []);
+    };
 
     const formatDate = (iso) => {
         const date = new Date(iso);
@@ -41,11 +45,9 @@ function QnASection({ items = [], onQnaClick }) {
 
     const handleSearch = () => {
         if (searchTerm.trim() === '') {
-            userAPI.qna.getMyQnas()
-                .then((response) => setQnaData(response.data))
-                .catch((error) => console.error("내 QnA 전체 불러오기 오류:", error));
+            fetchMyQnas();
         } else {
-            userAPI.qna.searchMyQnasByTitle(searchTerm) // ← 여기 API가 있어야 합니다
+            userAPI.qna.searchMyQnasByTitle(searchTerm)
                 .then((response) => {
                     setQnaData(response.data);
                     setCurrentPage(1);
@@ -68,13 +70,12 @@ function QnASection({ items = [], onQnaClick }) {
         <div className="w-full bg-white p-10 min-h-screen">
             <h2 className="text-2xl font-bold mb-6">Q&A</h2>
 
-            {/* Search */}
             <div className="relative mb-6 w-[400px]">
                 <div className="flex items-center border rounded overflow-hidden">
-                    <button className="bg-gray-100 px-4 py-2 text-gray-500 border-r">Condition</button>
+                    <button className="bg-gray-100 px-4 py-2 text-gray-500 border-r">제목</button>
                     <input
                         type="text"
-                        placeholder="Search"
+                        placeholder="제목으로 검색"
                         className="px-4 py-2 flex-1 outline-none pr-12"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -95,17 +96,17 @@ function QnASection({ items = [], onQnaClick }) {
                 <thead>
                     <tr>
                         <th className="py-2 px-4">#</th>
-                        <th className="py-2 px-4">State</th>
-                        <th className="py-2 px-4">Title</th>
-                        <th className="py-2 px-4">Author</th>
-                        <th className="py-2 px-4">Date</th>
+                        <th className="py-2 px-4">상태</th>
+                        <th className="py-2 px-4">제목</th>
+                        <th className="py-2 px-4">작성자</th>
+                        <th className="py-2 px-4">작성일</th>
                     </tr>
                 </thead>
                 <tbody>
                     {currentData.map((item, index) => (
                         <tr key={`${item.id}-${startIndex + index}`} className="border-t">
                             <td className="py-2 px-4">{startIndex + index + 1}</td>
-                            <td className="py-2 px-4">{item.answered ? 'Answered' : 'Pending'}</td>
+                            <td className="py-2 px-4">{item.answered ? '답변완료' : '미답변'}</td>
                             <td className="py-2 px-4 hover:text-blue-800">
                                 <span onClick={() => onQnaClick && onQnaClick(item.id)}>
                                     {item.questionTitle}
@@ -118,14 +119,12 @@ function QnASection({ items = [], onQnaClick }) {
                 </tbody>
             </table>
 
-            {/* Pagination */}
             <div className="flex justify-center items-center gap-4 mb-6 text-sm">
                 <button onClick={handlePrev} disabled={currentPage === 1} className="disabled:text-gray-300">◀</button>
                 <span>{currentPage}</span>
                 <button onClick={handleNext} disabled={currentPage === totalPages} className="disabled:text-gray-300">▶</button>
             </div>
 
-            {/* 글쓰기 버튼 */}
             <div className="flex justify-end">
                 <Link
                     to="/QnAWrite"

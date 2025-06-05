@@ -16,30 +16,18 @@ const customAxios = axios.create({
 
 // 요청 인터셉터 수정
 customAxios.interceptors.request.use(config => {
-    console.log('요청 URL:', config.url);
     if (config.url?.includes('/api/auth/reissue')) return config;
-
     const token = localStorage.getItem('accessToken');
-    console.log('토큰 존재 여부:', !!token);
-
-    if (token) {
-        console.log('요청에 토큰 추가');
-        config.headers['Authorization'] = `Bearer ${token}`;
-    } else {
-        console.log('토큰 없음, 요청이 403으로 실패할 수 있음');
-    }
-
+    if (token) config.headers['Authorization'] = `Bearer ${token}`;
     return config;
 });
 
 // 응답 인터셉터: 401이면 한 번만 reissue 시도
 customAxios.interceptors.response.use(
     res => {
-        console.log('응답 성공:', res.status, res.config.url);
         return res;
     },
     async err => {
-        console.log('응답 오류:', err.response?.status, err.config?.url);
         // CORS 오류 확인 및 로깅
         if (err.message && err.message.includes('Network Error')) {
             console.error('CORS 또는 네트워크 오류:', err);
@@ -52,19 +40,19 @@ customAxios.interceptors.response.use(
         const orig = err.config;
 
         /* /api/auth/me 실패에 대해 재발급 로직을 트리거하지 않도록 스킵 */
-        if (orig?.url?.includes('/api/auth/me')) {
+        if (orig.url?.includes('/api/auth/me')) {
             return Promise.reject(err);
         }
-        if (orig?.url?.includes('/api/auth/reissue') || orig?._retry) {
+        if (orig.url?.includes('/api/auth/reissue') || orig._retry) {
             return Promise.reject(err);
         }
         if (err.response?.status === 401 &&
-            !orig?.url?.includes('/api/auth/reissue') &&
-            !orig?._retry
+            !orig.url?.includes('/api/auth/reissue') &&
+            !orig._retry
         ) {
             orig._retry = true;
             try {
-                const {data} = await customAxios.post('/api/auth/reissue', {});
+                const { data } = await customAxios.post('/api/auth/reissue', {});
                 localStorage.setItem('accessToken', data.accessToken);
                 orig.headers['Authorization'] = `Bearer ${data.accessToken}`;
                 return customAxios(orig);
@@ -81,11 +69,7 @@ customAxios.interceptors.response.use(
 // API 요청 함수들
 export const authAPI = {
     login: (credentials) => customAxios.post('/api/auth/login', credentials),
-    // 쿠키를 기반으로 로그아웃을 처리하므로 데이터를 보낼 필요가 없음
-    logout: () => {
-        // 명시적인 Content-Type과 빈 객체 전송
-        return customAxios.post('/api/auth/logout', {});
-    },
+    logout: () => customAxios.post('/api/auth/logout'),
     signup: {
         user: (data) => customAxios.post('/api/auth/signup/user', data),
         company: (data) => customAxios.post('/api/auth/signup/company', data)
@@ -107,10 +91,10 @@ export const userAPI = {
 
     cart: {
         getCart: () => customAxios.get('/api/carts'),
-        addToCart: (productId, quantity) => customAxios.post('/api/carts', {productId, quantity}),
+        addToCart: (productId, quantity) => customAxios.post('/api/carts', { productId, quantity }),
         removeFromCart: (productId) => customAxios.delete(`/api/carts/${productId}`),
         updateQuantity: (cartId, quantity) => customAxios.put(`/api/carts/${cartId}`, null, {
-            params: {quantity}
+            params: { quantity }
         }),
     },
 
@@ -158,13 +142,14 @@ export const userAPI = {
 
         // 사용자 닉네임으로 QnA 검색
         searchByUser: (nickname) => customAxios.get(`/api/qnas/search/user`, {
-            params: {nickname}
+            params: { nickname }
         }),
 
         // 제목으로 QnA 검색
         searchByTitle: (title) => customAxios.get(`/api/qnas/search/title`, {
-            params: {title}
+            params: { title }
         }),
+        searchMyQnasByTitle: (title) => customAxios.get('/api/qnas/me/search/title', { params: { title } }),
 
         // QnA 상세 정보 조회
         getDetail: (qnaId) => customAxios.get(`/api/qnas/detail/${qnaId}`),
@@ -177,7 +162,7 @@ export const userAPI = {
 
         // QnA 답변 작성
         updateAnswer: (qnaId, answer) => customAxios.put(`/api/qnas/${qnaId}/answers`, null, {
-            params: {answer}
+            params: { answer }
         }),
 
         // QnA 삭제

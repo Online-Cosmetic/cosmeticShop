@@ -4,13 +4,12 @@ import {Link, useNavigate} from "react-router-dom";
 import {useAuth} from "../../contexts/AuthContext.jsx";
 import {authAPI} from "../../utils/customAxios.js";
 
-export default function Header() {
-    const {user, logout} = useAuth();
+export default function UserHeader() {
+    const {user} = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
         try {
-            // authAPI.logout() 직접 호출로 변경
             await authAPI.logout();
             // 로컬 스토리지 정리
             localStorage.removeItem('accessToken');
@@ -43,22 +42,19 @@ export default function Header() {
                         >
                             <i className="fas fa-shopping-cart mr-1"></i> Cart
                         </Link>
-                        <Link
-                            to="/user/orders"
-                            className="text-gray-700 hover:text-emerald-600"
+                        <Link to="/qna"
+                              className="text-gray-700 hover:text-emerald-600"
                         >
-                            <i className="fas fa-history mr-1"></i> Order History
+                            <i className="fas fa-user mr-1"></i> Q&A
                         </Link>
-                        <Link to="/qna">Q&A</Link>
                     </div>
                 </nav>
             );
         }
 
-        // 기업 회원인 경우 빈 메뉴 반환 (기업 회원은 기업 페이지로만 접근해야 함)
         if (user.role === "ROLE_COMPANY") {
             // 기업 회원이 일반 페이지에 접근하면 기업 대시보드로 리다이렉트
-            navigate('/company/dashboard');
+            navigate('/enterprise/dashboard');
             return null;
         }
 
@@ -126,7 +122,7 @@ export default function Header() {
                                     Sign Up
                                 </Link>
                                 <Link
-                                    to="/enterpriseLogin"
+                                    to="/enterprise/login"
                                     className="px-4 py-2 border border-gray-700 text-gray-700 rounded-lg hover:text-emerald-600 transition"
                                 >
                                     Business Login

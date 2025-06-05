@@ -21,6 +21,11 @@ cosmeticShop/src/main/frontend/cosmetic-shop/src/pages/payment/payment.jsx
 DSD.md
 
 
+# 25.06.05
+cosmeticShop/src/main/java/Midas/cosmeticshop/dto/social/
+cosmeticShop/src/main/java/Midas/cosmeticshop/oauth2/
+cosmeticShop/src/main/java/Midas/cosmeticshop/service/CustomOAuth2UserService.java
+
 # 없어도 되는 상품 관련 사진 코드 ?
 cosmeticShop/src/main/java/Midas/cosmeticShop/service/ProductImageService.java
 

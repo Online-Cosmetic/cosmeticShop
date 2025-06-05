@@ -9,6 +9,7 @@ function ProductCard({
   isOrderPage = false,
   isChecked = false,
   onCheck = () => {},
+  onDelete = () => {},
 }) {
 
   const handleQuantityChange = async (newQuantity) => {
@@ -50,7 +51,7 @@ function ProductCard({
           }}
         />
       </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 flex-1">
         <p className="text-xl font-bold">{product.brand}</p>
         <p>{product.name}</p>
         {editable ? (
@@ -78,6 +79,28 @@ function ProductCard({
           <p className="text-red-400 font-bold">{product.promotion}</p>
         )}
       </div>
+      {!editable && (
+          <button
+              onClick={onDelete}
+              className="ml-4 w-6 h-6 flex items-center justify-center text-neutral-400 hover:text-red-500 transition-colors"
+              aria-label="삭제"
+          >
+            {/* 간단한 X 아이콘 SVG */}
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                fill="none"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+      )}
     </div>
   );
 }

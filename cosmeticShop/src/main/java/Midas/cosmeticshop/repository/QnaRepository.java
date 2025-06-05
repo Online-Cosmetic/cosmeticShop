@@ -14,4 +14,5 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
     Optional<Qna> findById (Long id);
     List<Qna> findByUserNickNameContaining (String nickName);
     List<Qna> findByQuestionTitleContaining (String questionTitle);
+    List<Qna> findByQuestionTitleContainingAndUser_UserId(String title, String userId);
 }

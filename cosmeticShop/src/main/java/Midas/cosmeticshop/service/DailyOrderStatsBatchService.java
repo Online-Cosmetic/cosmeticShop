@@ -21,19 +21,19 @@ public class DailyOrderStatsBatchService {
         this.dailyOrderStatsRepository = dailyOrderStatsRepository;
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
-    public void generateYesterdayStats() {
-        LocalDate date = LocalDate.now().minusDays(1);
-        LocalDateTime start = date.atStartOfDay();
-        LocalDateTime end = date.plusDays(1).atStartOfDay();
-        DailyOrderStatsBatchDTO dailyOrderStatsBatchDTO = orderRepository.findOrderStatsBetween(start, end);
-        DailyOrderStats dailyOrderStats = new DailyOrderStats();
-        dailyOrderStats.setDate(date);
-        dailyOrderStats.setTotalSales(dailyOrderStatsBatchDTO.getTotalSales());
-        dailyOrderStats.setOrderCount(dailyOrderStatsBatchDTO.getOrderCount());
-        dailyOrderStats.setTotalQuantity(dailyOrderStatsBatchDTO.getTotalQuantity());
-        dailyOrderStatsRepository.save(dailyOrderStats);
-    }
+//    @Scheduled(cron = "0 0 0 * * *")
+//    public void generateYesterdayStats() {
+//        LocalDate date = LocalDate.now().minusDays(1);
+//        LocalDateTime start = date.atStartOfDay();
+//        LocalDateTime end = date.plusDays(1).atStartOfDay();
+//        DailyOrderStatsBatchDTO dailyOrderStatsBatchDTO = orderRepository.findOrderStatsBetween(start, end);
+//        DailyOrderStats dailyOrderStats = new DailyOrderStats();
+//        dailyOrderStats.setDate(date);
+//        dailyOrderStats.setTotalSales(dailyOrderStatsBatchDTO.getTotalSales());
+//        dailyOrderStats.setOrderCount(dailyOrderStatsBatchDTO.getOrderCount());
+//        dailyOrderStats.setTotalQuantity(dailyOrderStatsBatchDTO.getTotalQuantity());
+//        dailyOrderStatsRepository.save(dailyOrderStats);
+//    }
 
 
 }

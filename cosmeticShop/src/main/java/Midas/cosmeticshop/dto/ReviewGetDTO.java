@@ -42,4 +42,8 @@ public class ReviewGetDTO {
         this.reviewImages = review.getReviewImages();
         this.isLiked = isLiked;
     }
+
+    public boolean isLiked() {
+        return isLiked;
+    }
 }

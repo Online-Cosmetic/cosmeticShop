@@ -24,8 +24,8 @@ public class ProductLikeController {
     }
 
     @PostMapping("/{productId}/likes/toggle")
-    public ResponseEntity<Boolean> postLike(@PathVariable Long productId,
-                                            Authentication authentication) {
+    public ResponseEntity<Boolean> toggleProductLike(@PathVariable Long productId,
+                                                     Authentication authentication) {
         return ResponseEntity.ok().body(productLikeService.toggleProductLike(productId, authentication.getName()));
     }
 
