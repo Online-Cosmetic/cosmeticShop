@@ -2,11 +2,15 @@ package Midas.cosmeticshop.config.security;
 
 import Midas.cosmeticshop.jwt.JWTUtil;
 import Midas.cosmeticshop.jwt.JWTFilter;
+import Midas.cosmeticshop.oauth2.CustomSuccessHandler;
 import Midas.cosmeticshop.repository.user.BaseUserRepository;
+//import Midas.cosmeticshop.service.CustomOAuth2UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,22 +32,18 @@ import java.util.List;
 */
 
 @Configuration
-@EnableWebSecurity(debug = false) // 개발환경에서만 true 옵션을 주자
+@EnableWebSecurity // 개발환경에서만 true 옵션을 주자
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
-//    private final CustomAuthenticationProvider customAuthenticationProvider;
     private final BaseUserRepository baseUserRepository;
+//    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomSuccessHandler customSuccessHandler;
 
-    public SecurityConfig(JWTUtil jwtUtil,
-//                          CustomAuthenticationProvider customAuthenticationProvider, -> SecurityConfig 와 순환참조 발생
-                          BaseUserRepository baseUserRepository) {
-        this.jwtUtil = jwtUtil;
-//        this.customAuthenticationProvider = customAuthenticationProvider;
-        this.baseUserRepository = baseUserRepository;
-    }
-
-    /** AuthController 등에 주입하기 위해 AuthenticationManager를 빈으로 노출 */
+    /**
+     * AuthController 등에 주입하기 위해 AuthenticationManager를 빈으로 노출
+     */
     @Bean
     public AuthenticationManager authenticationManagerBean(
         AuthenticationConfiguration authConfig
@@ -75,6 +75,15 @@ public class SecurityConfig {
             만약 이런 메소드를 하나도 작성하지 않았다면 DefaultSecurityFilterChain 하나가 등록된다.
         */
 
+//        // 소셜로그인 기능 관련 (람다 기반 최신 방식)
+//        http
+//            .oauth2Login((oauth2) -> oauth2
+//                .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+//                    .userService(customOAuth2UserService))
+//                        .successHandler(customSuccessHandler)
+//            );
+
+
         // CORS 설정
         http.cors((cors) -> cors
             .configurationSource(request -> {
@@ -104,64 +113,63 @@ public class SecurityConfig {
         // 경로별 인가 작업  = url 이 부분적으로 라도 중복되는 경우, role 검증을 하는 requestMatchers 를 먼저 호출해야한다
         http.authorizeHttpRequests(auth -> auth
 
-                // 로그인·회원가입 API
-                .requestMatchers(
-                    "/api/auth/me",
-                    "/api/auth/login",
-                    "/api/auth/signup/**",
-                    "/api/auth/logout",
-                    "/api/auth/reissue",
-                    "/api/auth/validate-token"
-                ).permitAll()
+            // 로그인·회원가입 API
+            .requestMatchers(
+                "/api/auth/**",
+                "/login/oauth2/code/**", // 소셜로그인 URI
+                "/api/products/**"
+            ).permitAll()
 
-                // 장바구니/주문/주소 관련 (로그인 필요)
-                .requestMatchers(
-                    "/api/carts/**",
-                    "/api/orders/**",
-                    "/api/addresses/**"
-                ).hasRole("USER")
+            // 장바구니/주문/주소 관련 (로그인 필요)
+            .requestMatchers(
+                "/api/carts/**",
+                "/api/orders/**",
+                "/api/addresses/**"
+            ).hasRole("USER")
 
-                // 프로필 변경 관련
-                .requestMatchers(
-                    "/api/user/check",
-                    "/api/user/send-code",
-                    "/api/user/verify-code",
-                    "/api/user/change-password"
-                ).permitAll()
-                .requestMatchers(
-                    "/api/user/me/nickName"
-                ).hasRole("USER")
+            // 프로필 변경 관련
+            .requestMatchers(
+                "/api/user/check",
+                "/api/user/send-code",
+                "/api/user/verify-code",
+                "/api/user/change-password"
+            ).permitAll()
+            .requestMatchers(
+                "/api/user/me/nickName"
+            ).hasRole("USER")
 
-                // 결제 관련 (로그인 필요)
-                .requestMatchers(
-                    "/api/payments/**"
-                ).hasRole("USER")
+            // 결제 관련 (로그인 필요)
+            .requestMatchers(
+                "/api/payments/**"
+            ).hasAnyRole("USER", "COMPANY")
 
-                // QNA 관련
-                .requestMatchers(
-                    "/api/qnas/**"
-                ).permitAll()
+            // QNA 관련
+            .requestMatchers(
+                "/api/qnas/**"
+            ).permitAll()
 
-                .requestMatchers(
-                    HttpMethod.POST, "/api/products"
-                ).hasRole("COMPANY")
+            .requestMatchers(
+                HttpMethod.POST, "/api/products"
+            ).hasRole("COMPANY")
 
-                // HTML 페이지
-                .requestMatchers(
-                    "/",
-                    "/index.html"
-                ).permitAll()
+            // HTML 페이지
+            .requestMatchers(
+                "/",
+                "/index.html"
+            ).permitAll()
 
-                // JS/CSS/이미지
-                .requestMatchers(
-                    "/css/**", "/js/**", "/images/**", "/favicon.ico")
-                .permitAll()
+            // JS/CSS/이미지
+            .requestMatchers(
+                "/css/**", "/js/**", "/images/**", "/favicon.ico")
+            .permitAll()
 
-                // 관리자 화면
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                // 그 외
-                .anyRequest().authenticated()
-            );
+            // 관리자 화면
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+
+            // 그 외
+            .anyRequest().authenticated()
+        );
+
 
         /* JWT → LoginFilter 순서 보장 */
         http.addFilterBefore(
