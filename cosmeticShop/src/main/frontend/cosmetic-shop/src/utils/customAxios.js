@@ -6,36 +6,65 @@ export const emitter = mitt();
 const customAxios = axios.create({
     baseURL: 'http://localhost:9000',
     withCredentials: true,
+    // 리다이렉트 방지
+    maxRedirects: 0,
+    // 추가: 명시적인 Content-Type 헤더 설정
+    headers: {
+        'Content-Type': 'application/json'
+    }
 });
 
-// 요청 인터셉터: refresh-token 호출이 아니면 로컬의 accessToken 헤더에 셋팅
+// 요청 인터셉터 수정
 customAxios.interceptors.request.use(config => {
+    console.log('요청 URL:', config.url);
     if (config.url?.includes('/api/auth/reissue')) return config;
+
     const token = localStorage.getItem('accessToken');
-    if (token) config.headers['Authorization'] = `Bearer ${token}`;
+    console.log('토큰 존재 여부:', !!token);
+
+    if (token) {
+        console.log('요청에 토큰 추가');
+        config.headers['Authorization'] = `Bearer ${token}`;
+    } else {
+        console.log('토큰 없음, 요청이 403으로 실패할 수 있음');
+    }
+
     return config;
 });
 
 // 응답 인터셉터: 401이면 한 번만 reissue 시도
 customAxios.interceptors.response.use(
-    res => res,
+    res => {
+        console.log('응답 성공:', res.status, res.config.url);
+        return res;
+    },
     async err => {
+        console.log('응답 오류:', err.response?.status, err.config?.url);
+        // CORS 오류 확인 및 로깅
+        if (err.message && err.message.includes('Network Error')) {
+            console.error('CORS 또는 네트워크 오류:', err);
+            // 로그인/로그아웃 관련 요청이면 오류 메시지를 더 명확하게 제공
+            if (err.config?.url?.includes('/api/auth/')) {
+                console.error('인증 관련 요청 실패. 서버에 CORS 설정이 필요할 수 있습니다.');
+            }
+        }
+
         const orig = err.config;
 
         /* /api/auth/me 실패에 대해 재발급 로직을 트리거하지 않도록 스킵 */
-        if (orig.url?.includes('/api/auth/me')) {
+        if (orig?.url?.includes('/api/auth/me')) {
             return Promise.reject(err);
         }
-        if (orig.url?.includes('/api/auth/reissue') || orig._retry) {
+        if (orig?.url?.includes('/api/auth/reissue') || orig?._retry) {
             return Promise.reject(err);
         }
         if (err.response?.status === 401 &&
-            !orig.url?.includes('/api/auth/reissue') &&
-            !orig._retry
+            !orig?.url?.includes('/api/auth/reissue') &&
+            !orig?._retry
         ) {
             orig._retry = true;
             try {
-                const { data } = await customAxios.post('/api/auth/reissue', {});
+                const {data} = await customAxios.post('/api/auth/reissue', {});
                 localStorage.setItem('accessToken', data.accessToken);
                 orig.headers['Authorization'] = `Bearer ${data.accessToken}`;
                 return customAxios(orig);
@@ -52,7 +81,11 @@ customAxios.interceptors.response.use(
 // API 요청 함수들
 export const authAPI = {
     login: (credentials) => customAxios.post('/api/auth/login', credentials),
-    logout: () => customAxios.post('/api/auth/logout'),
+    // 쿠키를 기반으로 로그아웃을 처리하므로 데이터를 보낼 필요가 없음
+    logout: () => {
+        // 명시적인 Content-Type과 빈 객체 전송
+        return customAxios.post('/api/auth/logout', {});
+    },
     signup: {
         user: (data) => customAxios.post('/api/auth/signup/user', data),
         company: (data) => customAxios.post('/api/auth/signup/company', data)
@@ -74,10 +107,10 @@ export const userAPI = {
 
     cart: {
         getCart: () => customAxios.get('/api/carts'),
-        addToCart: (productId, quantity) => customAxios.post('/api/carts', { productId, quantity }),
+        addToCart: (productId, quantity) => customAxios.post('/api/carts', {productId, quantity}),
         removeFromCart: (productId) => customAxios.delete(`/api/carts/${productId}`),
         updateQuantity: (cartId, quantity) => customAxios.put(`/api/carts/${cartId}`, null, {
-            params: { quantity }
+            params: {quantity}
         }),
     },
 
@@ -91,7 +124,22 @@ export const userAPI = {
     product: {
         getAll: () => customAxios.get('/api/products'),
         getById: (id) => customAxios.get(`/api/products/${id}`),
-        search: (query) => customAxios.get('/api/products/search', { params: { query } })
+        search: (query) => customAxios.get('/api/products/search', {params: {query}}),
+        // 추가: 최신순으로 전체 상품 조회
+        getLatest: () => customAxios.get('/api/products/batch/latest'),
+        // 추가: 카테고리별 상품 조회
+        getByCategory: (categoryName) => {
+            // 카테고리 이름을 카테고리 ID로 변환
+            const categoryMap = {
+                'all': 0,  // 전체 상품은 CategoryID 0으로 가정
+                'makeup': 1,
+                'skincare': 2,
+                'hair': 3,
+                'body': 4
+            };
+            const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
+            return customAxios.get(`/api/products/batch/${categoryId}`);
+        }
     },
 
     order: {
@@ -110,12 +158,12 @@ export const userAPI = {
 
         // 사용자 닉네임으로 QnA 검색
         searchByUser: (nickname) => customAxios.get(`/api/qnas/search/user`, {
-            params: { nickname }
+            params: {nickname}
         }),
 
         // 제목으로 QnA 검색
         searchByTitle: (title) => customAxios.get(`/api/qnas/search/title`, {
-            params: { title }
+            params: {title}
         }),
 
         // QnA 상세 정보 조회
@@ -129,7 +177,7 @@ export const userAPI = {
 
         // QnA 답변 작성
         updateAnswer: (qnaId, answer) => customAxios.put(`/api/qnas/${qnaId}/answers`, null, {
-            params: { answer }
+            params: {answer}
         }),
 
         // QnA 삭제
@@ -139,28 +187,28 @@ export const userAPI = {
     payment: {
         // 결제 요청 생성
         createPayment: (paymentData) => customAxios.post('/api/payments', paymentData),
-        
+
         // 결제 상태 확인
         getPaymentStatus: (orderId) => customAxios.get(`/api/payments/${orderId}`),
-        
+
         // 결제 완료 처리
         completePayment: (paymentId, data) => customAxios.post(`/api/payments/${paymentId}/complete`, data),
-        
+
         // 결제 취소
-        cancelPayment: (paymentId, reason) => customAxios.post(`/api/payments/${paymentId}/cancel`, { reason }),
-        
+        cancelPayment: (paymentId, reason) => customAxios.post(`/api/payments/${paymentId}/cancel`, {reason}),
+
         // 결제 내역 조회
         getPaymentHistory: () => customAxios.get('/api/payments/history'),
-        
+
         // 카드 결제
         processCardPayment: (paymentData) => customAxios.post('/api/payments/card', paymentData),
-        
+
         // 계좌이체
         processBankTransfer: (paymentData) => customAxios.post('/api/payments/bank-transfer', paymentData),
-        
+
         // 간편결제 (카카오페이)
         processKakaoPay: (paymentData) => customAxios.post('/api/payments/kakao-pay', paymentData),
-        
+
         // 간편결제 (KG이니시스)
         processKGinisis: (paymentData) => customAxios.post('/api/payments/kginisis', paymentData)
     }
@@ -176,7 +224,14 @@ export const companyAPI = {
         getProducts: () => customAxios.get('/api/company/products'),
         addProduct: (data) => customAxios.post('/api/company/products', data),
         updateProduct: (productId, data) => customAxios.put(`/api/company/products/${productId}`, data),
-        deleteProduct: (productId) => customAxios.delete(`/api/company/products/${productId}`)
+        deleteProduct: (productId) => customAxios.delete(`/api/company/products/${productId}`),
+
+        // 새로 추가하는 API 함수들
+        getWeeklySalesData: (companyName) => customAxios.get(`/api/payments/statistics/weekly/${companyName}`),
+        getTopProducts: (companyName) => customAxios.get(`/api/payments/statistics/top-products/${companyName}`),
+        getTransactions: (companyName, page, size) => customAxios.get(`/api/payments/transactions/${companyName}`, {
+            params: {page, size}
+        })
     }
 };
 

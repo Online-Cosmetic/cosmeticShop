@@ -14,6 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/common/HomePage.jsx";
 
 // 사용자 페이지
+import ProductList from "./pages/product/ProductList.jsx";
 import ProductPage from "./pages/product/ProductPage.jsx";
 import ProductDetail from "./pages/product/ProductDetail.jsx";
 import Cart from "./pages/cart/Cart.jsx";
@@ -51,7 +52,7 @@ import AdminQnAResponse from "./pages/admin/AdminQnAResponse.jsx";
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
-import OAuth2Redirect from "./pages/auth/OAuth2Redirect.jsx";
+// import OAuth2Redirect from "./pages/auth/OAuth2Redirect.jsx";
 
 // 데이터
 import data from "./utils/data.js";
@@ -144,25 +145,35 @@ const App = () => {
                             <Routes>
                                 <Route
                                     index
-                                    element={<Navigate to="All" replace />}
+                                    element={<Navigate to="all" replace />}
                                 />
                                 <Route
                                     path=":category"
-                                    element={<ProductPage products={dummyData} />}
+                                    element={<ProductPage />}
                                 />
                             </Routes>
                         </PublicLayout>
                     }
                 />
 
+                {/*상품 상세 페이지도 API 사용하도록 수정*/}
                 <Route
                     path="/detail/:id"
                     element={
                         <PublicLayout>
-                            <ProductDetail products={data} title="Related products"/>
+                            <ProductDetail title="Related products"/>
                         </PublicLayout>
                     }
                 />
+
+                {/*<Route*/}
+                {/*    path="/detail/:id"*/}
+                {/*    element={*/}
+                {/*        <PublicLayout>*/}
+                {/*            <ProductDetail products={data} title="Related products"/>*/}
+                {/*        </PublicLayout>*/}
+                {/*    }*/}
+                {/*/>*/}
 
                 <Route
                     path="/qna"
@@ -273,11 +284,11 @@ const App = () => {
                     }
                 />
 
-                {/* 소셜 로그인 콜백 라우트 */}
-                <Route
-                    path="/oauth2/redirect"
-                    element={<OAuth2Redirect/>}
-                />
+                {/*/!* 소셜 로그인 콜백 라우트 *!/*/}
+                {/*<Route*/}
+                {/*    path="/oauth2/redirect"*/}
+                {/*    element={<OAuth2Redirect/>}*/}
+                {/*/>*/}
 
                 <Route
                     path="/admin/*"
