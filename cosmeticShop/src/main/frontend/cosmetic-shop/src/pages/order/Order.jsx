@@ -1,5 +1,5 @@
 // src/pages/order/Order.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import AddressForm from "../../components/order/AddressForm.jsx";
@@ -21,61 +21,168 @@ function Order() {
     const [errorMsg, setErrorMsg] = useState("");
     const [orderPrice, setOrderPrice] = useState(0);
     const [selectedAddress, setSelectedAddress] = useState(null);
+    
+    // 주소 로딩 상태 참조 - useRef 사용하여 불필요한 리렌더링 방지
+    const addressesLoadedRef = useRef(false);
 
     // Cart.jsx에서 전달받은 선택된 장바구니 아이템 ID 배열
     const selectedCartIds = location.state?.selectedCartIds || [];
+    // 디테일 페이지에서 직접 주문하기로 넘어왔는지 확인
+    const isDirectOrder = location.state?.directOrder || false;
+    // 디테일 페이지에서 전달받은 상품 데이터
+    const directProductData = location.state?.productData || [];
+    // 디테일 페이지에서 전달받은 총 가격
+    const directTotalPrice = location.state?.totalPrice || 0;
 
+    // 구매자 정보 - 의존성 최소화를 위해 useCallback으로 감싸기
+    const getBuyerInfo = useCallback(() => {
+        return {
+            email: localStorage.getItem('userEmail'),
+            name: localStorage.getItem('userName'),
+            addr: selectedAddress ? `${selectedAddress.city} ${selectedAddress.street} ${selectedAddress.detail}`.trim() : '',
+        };
+    }, [selectedAddress]);
+
+    // 상품 데이터 로드 함수 - useEffect 밖으로 분리
+    const loadProductItems = useCallback(async () => {
+        try {
+            let items = [];
+            
+            // 직접 구매인 경우 location state에서 먼저 확인하고 없으면 로컬 스토리지에서 가져오기
+            if (isDirectOrder) {
+                if (directProductData && directProductData.length > 0) {
+                    items = directProductData;
+                } else {
+                    const directOrderItems = JSON.parse(localStorage.getItem('directOrderItems') || '[]');
+                    if (directOrderItems.length > 0) {
+                        items = directOrderItems;
+                    }
+                }
+                
+                // 직접 주문 시 총 가격을 location state에서 먼저 확인하고 없으면 로컬 스토리지에서 가져오기
+                if (directTotalPrice > 0) {
+                    setOrderPrice(directTotalPrice);
+                } else {
+                    const storedTotalPrice = localStorage.getItem('directOrderTotalPrice');
+                    if (storedTotalPrice) {
+                        setOrderPrice(Number(storedTotalPrice));
+                    } else {
+                        // 가격 계산 - 상품 가격 + 배송비
+                        let totalPrice = 0;
+                        if (items.length > 0) {
+                            totalPrice = items.reduce((sum, item) => {
+                                const itemPrice = item.discountedPrice || 
+                                    Math.floor(item.price * (1 - (item.discountRate || 0) / 100));
+                                return sum + (itemPrice * item.quantity);
+                            }, 0);
+                        }
+                        const shippingFee = totalPrice > 0 ? 3000 : 0;
+                        setOrderPrice(totalPrice + shippingFee);
+                    }
+                }
+            } 
+            // 선택된 장바구니 아이템이 있으면 getSelectedCarts API 호출
+            else if (selectedCartIds && selectedCartIds.length > 0) {
+                const cartRes = await userAPI.cart.getSelectedCarts(selectedCartIds);
+                items = cartRes.data.items || [];
+                
+                // 주문 금액 계산
+                let totalPrice = 0;
+                if (items.length > 0) {
+                    totalPrice = items.reduce((sum, item) => {
+                        const itemPrice = item.discountedPrice || 
+                            Math.floor(item.price * (1 - (item.discountRate || 0) / 100));
+                        return sum + (itemPrice * item.quantity);
+                    }, 0);
+                }
+                const shippingFee = totalPrice > 0 ? 3000 : 0;
+                setOrderPrice(totalPrice + shippingFee);
+            } 
+            // 그 외의 경우 모든 장바구니 아이템 가져오기
+            else if (!isDirectOrder) {
+                const cartRes = await userAPI.cart.getAllCarts();
+                items = cartRes.data.items || [];
+                
+                // 주문 금액 계산
+                let totalPrice = 0;
+                if (items.length > 0) {
+                    totalPrice = items.reduce((sum, item) => {
+                        const itemPrice = item.discountedPrice || 
+                            Math.floor(item.price * (1 - (item.discountRate || 0) / 100));
+                        return sum + (itemPrice * item.quantity);
+                    }, 0);
+                }
+                const shippingFee = totalPrice > 0 ? 3000 : 0;
+                setOrderPrice(totalPrice + shippingFee);
+            }
+            
+            setCartItems(items);
+            return true;
+        } catch (e) {
+            console.error('상품 정보 로딩 오류:', e);
+            return false;
+        }
+    }, [isDirectOrder, selectedCartIds, directProductData, directTotalPrice]);
+
+    // 주소 데이터 로드 함수 - useEffect 밖으로 분리
+    const loadAddressData = useCallback(async () => {
+        // 이미 로드된 경우 중복 호출 방지
+        if (addressesLoadedRef.current) return true;
+        
+        try {
+            const addrRes = await userAPI.addresses.getAll();
+            const addressData = addrRes.data || [];
+            setAddresses(addressData);
+            
+            if (addressData.length > 0 && !selectedAddress) {
+                setSelectedAddress(addressData[0]);
+            }
+            
+            addressesLoadedRef.current = true;
+            return true;
+        } catch (e) {
+            console.error('주소 정보 로딩 오류:', e);
+            return false;
+        }
+    }, [selectedAddress]);
+
+    // 데이터 로드 useEffect
     useEffect(() => {
         async function fetchData() {
             setLoading(true);
+            
             try {
-                let items = [];
+                // 주소 정보 로드 - 가장 먼저 로드하여 UI 렌더링 준비
+                const addressesLoaded = await loadAddressData();
                 
-                // 선택된 장바구니 아이템이 있으면 getSelectedCarts API 호출
-                if (selectedCartIds && selectedCartIds.length > 0) {
-                    const cartRes = await userAPI.cart.getSelectedCarts(selectedCartIds);
-                    items = cartRes.data.items || [];
-                } else {
-                    // 선택된 아이템이 없으면 모든 장바구니 아이템 가져오기
-                    const cartRes = await userAPI.cart.getAllCarts();
-                    items = cartRes.data.items || [];
-                }
+                // 상품 정보 로드
+                const productsLoaded = await loadProductItems();
                 
-                setCartItems(items);
-
-                // 주문 금액 계산
-                const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                const shippingFee = totalPrice > 0 ? 3000 : 0;
-                // const promo = Math.floor(totalPrice * 0.1); // 10% 할인
-                const total = totalPrice + shippingFee;
-                setOrderPrice(total);
-
-                const addrRes = await userAPI.addresses.getAll();
-                const addresses = addrRes.data || [];
-                setAddresses(addresses);
-                if (addresses.length > 0) {
-                    setSelectedAddress(addresses[0]);
+                if (!productsLoaded || !addressesLoaded) {
+                    alert('주문 정보를 불러오지 못했습니다.');
                 }
             } catch (e) {
-                alert('주문 정보를 불러오지 못했습니다.');
                 console.error('주문 정보 로딩 오류:', e);
+                alert('주문 정보를 불러오지 못했습니다.');
             } finally {
                 setLoading(false);
             }
         }
 
         fetchData();
-    }, [selectedCartIds]);
-
-    // 구매자 정보
-    const buyerInfo = {
-        email: localStorage.getItem('userEmail'),
-        name: localStorage.getItem('userName'),
-        addr: selectedAddress ? `${selectedAddress.city} ${selectedAddress.street} ${selectedAddress.detail}`.trim() : '',
-    };
+        
+        // 컴포넌트 언마운트 시 로컬 스토리지 정리
+        return () => {
+            if (isDirectOrder) {
+                localStorage.removeItem('directOrderItems');
+                localStorage.removeItem('directOrderTotalPrice');
+            }
+        };
+    }, [loadProductItems, loadAddressData]);
 
     // 필수 구매자 정보 검증
     const validateBuyerInfo = () => {
+        const buyerInfo = getBuyerInfo();
         if (!buyerInfo.email || !buyerInfo.name) {
             setErrorMsg("구매자 정보가 부족합니다. 프로필에서 정보를 확인해주세요.");
             return false;
@@ -93,7 +200,7 @@ function Order() {
             return;
         }
         if (cartItems.length === 0) {
-            setErrorMsg("장바구니가 비어있습니다.");
+            setErrorMsg("주문할 상품이 없습니다.");
             return;
         }
         if (!validateBuyerInfo()) {
@@ -109,7 +216,7 @@ function Order() {
                     price: item.price
                 })),
                 addressDTO: selectedAddress,
-                recipientName: buyerInfo.name,
+                recipientName: getBuyerInfo().name,
                 totalPrice: orderPrice,
                 orderStatus: 'PENDING',  // 초기 주문 상태
                 orderDate: new Date().toISOString(),  // 주문 일시
@@ -255,7 +362,7 @@ function Order() {
                                             orderId={orderId}
                                             amount={orderPrice}
                                             orderName={cartItems[0]?.productName}
-                                            buyerInfo={buyerInfo}
+                                            buyerInfo={getBuyerInfo()}
                                             onSuccess={handlePaymentSuccess}
                                             onFail={handlePaymentFail}
                                         />
@@ -265,7 +372,7 @@ function Order() {
                                             orderId={orderId}
                                             amount={orderPrice}
                                             orderName={cartItems[0]?.productName}
-                                            buyerInfo={buyerInfo}
+                                            buyerInfo={getBuyerInfo()}
                                             onSuccess={handlePaymentSuccess}
                                             onFail={handlePaymentFail}
                                         />
@@ -275,7 +382,7 @@ function Order() {
                                             orderId={orderId}
                                             amount={orderPrice}
                                             orderName={cartItems[0]?.productName}
-                                            buyerInfo={buyerInfo}
+                                            buyerInfo={getBuyerInfo()}
                                             onSuccess={handlePaymentSuccess}
                                             onFail={handlePaymentFail}
                                         />

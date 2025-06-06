@@ -9,9 +9,4 @@ import lombok.Data;
 public class ProductDetailResponseDTO {
     ProductDTO productDTO;
     ProductImageDTO productImageDTO;
-
-    public static ProductDetailResponseDTO from(
-        ProductDTO productDTO, ProductImageDTO productImageDTO) {
-        return new ProductDetailResponseDTO(productDTO, productImageDTO);
-    }
 }

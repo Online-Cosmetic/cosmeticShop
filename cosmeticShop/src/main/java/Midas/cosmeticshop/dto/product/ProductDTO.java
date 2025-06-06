@@ -16,6 +16,7 @@ public class ProductDTO {
     private int price;
     private int stock;
     private Long companyId;
+    private String thumbnailImageUrl;
 
 
     public static ProductDTO from(Product product) {
@@ -26,7 +27,8 @@ public class ProductDTO {
             product.getDescription(),
             product.getPrice(),
             product.getStock(),
-            product.getCompany().getId()
+            product.getCompany().getId(),
+            product.getThumbnailImage().getImageUrl()
         );
     }
 

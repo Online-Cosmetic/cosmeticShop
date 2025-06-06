@@ -22,9 +22,6 @@ function Detail({ title }) {
   const [imageUrls, setImageUrls] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // 리스트에서 전달된 메인 이미지 URL
-  const mainImageFromList = location.state?.mainImageUrl;
-
   // 카테고리 ID를 카테고리 이름으로 변환하는 함수
   const getCategoryNameById = (categoryId) => {
     const categoryMap = {
@@ -51,12 +48,15 @@ function Detail({ title }) {
 
         setProduct(productData);
 
+        // 썸네일 이미지 URL 가져오기
+        const thumbnailImageUrl = productData.thumbnailImageUrl ? getImageUrl(productData.thumbnailImageUrl) : null;
+
         // 이미지 URL 배열 설정
         let imagesArray = productData.images.map(img => getImageUrl(img.imageUrl));
 
-        // 전달받은 메인 이미지가 있으면 배열 맨 앞에 추가
-        if (mainImageFromList && !imagesArray.includes(mainImageFromList)) {
-          imagesArray = [mainImageFromList, ...imagesArray];
+        // 썸네일 이미지가 있으면 배열 맨 앞에 추가
+        if (thumbnailImageUrl && !imagesArray.includes(thumbnailImageUrl)) {
+          imagesArray = [thumbnailImageUrl, ...imagesArray];
         }
 
         // 이미지가 없는 경우 기본 이미지
@@ -93,7 +93,7 @@ function Detail({ title }) {
     };
 
     fetchProductData();
-  }, [id, mainImageFromList]);
+  }, [id]);
 
   // 이전 이미지로 이동하는 함수
   const goToPreviousImage = () => {
@@ -129,7 +129,7 @@ function Detail({ title }) {
     }
   };
 
-  // 주문하기 함수
+  // handleBuyNow 함수 수정
   const handleBuyNow = () => {
     if (!isAuthenticated) {
       toast.error("로그인이 필요한 서비스입니다.");
@@ -137,18 +137,38 @@ function Detail({ title }) {
       return;
     }
 
-    // 주문 상품 정보를 로컬 스토리지에 저장하고 주문 페이지로 이동
+    // 할인가격 미리 계산
+    const discountedPrice = calculateDiscountedPrice(product.price, product.discountRate || 0);
+    
+    // 주문 상품 정보 보완
     const orderItem = {
+      id: product.productId,
       productId: product.productId,
       productName: product.productName,
-      price: product.price,
       quantity: quantity,
+      price: product.price,
       discountRate: product.discountRate || 0,
-      image: imageUrls[0] // 현재 표시 중인 이미지 사용
+      thumbnailImage: imageUrls[0], // 여기는 product.data.productDTO.thumbnailImageUrl 로 수정해야할지도
+      discountedPrice: discountedPrice
     };
 
-    localStorage.setItem('directOrderItem', JSON.stringify(orderItem));
-    navigate('/user/order', { state: { directOrder: true } });
+    // 배송비 포함 총 가격 계산
+    const shippingFee = 3000; // 배송비
+    const totalPrice = (discountedPrice * quantity) + shippingFee;
+
+    // 직접 주문 상품 배열 형태로 저장 (단일 상품이지만 배열로 저장)
+    localStorage.setItem('directOrderItems', JSON.stringify([orderItem]));
+    
+    // 총 주문 가격도 저장
+    localStorage.setItem('directOrderTotalPrice', totalPrice.toString());
+    
+    navigate('/user/order', { 
+      state: { 
+        directOrder: true,
+        productData: [orderItem], // 상태로도 전달
+        totalPrice: totalPrice    // 총 가격도 함께 전달
+      } 
+    });
   };
 
   // 할인된 가격 계산
@@ -268,7 +288,6 @@ function Detail({ title }) {
                   <span>{discountRate}%</span>
                   <span className="line-through ml-1">{product.price.toLocaleString()}원</span>
                 </div>
-                {/*<p className={`font-bold text-2xl ${discountRate > 0 ? 'text-red-500' : 'text-gray-800'}`}>*/}
                 <p className={`font-bold text-2xl text-red-500`}>
                   {discountedPrice.toLocaleString()}원
                 </p>
@@ -350,7 +369,7 @@ function Detail({ title }) {
                 
                 return (
                   <div key={relatedProduct.id}
-                    onClick={() => navigate(`/detail/${relatedProduct.id}`, { state: { mainImageUrl: relatedProduct.imageUrl } })}
+                    onClick={() => navigate(`/detail/${relatedProduct.id}`)}
                     className="bg-white rounded-lg shadow overflow-hidden cursor-pointer">
                     <div className="relative">
                       <img
@@ -386,9 +405,8 @@ function Detail({ title }) {
                           <span>{relatedDiscountRate}%</span>
                           <span className="line-through ml-1">{relatedProduct.price.toLocaleString()}원</span>
                         </div>
-                        {/*<p className={`font-bold text-lg ${relatedDiscountRate > 0 ? 'text-red-500' : 'text-gray-900'}`}>*/}
                         <p className={`font-bold text-lg text-red-500`}>
-                        {relatedDiscountedPrice.toLocaleString()}원
+                          {relatedDiscountedPrice.toLocaleString()}원
                         </p>
                       </div>
                     </div>
