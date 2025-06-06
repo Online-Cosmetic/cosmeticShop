@@ -23,42 +23,58 @@ export default function UserHeader() {
         }
     };
 
-    const renderUserMenu = () => {
-        if (!user) return null;
+    // 상단 메뉴 렌더링 (로그인/비로그인 상태에 따라 다른 메뉴 표시)
+    const renderTopMenu = () => {
+        if (user) {
+            if (user.role === "ROLE_COMPANY") {
+                // 기업 회원이 일반 페이지에 접근하면 기업 대시보드로 리다이렉트
+                navigate('/enterprise/dashboard');
+                return null;
+            }
 
-        if (user.role === 'ROLE_USER') {
+            // 로그인 상태일 때 표시할 메뉴
             return (
-                <nav className="border-b border-gray-300">
-                    <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
-                        <Link
-                            to="/user/mypage"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-user mr-1"></i> My Page
-                        </Link>
-                        <Link
-                            to="/user/cart"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-shopping-cart mr-1"></i> Cart
-                        </Link>
-                        <Link to="/qna"
-                              className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-user mr-1"></i> Q&A
-                        </Link>
-                    </div>
-                </nav>
+                <div className="flex items-center space-x-6">
+                    <Link to="/user/mypage" className="text-gray-700 hover:text-emerald-600">
+                        My Page
+                    </Link>
+                    <Link to="/user/cart" className="text-gray-700 hover:text-emerald-600">
+                        Cart
+                    </Link>
+                    <Link to="/qna" className="text-gray-700 hover:text-emerald-600">
+                        Q&A
+                    </Link>
+                    <span className="text-gray-700">Hello, {user.userId}</span>
+                    <button
+                        onClick={handleLogout}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                    >
+                        Logout
+                    </button>
+                </div>
+            );
+        } else {
+            // 비로그인 상태일 때 표시할 메뉴
+            return (
+                <div className="flex items-center space-x-6">
+                    <Link to="/login" className="text-gray-700 hover:text-emerald-600">
+                        Login
+                    </Link>
+                    <Link to="/signup" className="text-gray-700 hover:text-emerald-600">
+                        Sign Up
+                    </Link>
+                    <Link to="/qna" className="text-gray-700 hover:text-emerald-600">
+                        Q&A
+                    </Link>
+                    <Link
+                        to="/enterprise/login"
+                        className="px-4 py-2 border border-gray-700 text-gray-700 rounded-lg hover:text-emerald-600 transition"
+                    >
+                        Business Login
+                    </Link>
+                </div>
             );
         }
-
-        if (user.role === "ROLE_COMPANY") {
-            // 기업 회원이 일반 페이지에 접근하면 기업 대시보드로 리다이렉트
-            navigate('/enterprise/dashboard');
-            return null;
-        }
-
-        return null;
     };
 
     return (
@@ -95,41 +111,7 @@ export default function UserHeader() {
 
                 {/* 사용자 상태별 메뉴 */}
                 <div className="flex items-center space-x-6">
-                    {renderUserMenu()}
-                    <div className="flex items-center space-x-4">
-                        {user ? (
-                            <>
-                                <span className="text-gray-700">Hello, {user.userId}</span>
-                                <button
-                                    onClick={handleLogout}
-                                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                                >
-                                    Logout
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <Link
-                                    to="/login"
-                                    className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
-                                >
-                                    Login
-                                </Link>
-                                <Link
-                                    to="/signup"
-                                    className="px-4 py-2 border border-emerald-500 text-emerald-500 rounded-lg hover:bg-emerald-50 transition"
-                                >
-                                    Sign Up
-                                </Link>
-                                <Link
-                                    to="/enterprise/login"
-                                    className="px-4 py-2 border border-gray-700 text-gray-700 rounded-lg hover:text-emerald-600 transition"
-                                >
-                                    Business Login
-                                </Link>
-                            </>
-                        )}
-                    </div>
+                    {renderTopMenu()}
                 </div>
             </div>
         </header>

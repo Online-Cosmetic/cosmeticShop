@@ -27,7 +27,8 @@ public class CartGetDTO {
         this.productId = cart.getProduct().getId();
         this.productName = cart.getProduct().getProductName();
         this.companyName = cart.getProduct().getCompany().getCompanyName();
-        this.price = cart.getProduct().getPrice() * (100-cart.getProduct().getDiscountRate()/100);
+//        this.price = cart.getProduct().getPrice() * (100-cart.getProduct().getDiscountRate()/100);
+        this.price = cart.getProduct().getPrice();
         List<ProductImage> productImages = cart.getProduct().getProductImages();
         if (productImages != null && !productImages.isEmpty()) {
             this.productImage = productImages.get(0).getImageUrl();

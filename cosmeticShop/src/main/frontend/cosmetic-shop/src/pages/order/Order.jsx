@@ -1,6 +1,6 @@
 // src/pages/order/Order.jsx
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import AddressForm from "../../components/order/AddressForm.jsx";
 import ProductCard from "../../components/product/ProductCard.jsx";
@@ -11,6 +11,7 @@ import EasyPayment from "../../components/payment/EasyPayment.jsx";
 
 function Order() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [method, setMethod] = useState("card");
     const [cartItems, setCartItems] = useState([]);
     const [addresses, setAddresses] = useState([]);
@@ -21,19 +22,32 @@ function Order() {
     const [orderPrice, setOrderPrice] = useState(0);
     const [selectedAddress, setSelectedAddress] = useState(null);
 
+    // Cart.jsx에서 전달받은 선택된 장바구니 아이템 ID 배열
+    const selectedCartIds = location.state?.selectedCartIds || [];
+
     useEffect(() => {
         async function fetchData() {
             setLoading(true);
             try {
-                const cartRes = await userAPI.cart.getCart();
-                const items = cartRes.data.items || [];
+                let items = [];
+                
+                // 선택된 장바구니 아이템이 있으면 getSelectedCarts API 호출
+                if (selectedCartIds && selectedCartIds.length > 0) {
+                    const cartRes = await userAPI.cart.getSelectedCarts(selectedCartIds);
+                    items = cartRes.data.items || [];
+                } else {
+                    // 선택된 아이템이 없으면 모든 장바구니 아이템 가져오기
+                    const cartRes = await userAPI.cart.getAllCarts();
+                    items = cartRes.data.items || [];
+                }
+                
                 setCartItems(items);
 
                 // 주문 금액 계산
                 const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                const shippingFee = totalPrice > 0 ? 2500 : 0;
-                const promo = Math.floor(totalPrice * 0.1); // 10% 할인
-                const total = totalPrice + shippingFee - promo;
+                const shippingFee = totalPrice > 0 ? 3000 : 0;
+                // const promo = Math.floor(totalPrice * 0.1); // 10% 할인
+                const total = totalPrice + shippingFee;
                 setOrderPrice(total);
 
                 const addrRes = await userAPI.addresses.getAll();
@@ -44,13 +58,14 @@ function Order() {
                 }
             } catch (e) {
                 alert('주문 정보를 불러오지 못했습니다.');
+                console.error('주문 정보 로딩 오류:', e);
             } finally {
                 setLoading(false);
             }
         }
 
         fetchData();
-    }, []);
+    }, [selectedCartIds]);
 
     // 구매자 정보
     const buyerInfo = {
@@ -109,6 +124,7 @@ function Order() {
             setShowPayment(true);
         } catch (e) {
             setErrorMsg('주문 생성에 실패했습니다.');
+            console.error('주문 생성 오류:', e);
         }
     };
 

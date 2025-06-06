@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CartService {
@@ -27,12 +28,28 @@ public class CartService {
         this.ProductRepo = ProductRepo;
     }
 
-    public List<CartGetDTO> getCarts(String userId) {
+    public List<CartGetDTO> getAllCarts(String userId) {
         User user = UserRepo.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         List<Cart> cartList = CartRepo.findByUserId(user.getId());
         List<CartGetDTO> cartGetDTOList = new ArrayList<>();
         for (Cart cart : cartList) {
+            cartGetDTOList.add(new CartGetDTO(cart));
+        }
+        return cartGetDTOList;
+    }
+
+    public List<CartGetDTO> getSelectedCarts(String userId, List<Long> cartIds) {
+        User user = UserRepo.findByUserId(userId)
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+
+        List<Cart> allCarts = CartRepo.findByUserId(user.getId());
+        List<Cart> selectedCarts = allCarts.stream()
+            .filter(cart -> cartIds.contains(cart.getId()))
+            .toList();
+
+        List<CartGetDTO> cartGetDTOList = new ArrayList<>();
+        for (Cart cart : selectedCarts) {
             cartGetDTOList.add(new CartGetDTO(cart));
         }
         return cartGetDTOList;

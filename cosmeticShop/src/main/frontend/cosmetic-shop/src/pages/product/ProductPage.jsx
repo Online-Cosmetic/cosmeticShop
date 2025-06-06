@@ -37,6 +37,7 @@ function ProductPage() {
                     title: product.productName,
                     content: product.description,
                     price: product.price,
+                    discountRate: product.discountRate || 0, // 할인율 추가
                     imageUrl: product.thumbImgUrl ? getImageUrl(product.thumbImgUrl) : null
                 }));
                 

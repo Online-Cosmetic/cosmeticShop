@@ -61,11 +61,11 @@ public class OrderController {
 
         OrderDTO orderDTO = orderService.getSingleOrderDetail(baseUserDetails, orderId);
         Long productId = orderDTO.getOrderItems().get(0).getProductId();
-        String thumbnailUrl = thumbnailImageRepository.findByProduct_Id(productId).get().getImageUrl();
+//        String thumbnailUrl = thumbnailImageRepository.findByProduct_Id(productId).get().getImageUrl();
 
         Map<String, Object> response = new HashMap<>();
         response.put("order", orderDTO);
-        response.put("thumbnailUrl", thumbnailUrl);
+//        response.put("thumbnailUrl", thumbnailUrl);
 
         return ResponseEntity.ok(response);
     }
@@ -79,8 +79,8 @@ public class OrderController {
     }
 
     /* 배송상태에 따른 '주문상품' 조회 : orderItem이 주내용 */
-    @GetMapping("/{deliveryStatus}")
-    public ResponseEntity<List<PurchasedOrderItemResponse>> getMyOrders(
+    @GetMapping("/status/{deliveryStatus}")
+    public ResponseEntity<List<PurchasedOrderItemResponse>> getMyOrdersByDeliveryStatus(
         @AuthenticationPrincipal BaseUserDetails baseUserDetails,
         @PathVariable String deliveryStatus) {
 
@@ -127,7 +127,7 @@ public class OrderController {
     }
 
     /* 기업회원) 자사 상품에 대한 모든 orderItem 내역 조회 */
-    @GetMapping("/{companyName}")
+    @GetMapping("/company/{companyName}")
     public ResponseEntity<List<PurchasedOrderItemResponse>> getCompanyOrderItems(@PathVariable String companyName) {
         return orderService.getAllOrderItemsByCompany(companyName);
     }

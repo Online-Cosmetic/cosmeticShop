@@ -90,7 +90,8 @@ export const userAPI = {
     },
 
     cart: {
-        getCart: () => customAxios.get('/api/carts'),
+        getAllCarts: () => customAxios.get('/api/carts'),
+        getSelectedCarts: (cartIds) => customAxios.post('/api/carts/selected', cartIds),
         addToCart: (productId, quantity) => customAxios.post('/api/carts', { productId, quantity }),
         removeFromCart: (productId) => customAxios.delete(`/api/carts/${productId}`),
         updateQuantity: (cartId, quantity) => customAxios.put(`/api/carts/${cartId}`, null, {
@@ -115,11 +116,8 @@ export const userAPI = {
         getByCategory: (categoryName) => {
             // 카테고리 이름을 카테고리 ID로 변환
             const categoryMap = {
-                'all': 0,  // 전체 상품은 CategoryID 0으로 가정
-                'makeup': 1,
-                'skincare': 2,
-                'hair': 3,
-                'body': 4
+                // 전체 상품은 CategoryID 0으로 가정
+                'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
             };
             const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
             return customAxios.get(`/api/products/batch/${categoryId}`);
@@ -131,6 +129,7 @@ export const userAPI = {
         createOrder: (orderRequest) => customAxios.post('/api/orders', orderRequest),
         createOrders: (orderBatchRequest) => customAxios.post('/api/orders/batch', orderBatchRequest),
         getMyOrders: () => customAxios.get('/api/orders'),
+        getMyOrdersByDeliveryStatus: () => customAxios.get(`/api/orders/status/${deliveryStatus}`),
     },
 
     qna: {
@@ -217,6 +216,10 @@ export const companyAPI = {
         getTransactions: (companyName, page, size) => customAxios.get(`/api/payments/transactions/${companyName}`, {
             params: {page, size}
         })
+    },
+
+    order: {
+        getCompanyOrderItems: (companyName) => customAxios.get(`/api/orders/company/${companyName}`),
     }
 };
 

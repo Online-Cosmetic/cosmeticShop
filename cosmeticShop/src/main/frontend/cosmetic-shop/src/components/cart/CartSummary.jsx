@@ -3,16 +3,27 @@ import { useNavigate } from "react-router-dom";
 
 function CartSummary({ cartItems = [] }) {
     const navigate = useNavigate();
-    // 실제 합계 계산
-    const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shippingFee = totalPrice > 0 ? 2500 : 0;
-    const promo = Math.floor(totalPrice * 0.1); // 예시: 10% 할인
-    const orderTotal = totalPrice + shippingFee - promo;
+    
+    // 각 상품별 원가 계산
+    const totalOriginalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // 각 상품별 할인가 계산 및 할인 총액 계산
+    let totalDiscountAmount = 0;
+    cartItems.forEach(item => {
+        // 상품의 할인율 적용 (할인율이 없는 경우 0으로 처리)
+        const discountRate = item.discountRate || 0;
+        const itemDiscountAmount = Math.floor(item.price * item.quantity * (discountRate / 100));
+        totalDiscountAmount += itemDiscountAmount;
+    });
+    
+    const shippingFee = totalOriginalPrice > 0 ? 3000 : 0;
+    const finalPrice = totalOriginalPrice + shippingFee - totalDiscountAmount;
+    
     return (
         <div className="w-full max-w-sm flex-shrink-0 border rounded-lg p-6 shadow">
             <div className="flex justify-between mb-3 text-lg">
                 <span>Total Price</span>
-                <span>₩{totalPrice.toLocaleString()}</span>
+                <span>₩{totalOriginalPrice.toLocaleString()}</span>
             </div>
             <div className="flex justify-between mb-3 text-lg">
                 <span>Shipping Fee</span>
@@ -20,18 +31,13 @@ function CartSummary({ cartItems = [] }) {
             </div>
             <div className="flex justify-between mb-3 text-lg font-bold">
                 <span>Promo Info</span>
-                <span>- ₩{promo.toLocaleString()}</span>
+                <span>- ₩{totalDiscountAmount.toLocaleString()}</span>
             </div>
             <hr className="my-4" />
             <div className="flex justify-between mb-6 text-lg font-bold">
                 <span>Order Total</span>
-                <span>₩{orderTotal.toLocaleString()}</span>
+                <span>₩{finalPrice.toLocaleString()}</span>
             </div>
-            {/*<button*/}
-            {/*    className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"*/}
-            {/*    onClick={() => navigate("/order")}>*/}
-            {/*    Checkout*/}
-            {/*</button>*/}
         </div>
     );
 }

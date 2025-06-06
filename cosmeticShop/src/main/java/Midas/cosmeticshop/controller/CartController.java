@@ -22,8 +22,18 @@ public class CartController {
     }
 
     @GetMapping("")
-    public ResponseEntity<Map<String, Object>> getCarts(Authentication authentication) {
-        List<CartGetDTO> cartItems = cartService.getCarts(authentication.getName());
+    public ResponseEntity<Map<String, Object>> getAllCarts(Authentication authentication) {
+        List<CartGetDTO> cartItems = cartService.getAllCarts(authentication.getName());
+        Map<String, Object> response = new HashMap<>();
+        response.put("items", cartItems);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/selected")
+    public ResponseEntity<Map<String, Object>> getSeletedCarts(Authentication authentication,
+                                                               @RequestBody List<Long> cartIds) {
+
+        List<CartGetDTO> cartItems = cartService.getSelectedCarts(authentication.getName(), cartIds);
         Map<String, Object> response = new HashMap<>();
         response.put("items", cartItems);
         return ResponseEntity.ok(response);

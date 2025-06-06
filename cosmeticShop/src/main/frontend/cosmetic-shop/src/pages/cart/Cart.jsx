@@ -14,7 +14,7 @@ function Cart() {
         async function fetchCart() {
             setLoading(true);
             try {
-                const res = await userAPI.cart.getCart();
+                const res = await userAPI.cart.getAllCarts();
                 setCartItems(res.data.items || []);
             } catch (e) {
                 alert('장바구니 정보를 불러오지 못했습니다.');
@@ -35,6 +35,21 @@ function Cart() {
                 newChecked.add(productId);
             }
             return newChecked;
+        });
+    };
+
+    const handleCheckout = () => {
+        if (checkedItems.size === 0) {
+            alert('선택한 상품이 없습니다.');
+            return;
+        }
+        
+        // 체크된 아이템 ID 배열로 변환
+        const selectedCartIds = Array.from(checkedItems);
+        
+        // 선택된 장바구니 아이템 ID를 쿼리 파라미터로 전달
+        navigate("/user/order", { 
+            state: { selectedCartIds }
         });
     };
 
@@ -75,7 +90,7 @@ function Cart() {
                                         cartItems={cartItems.filter(item => checkedItems.has(item.id))}/>
                                     <button
                                         className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg"
-                                        onClick={() => navigate("/user/order")}
+                                        onClick={handleCheckout}
                                     >
                                         Checkout
                                     </button>

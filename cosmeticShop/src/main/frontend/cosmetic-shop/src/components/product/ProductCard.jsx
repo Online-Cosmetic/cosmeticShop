@@ -26,6 +26,10 @@ function ProductCard({
   const handleIncrease = () => handleQuantityChange(product.quantity + 1);
   const handleDecrease = () => handleQuantityChange(product.quantity - 1);
 
+  // 할인된 가격 계산 (할인율이 없으면 0으로 설정)
+  const discountRate = product.discountRate || 0;
+  const discountedPrice = Math.floor(product.price * (1 - discountRate / 100));
+
   return (
     <div
       className={`flex gap-6 border-b w-full items-start ${
@@ -72,9 +76,21 @@ function ProductCard({
             </button>
           </div>
         ) : (
-          <div className="text-base">{product.quantity} items</div>
+          <div className="text-base">{product.quantity} 개</div>
         )}
-        <p className="font-semibold">₩{product.price.toLocaleString()}</p>
+        
+        {/* 할인율과 가격 정보 - 할인율이 0%여도 표시 */}
+        <div className="flex flex-col">
+          <div className="text-gray-500">
+            <span>{discountRate}%</span>
+            <span className="line-through ml-1">{product.price.toLocaleString()}원</span>
+          </div>
+          {/*<p className={`font-semibold text-lg ${discountRate > 0 ? "text-red-500" : ""}`}>*/}
+          <p className={`font-bold text-xl text-red-500`}>
+            {discountedPrice.toLocaleString()}원
+          </p>
+        </div>
+        
         {product.promotion && (
           <p className="text-red-400 font-bold">{product.promotion}</p>
         )}
