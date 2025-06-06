@@ -15,7 +15,6 @@ public class ProductDTO {
     private String description;
     private int price;
     private int stock;
-//    private Company company;
     private Long companyId;
 
 
@@ -27,7 +26,6 @@ public class ProductDTO {
             product.getDescription(),
             product.getPrice(),
             product.getStock(),
-//            product.getCompany()
             product.getCompany().getId()
         );
     }

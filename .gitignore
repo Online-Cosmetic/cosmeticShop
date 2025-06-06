@@ -5,10 +5,26 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# 로컬 환경변수
+cosmeticShop/local.env
+
 # 아래는 /login 이 로직 분리되면 여기서 빠질 애들
 cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserInfoDTO.java
 cosmeticShop/src/main/java/Midas/cosmeticShop/dto/UserResponse.java
 
+# 신용/체크 카드 결제모듈 하나만 남기자
+cosmeticShop/src/main/frontend/cosmetic-shop/src/components/payment/KakaoPayment.jsx
+cosmeticShop/src/main/frontend/cosmetic-shop/src/components/payment/KGinisisPayment.jsx
+
+cosmeticShop/src/main/frontend/cosmetic-shop/src/pages/payment/payment.jsx
+
+DSD.md
+
+
+# 25.06.05
+cosmeticShop/src/main/java/Midas/cosmeticshop/dto/social/
+cosmeticShop/src/main/java/Midas/cosmeticshop/oauth2/
+cosmeticShop/src/main/java/Midas/cosmeticshop/service/CustomOAuth2UserService.java
 
 # 없어도 되는 상품 관련 사진 코드 ?
 cosmeticShop/src/main/java/Midas/cosmeticShop/service/ProductImageService.java

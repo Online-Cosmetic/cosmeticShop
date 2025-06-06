@@ -7,12 +7,12 @@ import lombok.*;
 @Builder
 @Entity
 @Table(name = "thumbnail_images")
-@AllArgsConstructor
+@Getter @Setter
 @NoArgsConstructor
-@Getter
-@Setter
+@AllArgsConstructor
 public class ThumbnailImage {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -22,7 +22,10 @@ public class ThumbnailImage {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    public static ThumbnailImage create(ProductImageItemDTO dto, Product product) {
+    public static ThumbnailImage create(ProductImageItemDTO dto) {
+        Product product = new Product();
+        product.setId(dto.getProductId());
+
         return ThumbnailImage.builder()
             .product(product)
             .imageUrl(dto.getImageUrl())

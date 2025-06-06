@@ -1,58 +1,122 @@
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
-import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { emitter } from "./utils/customAxios.js";
+import React, {useEffect} from "react";
+import {Routes, Route, Navigate, useNavigate} from "react-router-dom";
+import {AuthProvider} from "./contexts/AuthContext";
+import {emitter} from "./utils/customAxios.js";
 
 // 공통 컴포넌트
-import UserHeader from './components/common/UserHeader.jsx';
+import UserHeader from "./components/common/UserHeader.jsx";
 import Footer from "./components/common/Footer.jsx";
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// 공통 접근 가능 페이지
+import HomePage from "./pages/common/HomePage.jsx";
 
 // 사용자 페이지
-import ProductList from "./pages/product/ProductList.jsx";
+import ProductPage from "./pages/product/ProductPage.jsx";
 import ProductDetail from "./pages/product/ProductDetail.jsx";
 import Cart from "./pages/cart/Cart.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
+
 // import QnA from "./pages/qna/QnA.jsx";
 import QnA from "./pages/qna/QnAList.jsx";
-import Order from "./pages/order/Order.jsx";
-// import Checkout from "./pages/payment/Checkout.jsx";
+import QnADetail from "./pages/qna/QnADetail.jsx";
+import QnAWrite from "./pages/qna/QnAWrite.jsx";
 
-import UserLogin from './pages/auth/UserLogin.jsx';
-import SignUp from './pages/auth/SignUp.jsx';
-import OrderHistory from './pages/order/OrderHistory.jsx';
+import Order from "./pages/order/Order.jsx";
+import OrderComplete from "./pages/order/OrderComplete";
+
+import Checkout from "./pages/payment/Checkout.jsx";
+
+import UserLogin from "./pages/auth/UserLogin.jsx";
+import SignUp from "./pages/auth/SignUp.jsx";
+import OrderHistory from "./pages/user/MyComponents/OrderHistory.jsx";
 
 // 기업 페이지
-import EnterpriseMain from './pages/enterprise/EnterpriseMain.jsx';
+import EnterpriseHeader from "./components/enterprise/EnterpriseHeader.jsx";
+import EnterpriseSidebar from "./components/enterprise/EnterpriseSidebar.jsx";
+import EnterpriseMain from "./pages/enterprise/EnterpriseMain.jsx";
 import ProductRegister from "./pages/product/ProductRegister.jsx";
-import EnterpriseLogin from './pages/auth/EnterpriseLogin.jsx';
+import EnterpriseLogin from "./pages/auth/EnterpriseLogin.jsx";
 import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
-import ProductManagement from './pages/product/ProductManagement.jsx';
+import ProductManagement from "./pages/product/ProductManagement.jsx";
+import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
+
+// 관리자 페이지
+import AdminQnAManagement from "./pages/admin/AdminQnAManagement.jsx";
+import AdminQnAResponse from "./pages/admin/AdminQnAResponse.jsx";
+
 
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
+import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
+// import OAuth2Redirect from "./pages/auth/OAuth2Redirect.jsx";
 
 // 데이터
-import data from './utils/data.js';
+import data from "./utils/data.js";
 
-const PublicLayout = ({ children }) => (
-    <>
-        <UserHeader />
-        {children}
-        <Footer />
-    </>
+import AdminSidebar from "./components/admin/AdminSidebar.jsx";
+import AdminHeader from "./components/admin/AdminHeader.jsx";
+
+// User용 Layout 컴포넌트
+const PublicLayout = ({children}) => (
+    <div className="flex flex-col min-h-screen">
+        <UserHeader/>
+        <main className="flex-grow flex items-start justify-center py-16 px-20">
+            {children}
+        </main>
+        <Footer/>
+    </div>
 );
+
+// Enterprise용 Layout 컴포넌트
+const EnterpriseLayout = ({children}) => {
+    return (
+        <div className="flex flex-col min-h-screen">
+            <EnterpriseHeader />
+            <main className="flex flex-1 gap-4 bg-neutral-100">
+                {/* Sidebar 1/6 */}
+                <aside className="basis-1/6 bg-white">
+                    <EnterpriseSidebar />
+                </aside>
+                {/* Content 5/6 */}
+                <section className="basis-5/6 bg-neutral-100">
+                    {children}
+                </section>
+            </main>
+            <Footer />
+        </div>
+    );
+};
+
+// admin용 Layout 컴포넌트
+const AdminLayout = ({children}) => {
+    return (
+        <div className="flex flex-col min-h-screen">
+            <AdminHeader />
+            <main className="flex flex-1 gap-4 bg-neutral-100">
+                {/* Sidebar 1/6 */}
+                <aside className="basis-1/6 bg-white">
+                    <AdminSidebar />
+                </aside>
+                {/* Content 5/6 */}
+                <section className="basis-5/6 bg-neutral-100">
+                    {children}
+                </section>
+            </main>
+            <Footer />
+        </div>
+    );
+};
 
 const App = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        emitter.on('logout', () => {
-            localStorage.removeItem('accessToken');
-            navigate('/login', { replace: true });
+        emitter.on("logout", () => {
+            localStorage.removeItem("accessToken");
+            navigate("/login", {replace: true});
         });
     }, [navigate]);
 
@@ -63,17 +127,40 @@ const App = () => {
                 <Route
                     path="/"
                     element={
+                        <div className="flex flex-col min-h-screen">
+                            <UserHeader/>
+                            <main className="flex-grow flex items-start justify-center">
+                                <HomePage />
+                            </main>
+                            <Footer/>
+                        </div>
+                    }
+                />
+                {/* 네비게이션바 라우팅 */}
+                <Route
+                    path="/products/*"
+                    element={
                         <PublicLayout>
-                            <ProductList products={data} title="Best Seller" />
+                            <Routes>
+                                <Route
+                                    index
+                                    element={<Navigate to="All" replace />}
+                                />
+                                <Route
+                                    path=":category"
+                                    element={<ProductPage />}
+                                />
+                            </Routes>
                         </PublicLayout>
                     }
                 />
 
+                {/*상품 상세 페이지도 API 사용하도록 수정*/}
                 <Route
                     path="/detail/:id"
                     element={
                         <PublicLayout>
-                            <ProductDetail products={data} title="Related products" />
+                            <ProductDetail products={data} title="Related products"/>
                         </PublicLayout>
                     }
                 />
@@ -82,7 +169,25 @@ const App = () => {
                     path="/qna"
                     element={
                         <PublicLayout>
-                            <QnA />
+                            <QnA/>
+                        </PublicLayout>
+                    }
+                />
+
+                <Route
+                    path="/QnAWrite"
+                    element={
+                        <PublicLayout>
+                            <QnAWrite/>
+                        </PublicLayout>
+                    }
+                />
+
+                <Route
+                    path="/QnADetail/:id"
+                    element={
+                        <PublicLayout>
+                            <QnADetail/>
                         </PublicLayout>
                     }
                 />
@@ -92,40 +197,32 @@ const App = () => {
                     path="/login"
                     element={
                         <PublicLayout>
-                            <UserLogin />
+                            <UserLogin/>
                         </PublicLayout>
                     }
                 />
 
-                <Route
-                    path="/enterpriseLogin"
-                    element={
-                        <PublicLayout>
-                            <EnterpriseLogin />
-                        </PublicLayout>
-                    }
-                />
 
                 <Route
                     path="/signup"
                     element={
                         <PublicLayout>
-                            <SignUp />
+                            <SignUp/>
                         </PublicLayout>
                     }
                 />
 
                 <Route
-                    path="/enterpriseSignUp"
+                    path={"/forgotPassword"}
                     element={
                         <PublicLayout>
-                            <EnterpriseSignUp />
+                            <ForgotPassword/>
                         </PublicLayout>
                     }
                 />
 
                 {/* 로그아웃 */}
-                <Route path="/logout" element={<Logout />} />
+                <Route path="/logout" element={<Logout/>}/>
 
                 {/* 일반 회원 전용 페이지 */}
                 <Route
@@ -134,11 +231,12 @@ const App = () => {
                         <ProtectedRoute requiredRole="ROLE_USER">
                             <PublicLayout>
                                 <Routes>
-                                    <Route path="mypage" element={<MyPage />} />
-                                    <Route path="cart" element={<Cart />} />
-                                    <Route path="orders" element={<OrderHistory />} />
-                                    <Route path="order" element={<Order />} />
-                                    {/*<Route path="checkout" element={<Checkout />} />*/}
+                                    <Route path="mypage" element={<MyPage/>}/>
+                                    <Route path="cart" element={<Cart/>}/>
+                                    <Route path="orders" element={<OrderHistory/>}/>
+                                    <Route path="order" element={<Order/>}/>
+                                    <Route path="order/complete" element={<OrderComplete/>}/>
+                                    <Route path="checkout" element={<Checkout />} />
                                 </Routes>
                             </PublicLayout>
                         </ProtectedRoute>
@@ -146,24 +244,43 @@ const App = () => {
                 />
 
                 {/* 기업 회원 전용 페이지 */}
-                <Route
-                    path="/company/*"
+                <Route path="/enterprise/login" element={<EnterpriseLogin />} />
+                <Route path="/enterprise/signup" element={<EnterpriseSignUp />} />
+                    <Route
+                        path="/enterprise/*"
                     element={
-                        <ProtectedRoute requiredRole="ROLE_COMPANY">
-                            <PublicLayout>
-                                <Routes>
-                                    <Route path="/" element={<EnterpriseMain />} />
-                                    <Route path="dashboard" element={<EnterpriseMain />} />
-                                    <Route path="product/register" element={<ProductRegister />} />
-                                    <Route path="products" element={<ProductManagement />} />
-                                </Routes>
-                            </PublicLayout>
-                        </ProtectedRoute>
+                        <EnterpriseLayout>
+                            <Routes>
+                                <Route path="/" element={<EnterpriseMain />} />
+                                <Route path="dashboard" element={<EnterpriseMain />} />
+                                <Route path="product/register" element={<ProductRegister />} />
+                                <Route path="product/manage" element={<ProductManagement />} />
+                                <Route path="orders" element={<OrderManagement />} />
+                            </Routes>
+                        </EnterpriseLayout>
+                    }
+                />
+
+                {/*/!* 소셜 로그인 콜백 라우트 *!/*/}
+                {/*<Route*/}
+                {/*    path="/oauth2/redirect"*/}
+                {/*    element={<OAuth2Redirect/>}*/}
+                {/*/>*/}
+
+                <Route
+                    path="/admin/*"
+                    element={
+                        <AdminLayout>
+                            <Routes>
+                                <Route path="/qna" element={<AdminQnAManagement />} />
+                                <Route path="/qna/:id/response" element={<AdminQnAResponse />} />
+                            </Routes>
+                        </AdminLayout>
                     }
                 />
 
                 {/* 404 및 리다이렉트 */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Navigate to="/" replace/>}/>
             </Routes>
         </AuthProvider>
     );

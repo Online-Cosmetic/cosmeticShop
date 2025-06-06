@@ -8,23 +8,53 @@ export default function EnterpiseHeader() {
 
     const handleLogout = async () => {
         try {
+            // AuthContext의 logout 함수 사용 (직접 API 호출 대신)
             await logout();
-            navigate("/enterprise/overview");
+            // navigate는 logout 함수 내에서 처리됨
         } catch (error) {
-            console.error("Logout failed:", error);
+            console.error("로그아웃 실패:", error);
+            // 오류가 발생해도 로컬 스토리지는 정리
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            navigate("/enterpriseLogin");
         }
     };
 
+    // 기업 회원 확인 및 리다이렉트
+    React.useEffect(() => {
+        if (isAuthenticated && user?.role !== 'ROLE_COMPANY') {
+            // 일반 회원이 기업 페이지에 접근하면 홈페이지로 리다이렉트
+            navigate('/');
+        }
+    }, [isAuthenticated, user, navigate]);
+
     return (
-        <header className="w-full border-b border-gray-300">
-            <div className="max-w-screen-xl px-12 py-4 flex items-center justify-between ">
-                <Link to="/enterprise/overview" className="text-2xl text-black">
+        <header className="w-full border-b border-neutral-200">
+            <div className="max-w-screen-xl px-12 py-4 flex items-center justify-between">
+                <Link to="/company/dashboard" className="text-2xl text-black">
                     cosMall Enterprise
                 </Link>
-                {isAuthenticated && (
-                    <span className="text-gray-600">
-                            Welcome, {user?.name || "Customer"}
+                {isAuthenticated && user?.role === 'ROLE_COMPANY' ? (
+                    <div className="flex items-center space-x-4">
+                        <span className="text-gray-600">
+                            환영합니다, {user.username || user.userId}님
                         </span>
+                        <button
+                            onClick={handleLogout}
+                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                        >
+                            로그아웃
+                        </button>
+                    </div>
+                ) : (
+                    <Link
+                        to="/enterpriseLogin"
+                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
+                    >
+                        로그인
+                    </Link>
                 )}
             </div>
         </header>

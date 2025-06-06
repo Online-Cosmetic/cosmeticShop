@@ -1,24 +1,24 @@
 // src/components/enterprise/EnterpriseSidebar.jsx
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext.jsx';
-import {Link, useLocation} from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export default function EnterpriseSidebar() {
     const { user } = useAuth();
     const { pathname } = useLocation();
 
     const menuItems = [
-        { label: "Overview", path: "/enterprise/overview" },
+        { label: "Overview", path: "/enterprise/dashboard" },
         { label: "Register Product", path: "/enterprise/product/register" },
-        { label: "Manage Products", path: "/enterprise/products/manage" },
+        { label: "Manage Products", path: "/enterprise/product/manage" },
         { label: "Order & Delivery", path: "/enterprise/orders" },
-        { label: "My Page", path: "/enterprise/profile" },
+        { label: "My Page", path: "/enterprise/profile" }
     ];
 
     if (user?.role !== 'ROLE_COMPANY') return null;
 
     return (
-        <div className="w-60 min-h-screen bg-white border-r px-6 py-8 flex flex-col gap-4">
+        <div className="min-w-[200px] max-w-[240px] w-full md:w-60 bg-white px-6 py-8 flex flex-col gap-4">
             {menuItems.map((item) => (
                 <Link
                     key={item.path}
@@ -33,10 +33,3 @@ export default function EnterpriseSidebar() {
         </div>
     );
 }
-
-
-// <li>
-//     <NavLink to="/company/product/register" className="hover:underline">
-//         상품 등록
-//     </NavLink>
-// </li>

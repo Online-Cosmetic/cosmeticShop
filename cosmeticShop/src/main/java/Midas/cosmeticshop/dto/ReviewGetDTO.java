@@ -16,7 +16,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReviewDTO {
+public class ReviewGetDTO {
 
     private Long id;
     private User user;
@@ -24,20 +24,26 @@ public class ReviewDTO {
     private String content;
     private int rating;
     private int liked;
-    private int disliked;
+    //private int disliked;
     private LocalDateTime createdAt;
     private LocalDateTime revisedAt;
     private List<ReviewImage> reviewImages;
+    private boolean isLiked;
 
-    public ReviewDTO (Review review) {
+    public ReviewGetDTO(Review review, boolean isLiked) {
         this.id = review.getId();
         this.user = review.getUser();
         this.product = review.getProduct();
         this.content = review.getContent();
         this.rating = review.getRating();
         this.liked = review.getLiked();
-        this.disliked = review.getDisliked();
+        //this.disliked = review.getDisliked();
         this.createdAt = review.getCreatedAt();
         this.reviewImages = review.getReviewImages();
+        this.isLiked = isLiked;
+    }
+
+    public boolean isLiked() {
+        return isLiked;
     }
 }

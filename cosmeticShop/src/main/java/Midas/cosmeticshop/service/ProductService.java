@@ -1,17 +1,14 @@
 package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
-import Midas.cosmeticshop.dto.product.ProductDTO;
-import Midas.cosmeticshop.dto.product.ProductImageDTO;
-import Midas.cosmeticshop.dto.product.ProductImageItemDTO;
-import Midas.cosmeticshop.dto.product.ProductUpdateDTO;
+import Midas.cosmeticshop.dto.product.*;
 import Midas.cosmeticshop.entity.product.Product;
 import Midas.cosmeticshop.entity.product.ProductImage;
 import Midas.cosmeticshop.entity.product.ThumbnailImage;
 import Midas.cosmeticshop.jwt.JWTUtil;
 import Midas.cosmeticshop.repository.ProductImageRepository;
 import Midas.cosmeticshop.repository.ProductRepository;
-import Midas.cosmeticshop.repository.ThumnailImageRepository;
+import Midas.cosmeticshop.repository.ThumbnailImageRepository;
 import Midas.cosmeticshop.repository.user.CompanyRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 
 @Service
@@ -30,7 +26,7 @@ import java.util.Optional;
 @Transactional
 public class ProductService {
 
-    private final ThumnailImageRepository thumnailImageRepository;
+    private final ThumbnailImageRepository thumnailImageRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductRepository productRepository;
     private final CompanyRepository companyRepository;
@@ -55,14 +51,18 @@ public class ProductService {
         // dto 기반으로 엔티티 생성
         Product product = Product.from(dto, companyRepository.findByUserId(userId));
 
+        // 상품 저장 (Cascade 옵션을 이용하면 연관 이미지들도 함께 저장)
+        productRepository.save(product);
 
         // 메인 이미지 저장 후 URL 세팅
-        ThumbnailImage thumbnailImage = null;
+        ThumbnailImage thumbnailImage;
         if (mainImage != null && !mainImage.isEmpty()) {
             String mainImageUrl = fileStorageService.storeFile(mainImage);
-            thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(product.getId(), mainImageUrl), product);
+            thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(product.getId(), mainImageUrl));
             product.setThumbnailImage(thumbnailImage);
         }
+
+        thumnailImageRepository.save(Objects.requireNonNull(product.getThumbnailImage()));
 
         List<ProductImage> productImages = new ArrayList<>();
         if (additionalImages != null) {
@@ -77,9 +77,6 @@ public class ProductService {
             }
         }
         product.getProductImages().addAll(productImages);
-
-        // 상품 저장 (Cascade 옵션을 이용하면 연관 이미지들도 함께 저장)
-        productRepository.save(product);
         productImageRepository.saveAll(Objects.requireNonNull(product.getProductImages()));
     }
 
@@ -106,7 +103,7 @@ public class ProductService {
     /* 상품 정보 수정 */
     @Transactional // dirty checking
     public void replaceProduct(String accessToken, Long productId,
-                               ProductUpdateDTO dto, MultipartFile[] newImages) {
+                               ProductUpdateDTO dto, MultipartFile newImage) {
         // 1. 권한 검증 (COMPANY)
         String role = jwtUtil.getRole(accessToken);
         if (!"ROLE_COMPANY".equals(role)) throw new IllegalArgumentException("권한이 없습니다.");
@@ -118,40 +115,39 @@ public class ProductService {
         // 3. 필드 전체 교체
         product.modifyFields(dto);
 
-        // 4. 이미지 전부 삭제 (orphanRemoval + 파일 삭제)
+        // 4. 썸네일 이미지 삭제
         if (product.getThumbnailImage() != null) {
             fileStorageService.deleteFile(product.getThumbnailImage().getImageUrl());
             product.setThumbnailImage(null);
         }
-        for (ProductImage img : new ArrayList<>(product.getProductImages())) {
-            fileStorageService.deleteFile(img.getImageUrl());
-            product.getProductImages().remove(img);
-        }
 
-        // 5. 새 이미지 저장 & 연관 설정
-        if (newImages != null) {
+        // 나머지 이미지 삭제
+//        for (ProductImage img : new ArrayList<>(product.getProductImages())) {
+//            fileStorageService.deleteFile(img.getImageUrl());
+//            product.getProductImages().remove(img);
+//        }
+
+        // 5. 새 썸네일 이미지 저장 & 연관 설정
+        if (newImage != null) {
             // 메인 이미지 저장 후 URL 세팅
-            String mainImage = fileStorageService.storeFile(newImages[0]);
-            ThumbnailImage thumbnailImage = ThumbnailImage.builder()
-                .product(product)
-                .imageUrl(mainImage)
-                .build();
+            String mainImage = fileStorageService.storeFile(newImage);
+            ThumbnailImage thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(productId, mainImage));
             product.setThumbnailImage(thumbnailImage);
         }
 
-        if (Objects.requireNonNull(newImages).length > 1) {
-            for (int i = 1; i < newImages.length; i++) {
-                MultipartFile file = newImages[i];
-                if (!file.isEmpty()) {
-                    String url = fileStorageService.storeFile(file);
-                    ProductImage img = new ProductImage();
-                    img.setProduct(product);
-                    img.setImageUrl(url);
-                    product.getProductImages().add(img);
-                }
-            }
-        }
-
+        // 나머지 이미지들 저장
+//        if (Objects.requireNonNull(newImages).length > 1) {
+//            for (int i = 1; i < newImages.length; i++) {
+//                MultipartFile file = newImages[i];
+//                if (!file.isEmpty()) {
+//                    String url = fileStorageService.storeFile(file);
+//                    ProductImage img = new ProductImage();
+//                    img.setProduct(product);
+//                    img.setImageUrl(url);
+//                    product.getProductImages().add(img);
+//                }
+//            }
+//        }
         // 6. 자동으로 변경 내용이 Flush
     }
 
@@ -166,7 +162,7 @@ public class ProductService {
         // 1) DB에서 불러오기
         Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. id=" + productId));
-        // 2) 물리 파일 삭제
+        // 2) 이미지 전체 삭제
         if (product.getThumbnailImage() != null) {
             fileStorageService.deleteFile(product.getThumbnailImage().getImageUrl());
         }
@@ -175,5 +171,50 @@ public class ProductService {
         }
         // 3) 레코드 삭제
         productRepository.delete(product);
+    }
+
+    /* 카테고리에 속하는 상품 조회 */
+    public ProductBatchPreviewResponse getCategorizedProductsPreview(int categoryId) {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findAllByCategoryId(categoryId);
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 찜하기 수 많은 상품 조회 */
+    public ProductBatchPreviewResponse getPopularProductsPreview() {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findAllByOrderByLikedDesc();
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 최신순 상품 조회 */
+    public ProductBatchPreviewResponse getLatestProductsPreview() {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findAllByOrderByIdDesc();
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
     }
 }
