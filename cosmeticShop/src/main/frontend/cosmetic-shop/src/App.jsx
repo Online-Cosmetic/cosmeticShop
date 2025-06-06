@@ -110,6 +110,21 @@ const AdminLayout = ({children}) => {
     );
 };
 
+// App.jsx에 QueryClient 추가
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// App.jsx에서 QueryClient 설정 수정
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5분 동안 데이터 유효
+      cacheTime: 1000 * 60 * 30, // 30분 동안 캐시 유지
+      refetchOnMount: false,     // 컴포넌트 마운트 시 재요청 안 함
+      refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 안 함
+    },
+  },
+});
+
 const App = () => {
     const navigate = useNavigate();
 
@@ -121,7 +136,8 @@ const App = () => {
     }, [navigate]);
 
     return (
-        <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
             <Routes>
                 {/* 공개 페이지 - 비로그인 사용자도 접근 가능 */}
                 <Route
@@ -282,7 +298,8 @@ const App = () => {
                 {/* 404 및 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace/>}/>
             </Routes>
-        </AuthProvider>
+      </AuthProvider>
+    </QueryClientProvider>
     );
 };
 

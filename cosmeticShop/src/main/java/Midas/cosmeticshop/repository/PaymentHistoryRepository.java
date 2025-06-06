@@ -50,7 +50,7 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
     List<Object[]> findTop5ProductsByCompany(@Param("companyName") String companyName);
 
     @Query(value = """
-    SELECT p.id, p.imp_uid, p.merchant_uid, p.amount, 
+    SELECT DISTINCT p.id, p.imp_uid, p.merchant_uid, p.amount, 
            p.payment_method, p.status, p.buyer_name, 
            p.buyer_email, p.created_at, o.id as order_id
     FROM payment_history p
