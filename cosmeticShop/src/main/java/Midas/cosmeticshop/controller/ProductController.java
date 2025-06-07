@@ -2,9 +2,9 @@ package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.product.*;
-import Midas.cosmeticshop.entity.product.Product;
 import Midas.cosmeticshop.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -38,17 +38,6 @@ public class ProductController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    /* 상품 수정 */
-    @PutMapping("/{productId}")
-    public ResponseEntity<Void> replaceProduct(
-        @RequestHeader(value = "Authorization", required = false) String accessToken,
-        @PathVariable Long productId,
-        @ModelAttribute ProductUpdateDTO dto, // MultipartFile 을 받기 위해 @ModelAttribute 필요
-        @RequestParam(value = "newImage", required = false) MultipartFile newImage
-    ) {
-        productService.replaceProduct(accessToken, productId, dto, newImage);
-        return ResponseEntity.noContent().build();
-    }
 
     /* 상품 삭제 */
     @DeleteMapping("/{productId}")
@@ -78,5 +67,39 @@ public class ProductController {
     public ResponseEntity<ProductBatchPreviewResponse> latestProducts() {
         ProductBatchPreviewResponse response = productService.getLatestProductsPreview();
         return ResponseEntity.ok(response);
+    }
+
+    /* 기업 회원의 상품 목록 조회 */
+    @GetMapping("/company/{companyId}")
+    public ResponseEntity<Page<ProductListDTO>> getCompanyProducts(
+        @PathVariable Long companyId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size);
+        return ResponseEntity.ok(products);
+    }
+
+    /* 상품 수정 */
+    @PutMapping("/{productId}")
+    public ResponseEntity<Void> replaceProduct(
+        @AuthenticationPrincipal BaseUserDetails userDetails,
+        @PathVariable Long productId,
+        @RequestBody ProductUpdateDTO dto // @ModelAttribute에서 @RequestBody로 변경
+    ) {
+        productService.replaceProduct(userDetails, productId, dto, null); // 이미지는 null로 설정
+        return ResponseEntity.noContent().build();
+    }
+
+    /* 상품 이미지 교체 */
+    @PutMapping("/{productId}/images")
+    public ResponseEntity<Void> updateProductImages(
+        @AuthenticationPrincipal BaseUserDetails userDetails,
+        @PathVariable Long productId,
+        @RequestParam(value = "mainImage", required = false) MultipartFile mainImage,
+        @RequestParam(value = "additionalImages", required = false) MultipartFile[] additionalImages
+    ) {
+        productService.updateProductImages(userDetails, productId, mainImage, additionalImages);
+        return ResponseEntity.noContent().build();
     }
 }

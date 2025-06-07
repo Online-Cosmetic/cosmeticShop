@@ -1,6 +1,8 @@
 package Midas.cosmeticshop.repository;
 
 import Midas.cosmeticshop.entity.product.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -14,4 +16,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findAllByCategoryId(int categoryId);
     List<Product> findAllByOrderByLikedDesc();
     List<Product> findAllByOrderByIdDesc();
+
+    List<Product> findByCompanyId(Long companyId);
+    // 무한 스크롤을 위한 페이징 메소드 추가
+    Page<Product> findByCompanyId(Long companyId, Pageable pageable);
 }

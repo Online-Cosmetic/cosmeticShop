@@ -64,7 +64,7 @@ function ProductCard({
           className="w-16 h-16 object-cover rounded"
           onError={(e) => {
             console.error("이미지 로드 실패");
-            e.target.src = "https://via.placeholder.com/300x200.png?text=No+Image";
+            e.target.src = "https://placehold.co/600x400";
           }}
         />
       </div>

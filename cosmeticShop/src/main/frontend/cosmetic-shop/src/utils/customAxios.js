@@ -295,10 +295,24 @@ export const companyAPI = {
     },
 
     product: {
-        getProducts: () => customAxios.get('/api/company/products'),
-        addProduct: (data) => customAxios.post('/api/company/products', data),
-        updateProduct: (productId, data) => customAxios.put(`/api/company/products/${productId}`, data),
-        deleteProduct: (productId) => customAxios.delete(`/api/company/products/${productId}`),
+        // 회사 제품 목록 조회 (페이징)
+        getProducts: (page = 0, size = 10) =>
+            customAxios.get(`/api/company/products`, { params: { page, size }}),
+        // 상품 정보 업데이트 (JSON)
+        updateProduct: (productId, data) => {
+            return customAxios.put(`/api/products/${productId}`, data);
+        },
+        // 상품 이미지 업데이트 (FormData)
+        updateProductImages: (productId, formData) => {
+            return customAxios.put(`/api/products/${productId}/images`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+        },
+        // 제품 삭제
+        deleteProduct: (productId) =>
+            customAxios.delete(`/api/products/${productId}`),
 
         // 새로 추가하는 API 함수들
         getWeeklySalesData: (companyName) => customAxios.get(`/api/payments/statistics/weekly/${companyName}`),

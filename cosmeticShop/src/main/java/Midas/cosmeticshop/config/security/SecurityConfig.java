@@ -149,7 +149,8 @@ public class SecurityConfig {
             ).permitAll()
 
             .requestMatchers(
-                HttpMethod.POST, "/api/products"
+                HttpMethod.POST, "/api/products",
+                "/api/company/**"
             ).hasRole("COMPANY")
 
             // HTML 페이지

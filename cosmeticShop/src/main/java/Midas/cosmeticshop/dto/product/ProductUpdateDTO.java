@@ -8,8 +8,8 @@ import java.util.List;
 @Setter
 @Getter
 public class ProductUpdateDTO {
-    private int categoryId;
     private String productName;
+    private int categoryId;
     private String description;
     private int price;
     private int discountRate;
