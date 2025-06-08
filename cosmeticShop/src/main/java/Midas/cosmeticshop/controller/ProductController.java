@@ -1,0 +1,105 @@
+package Midas.cosmeticshop.controller;
+
+import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.dto.product.*;
+import Midas.cosmeticshop.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+@RestController
+@RequestMapping("/api/products")
+@RequiredArgsConstructor
+public class ProductController {
+
+    private final ProductService productService;
+
+    /* 상품 등록 */
+    @PostMapping("")
+    public ResponseEntity<?> registerProduct(
+        @AuthenticationPrincipal BaseUserDetails userDetails,
+        @ModelAttribute ProductDTO productDTO,
+        @RequestParam("mainImage") MultipartFile mainImage,
+        @RequestParam(value = "additionalImages", required=false) MultipartFile[] additionalImages
+    ) {
+        productService.registerProduct(userDetails, productDTO, mainImage, additionalImages);
+        return ResponseEntity.ok().build();
+    }
+
+    /* 상품 상세 조회  */
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductDetailResponseDTO> getProductDetail(@PathVariable Long productId) {
+        ProductDTO dto = productService.getProductInfo(productId);
+        ProductImageDTO imageDTO = productService.getProductImages(productId);
+        ProductDetailResponseDTO responseDTO = new ProductDetailResponseDTO(dto, imageDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+
+    /* 상품 삭제 */
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> deleteProduct(
+        @RequestHeader(value = "Authorization", required = false) String accessToken,
+        @PathVariable Long productId) {
+        productService.deleteProduct(accessToken, productId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /* 카테고리별 상품 조회 */
+    @GetMapping("/batch/{categoryId}")
+    public ResponseEntity<ProductBatchPreviewResponse> categorizedProducts(@PathVariable int categoryId) {
+        ProductBatchPreviewResponse response = productService.getCategorizedProductsPreview(categoryId);
+        return ResponseEntity.ok(response);
+    }
+
+    /* 카테고리 무관 인기순 조회 : liked */
+    @GetMapping("/batch/popular")
+    public ResponseEntity<ProductBatchPreviewResponse> popularProducts() {
+        ProductBatchPreviewResponse response = productService.getPopularProductsPreview();
+        return ResponseEntity.ok(response);
+    }
+
+    /* 카테고리 무관 최신순 조회 */
+    @GetMapping("/batch/latest")
+    public ResponseEntity<ProductBatchPreviewResponse> latestProducts() {
+        ProductBatchPreviewResponse response = productService.getLatestProductsPreview();
+        return ResponseEntity.ok(response);
+    }
+
+    /* 기업 회원의 상품 목록 조회 */
+    @GetMapping("/company/{companyId}")
+    public ResponseEntity<Page<ProductListDTO>> getCompanyProducts(
+        @PathVariable Long companyId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size);
+        return ResponseEntity.ok(products);
+    }
+
+    /* 상품 수정 */
+    @PutMapping("/{productId}")
+    public ResponseEntity<Void> replaceProduct(
+        @AuthenticationPrincipal BaseUserDetails userDetails,
+        @PathVariable Long productId,
+        @RequestBody ProductUpdateDTO dto // @ModelAttribute에서 @RequestBody로 변경
+    ) {
+        productService.replaceProduct(userDetails, productId, dto, null); // 이미지는 null로 설정
+        return ResponseEntity.noContent().build();
+    }
+
+    /* 상품 이미지 교체 */
+    @PutMapping("/{productId}/images")
+    public ResponseEntity<Void> updateProductImages(
+        @AuthenticationPrincipal BaseUserDetails userDetails,
+        @PathVariable Long productId,
+        @RequestParam(value = "mainImage", required = false) MultipartFile mainImage,
+        @RequestParam(value = "additionalImages", required = false) MultipartFile[] additionalImages
+    ) {
+        productService.updateProductImages(userDetails, productId, mainImage, additionalImages);
+        return ResponseEntity.noContent().build();
+    }
+}

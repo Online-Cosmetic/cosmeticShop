@@ -8,12 +8,14 @@ export default function EnterpriseSidebar() {
     const { pathname } = useLocation();
 
     const menuItems = [
-        { label: "Overview", path: "/company/dashboard" },
-        { label: "Register Product", path: "/company/product/register" },
-        { label: "Manage Products", path: "/company/product/manage" },
-        { label: "Order & Delivery", path: "/company/orders" },
-        { label: "My Page", path: "/company/profile" }               // 아직 라우팅 안 되어 있음
+        { label: "Overview", path: "/enterprise/dashboard" },
+        { label: "Register Product", path: "/enterprise/product/register" },
+        { label: "Manage Products", path: "/enterprise/product/manage" },
+        { label: "Order & Delivery", path: "/enterprise/orders" },
+        { label: "My Page", path: "/enterprise/profile" }
     ];
+
+    if (user?.role !== 'ROLE_COMPANY') return null;
 
     return (
         <div className="min-w-[200px] max-w-[240px] w-full md:w-60 bg-white px-6 py-8 flex flex-col gap-4">

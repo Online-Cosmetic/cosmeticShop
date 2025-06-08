@@ -49,14 +49,14 @@ export default function OrderHistory() {
                                 >
                                     <div className="flex items-center space-x-4">
                                         <img
-                                            src={item.imageUrl}
+                                            src={item.mainImageUrl}
                                             alt={item.productName}
                                             className="w-24 h-24 object-cover rounded"
                                         />
                                         <div>
                                             <div className="font-bold">{item.brand}</div>
-                                            <div>{item.productName}</div>
-                                            <div>{item.price}</div>
+                                            <div>상품명: {item.productName}</div>
+                                            <div>금액: {item.price}</div>
                                         </div>
                                     </div>
                                     <div className="mt-4 md:mt-0 flex flex-col space-y-2">

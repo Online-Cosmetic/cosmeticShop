@@ -2,148 +2,95 @@
 import React from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {useAuth} from "../../contexts/AuthContext.jsx";
+import {authAPI} from "../../utils/customAxios.js";
 
 export default function UserHeader() {
-    const {user, logout} = useAuth();
+    const {user} = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        await logout();
-        navigate('/login');
+        try {
+            await authAPI.logout();
+            // 로컬 스토리지 정리
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            // 로그인 페이지로 이동
+            navigate('/login');
+        } catch (error) {
+            console.error("로그아웃 실패:", error);
+        }
     };
 
-    const renderUserMenu = () => {
-        if (!user) return null;
+    // 상단 메뉴 렌더링 (로그인/비로그인 상태에 따라 다른 메뉴 표시)
+    const renderTopMenu = () => {
+        if (user) {
+            if (user.role === "ROLE_COMPANY") {
+                // 기업 회원이 일반 페이지에 접근하면 기업 대시보드로 리다이렉트
+                navigate('/enterprise/dashboard');
+                return null;
+            }
 
-        if (user.role === 'ROLE_USER') {
+            // 로그인 상태일 때 표시할 메뉴
             return (
-                <nav className="">
-                    <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
-                        <Link
-                            to="/user/mypage"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-user mr-1"></i> My Page
-                        </Link>
-                        <Link
-                            to="/user/cart"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-shopping-cart mr-1"></i> Cart
-                        </Link>
-                        <Link to="/qna"
-                              className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-user mr-1"></i> Q&A
-                        </Link>
-                    </div>
-                </nav>
+                <div className="flex items-center space-x-6">
+                    <Link to="/user/mypage" className="text-gray-700 hover:text-emerald-600">
+                        My Page
+                    </Link>
+                    <Link to="/user/cart" className="text-gray-700 hover:text-emerald-600">
+                        Cart
+                    </Link>
+                    <Link to="/qna" className="text-gray-700 hover:text-emerald-600">
+                        Q&A
+                    </Link>
+                    <span className="text-gray-700">Hello, {user.userId}</span>
+                    <button
+                        onClick={handleLogout}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                    >
+                        Logout
+                    </button>
+                </div>
+            );
+        } else {
+            // 비로그인 상태일 때 표시할 메뉴
+            return (
+                <div className="flex items-center space-x-6">
+                    <Link to="/login" className="text-gray-700 hover:text-emerald-600">
+                        Login
+                    </Link>
+                    <Link to="/signup" className="text-gray-700 hover:text-emerald-600">
+                        Sign Up
+                    </Link>
+                    <Link to="/qna" className="text-gray-700 hover:text-emerald-600">
+                        Q&A
+                    </Link>
+                    <Link
+                        to="/enterprise/login"
+                        className="px-4 py-2 border border-gray-700 text-gray-700 rounded-lg hover:text-emerald-600 transition"
+                    >
+                        Business Login
+                    </Link>
+                </div>
             );
         }
-
-        if (user.role === "ROLE_COMPANY") {
-            return (
-                <nav className="">
-                    <div className="flex justify-end space-x-10 py-2 pr-6 text-gray-500">
-                        <Link
-                            to="/company/dashboard"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-tachometer-alt mr-1"></i> Dashboard
-                        </Link>
-                        <Link
-                            to="/company/product/register"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-plus-circle mr-1"></i> Add Product
-                        </Link>
-                        <Link
-                            to="/company/products"
-                            className="text-gray-700 hover:text-emerald-600"
-                        >
-                            <i className="fas fa-box mr-1"></i> Products
-                        </Link>
-                    </div>
-                </nav>
-            );
-        }
-
-        return null;
     };
 
     return (
         <header className="w-full bg-white shadow-md">
-            <div className="container mx-auto items-center justify-between">
-                {/* 첫째줄 */}
-                <div className="flex items-center justify-end border-b py-2">
-                    {/* 사용자 상태별 메뉴 */}
-                    <div className="flex  space-x-6">
-                        {renderUserMenu()}
-                        <div className="flex items-center space-x-4">
-                            {user ? (
-                                <>
-                                    <span className="text-gray-700">Hello, {user.username}</span>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                                    >
-                                        Logout
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <Link
-                                        to="/login"
-                                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
-                                    >
-                                        Login
-                                    </Link>
-                                    <Link
-                                        to="/signup"
-                                        className="px-4 py-2 border border-emerald-500 text-emerald-500 rounded-lg hover:bg-emerald-50 transition"
-                                    >
-                                        Sign Up
-                                    </Link>
-                                    <Link
-                                        to="/enterpriseLogin"
-                                        className="px-4 py-2 border border-gray-700 text-gray-700 rounded-lg hover:text-emerald-600 transition"
-                                    >
-                                        Business Login
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* 둘째줄 */}
-                <div className="flex border-b px-4 py-4">
-                    {/* 로고 */}
-                    <Link to="/" className="text-2xl font-bold text-gray-800">
-                        CosMall
-                    </Link>
-                    {/* Search box
-                    <div className="mx-auto relative w-[600px] h-[40px]">
-                        <div className="absolute inset-0 bg-zinc-100 rounded-[5px]" />
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            className="absolute inset-0 pl-4 pr-12 py-4 bg-transparent text-xl text-neutral-400 font-['Inter'] focus:outline-none"
-                        />
-                        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6">
-                            <div className="w-5 h-5 border-[3px] border-neutral-400 rounded-full mx-auto" />
-                            <div
-                                className="absolute w-3 h-1 bg-neutral-400 rounded-[10px] border border-neutral-400"
-                                style={{ top: "14px", left: "16.85px", transform: "rotate(45.39deg)" }}
-                            />
-                        </div>
-                    </div> */}
-
-                </div>
+            <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+                {/* 로고 */}
+                <Link to="/" className="text-2xl font-bold text-gray-800">
+                    CosMall
+                </Link>
 
                 {/* 기본 내비게이션 메뉴 */}
-                <nav className="border-b border-gray-300 py-2">
+                <nav className="border-b border-gray-300">
                     <div className="flex justify-center space-x-10 py-2 text-xl">
+                        <Link to="/" className="hover:text-emerald-600">
+                            Home
+                        </Link>
                         <Link to="/products/all" className="hover:text-emerald-600">
                             Products
                         </Link>
@@ -162,6 +109,10 @@ export default function UserHeader() {
                     </div>
                 </nav>
 
+                {/* 사용자 상태별 메뉴 */}
+                <div className="flex items-center space-x-6">
+                    {renderTopMenu()}
+                </div>
             </div>
         </header>
     );

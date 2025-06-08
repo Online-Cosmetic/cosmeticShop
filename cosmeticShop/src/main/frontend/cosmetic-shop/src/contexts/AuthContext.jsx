@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../utils/customAxios';
+import React, {createContext, useContext, useState, useEffect} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {authAPI} from '../utils/customAxios';
 
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({children}) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -45,14 +45,16 @@ export const AuthProvider = ({ children }) => {
     // 로그인
     const login = async (credentials) => {
         try {
+            setLoading(true);
+            // AJAX 요청임을 명시하는 헤더 추가 (리다이렉트 방지)
             const response = await authAPI.login(credentials);
-            const { userId, role, accessToken, email, username } = response.data;
+            const {userId, role, accessToken, email, username} = response.data;
 
             if (response.data.errorMessage) {
                 throw new Error(response.data.errorMessage);
             }
 
-            const userData = { userId, role, email, username };
+            const userData = {userId, role, email, username};
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('user', JSON.stringify(userData));
             localStorage.setItem('userEmail', email);
@@ -63,7 +65,7 @@ export const AuthProvider = ({ children }) => {
             if (role === 'ROLE_USER') {
                 navigate('/user/mypage');
             } else if (role === 'ROLE_COMPANY') {
-                navigate('/company/dashboard');
+                navigate('/enterprise/dashboard');
             } else {
                 navigate('/');
             }
@@ -76,22 +78,41 @@ export const AuthProvider = ({ children }) => {
             console.error('Login failed:', error);
             setError(error.response?.data?.message || '로그인에 실패했습니다.');
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
-    // 로그아웃
+    // 로그아웃 처리를 위한 헬퍼 함수 (모든 로그아웃 상황에서 공통으로 사용)
+    const performLocalLogout = () => {
+        setUser(null);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userName');
+    };
+
+    // 로그아웃 함수
     const logout = async () => {
+        // 현재 사용자 역할 저장 (리다이렉트에 사용)
+        const currentRole = user?.role;
+
+        // 로컬 스토리지 정리 (먼저 수행)
+        performLocalLogout();
+
         try {
+            // API 호출 (성공 여부와 관계없이 사용자는 이미 로그아웃됨)
             await authAPI.logout();
-            setUser(null);
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('user');
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('userName');
-            navigate('/login');
         } catch (error) {
-            console.error('Logout failed:', error);
-            throw error;
+            console.error('백엔드 로그아웃 API 호출 실패:', error);
+            // 실패해도 프론트엔드에서는 이미 로그아웃 처리됨
+        } finally {
+            // 사용자 역할에 따른 리다이렉트
+            if (currentRole === 'ROLE_COMPANY') {
+                navigate('/enterpriseLogin');
+            } else {
+                navigate('/login');
+            }
         }
     };
 
@@ -102,7 +123,7 @@ export const AuthProvider = ({ children }) => {
             setError(null);
             const response = await authAPI.signup.user(userData);
             navigate('/login', {
-                state: { message: '회원가입이 완료되었습니다. 로그인해주세요.' }
+                state: {message: '회원가입이 완료되었습니다. 로그인해주세요.'}
             });
             return response.data;
         } catch (err) {
@@ -120,8 +141,9 @@ export const AuthProvider = ({ children }) => {
             setLoading(true);
             setError(null);
             const response = await authAPI.signup.company(companyData);
-            navigate('/login', {
-                state: { message: '회원가입이 완료되었습니다. 로그인해주세요.' }
+            // 리다이렉트 경로 수정 - 기업용 로그인 페이지로 이동
+            navigate('/enterpriseLogin', {
+                state: {message: '회원가입이 완료되었습니다. 로그인해주세요.'}
             });
             return response.data;
         } catch (err) {

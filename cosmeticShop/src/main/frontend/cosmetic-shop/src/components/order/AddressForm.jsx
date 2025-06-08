@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from "react";
-import {userAPI} from "../../utils/customAxios";
+import React, { useEffect, useState } from "react";
+import { userAPI } from "../../utils/customAxios";
 
-function AddressForm({onNewAddress}) {
-    const [form, setForm] = useState({city: "", street: "", detail: ""});
+function AddressForm({ onNewAddress }) {
+    const [form, setForm] = useState({ city: "", street: "", detail: "" });
     const [showDropdown, setShowDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -45,12 +45,12 @@ function AddressForm({onNewAddress}) {
 
         try {
             setLoading(true);
-            const {data} = await userAPI.addresses.add(form);
+            const { data } = await userAPI.addresses.add(form);
             if (onNewAddress) {
                 onNewAddress(data);
             }
             // 저장 후 폼 초기화
-            setForm({city: "", street: "", detail: ""});
+            setForm({ city: "", street: "", detail: "" });
             alert("주소가 저장되었습니다.");
         } catch (e) {
             console.error(e);
@@ -73,10 +73,10 @@ function AddressForm({onNewAddress}) {
                             disabled={loadingAddresses}
                             className="w-40 px-4 py-1.5 border border-neutral-400 rounded-xl text-semibold text-neutral-600"
                         >
-                          <span className="flex justify-between w-full">
-                            <span>{loadingAddresses ? "Loading..." : "My Address"}</span>
-                            <span>▼</span>
-                          </span>
+                            <span className="flex justify-between w-full">
+                                <span>{loadingAddresses ? "Loading..." : "My Address"}</span>
+                                <span>▼</span>
+                            </span>
                         </button>
 
                         {showDropdown && (
@@ -109,14 +109,14 @@ function AddressForm({onNewAddress}) {
                     type="text"
                     placeholder="City"
                     value={form.city}
-                    onChange={(e) => setForm({...form, city: e.target.value})}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
                     className="w-full border px-4 py-2 rounded basis-1/2"
                 />
                 <input
                     type="text"
                     placeholder="Street"
                     value={form.street}
-                    onChange={(e) => setForm({...form, street: e.target.value})}
+                    onChange={(e) => setForm({ ...form, street: e.target.value })}
                     className="w-full border px-4 py-2 rounded basis-1/2"
                 />
             </div>
@@ -124,7 +124,7 @@ function AddressForm({onNewAddress}) {
                 type="text"
                 placeholder="Detail"
                 value={form.detail}
-                onChange={(e) => setForm({...form, detail: e.target.value})}
+                onChange={(e) => setForm({ ...form, detail: e.target.value })}
                 className="w-full border px-4 py-2 rounded"
             />
 
@@ -136,15 +136,14 @@ function AddressForm({onNewAddress}) {
                     onClick={handleSave}
                     disabled={loading}
                     className={`py-2 px-4 text-neutral-600 font-semibold border border-neutral-400 rounded-xl
-                    ${
-                        loading
+                    ${loading
                             ? "bg-gray-400 text-gray-200 cursor-not-allowed"
                             : "bg-neutral-600 text-white hover:bg-neutral-400"
-                    }`}
+                        }`}
                 >
-                  <span className="flex justify-center w-full">
-                    {loading ? "Saving..." : "Save this Address"}
-                  </span>
+                    <span className="flex justify-center w-full">
+                        {loading ? "Saving..." : "Save this Address"}
+                    </span>
                 </button>
             </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { authAPI } from "../../utils/customAxios";
 
 function EnterpriseSignUp() {
     const navigate = useNavigate();
@@ -11,6 +11,8 @@ function EnterpriseSignUp() {
         email: "",
         phoneNumber: ""
     });
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const inputClass =
         "w-full h-10 px-4 bg-slate-50 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400";
@@ -18,23 +20,35 @@ function EnterpriseSignUp() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
+        setError("");
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+
         try {
-            await axios.post("/api/auth/signup/company", {
+            // authAPI 사용 (리다이렉트 방지)
+            await authAPI.signup.company({
                 userId: form.userId,
                 password: form.password,
                 companyName: form.companyName,
                 email: form.email,
                 phoneNumber: form.phoneNumber
             });
-            alert("회원가입이 완료되었습니다.");
+
+            alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
             navigate("/enterpriseLogin");
         } catch (err) {
-            console.error(err);
-            alert("회원가입에 실패했습니다.");
+            console.error("회원가입 오류:", err);
+
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else {
+                setError("회원가입에 실패했습니다. 입력 정보를 확인해주세요.");
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -61,6 +75,7 @@ function EnterpriseSignUp() {
                                 type="text"
                                 placeholder="User ID"
                                 className={inputClass}
+                                required
                             />
                         </div>
 
@@ -75,6 +90,7 @@ function EnterpriseSignUp() {
                                 type="password"
                                 placeholder="At least 8 characters"
                                 className={inputClass}
+                                required
                             />
                         </div>
 
@@ -89,6 +105,7 @@ function EnterpriseSignUp() {
                                 type="text"
                                 placeholder="ex) CosMall Co."
                                 className={inputClass}
+                                required
                             />
                         </div>
 
@@ -103,6 +120,7 @@ function EnterpriseSignUp() {
                                 type="email"
                                 placeholder="example@email.com"
                                 className={inputClass}
+                                required
                             />
                         </div>
 
@@ -117,14 +135,22 @@ function EnterpriseSignUp() {
                                 type="tel"
                                 placeholder="+82 2-123-4567 or 010-1234-5678"
                                 className={inputClass}
+                                required
                             />
                         </div>
+
+                        {error && (
+                            <div className="text-red-500 text-sm text-center">
+                                {error}
+                            </div>
+                        )}
 
                         <button
                             type="submit"
                             className="w-full py-4 bg-emerald-500 text-white text-lg font-medium rounded-xl hover:bg-emerald-600 transition"
+                            disabled={loading}
                         >
-                            Sign Up
+                            {loading ? "처리 중..." : "Sign Up"}
                         </button>
 
                         <div className="text-center mt-4">

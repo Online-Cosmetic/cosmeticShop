@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import customAxios from '../../utils/customAxios.js';
 
 function ProductRegister() {
+    // 로그인 시 저장한 access token을 로컬 스토리지에서 가져옵니다.
     const token = localStorage.getItem('accessToken');
+    // console.log('access token:', token);
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         categoryId: '',

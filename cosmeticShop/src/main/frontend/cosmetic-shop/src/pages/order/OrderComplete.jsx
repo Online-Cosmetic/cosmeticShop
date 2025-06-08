@@ -24,9 +24,9 @@ function OrderComplete() {
         const orderRes = await userAPI.order.getSingleOrderDetail(orderId);
         setOrder(orderRes.data.order);
 
-        if (orderRes.data.order.orderItems && orderRes.data.order.orderItems.length > 0) {
-          orderRes.data.order.orderItems[0].thumbnailUrl = orderRes.data.thumbnailUrl;
-        }
+        // if (orderRes.data.order.orderItems && orderRes.data.order.orderItems.length > 0) {
+        //   orderRes.data.order.orderItems[0].mainImageUrl = orderRes.data.thumbnailUrl;
+        // }
 
         // 결제 정보 조회
         const paymentRes = await userAPI.payment.getPaymentStatus(orderId);
@@ -129,7 +129,7 @@ function OrderComplete() {
             <div key={index} className="flex items-center justify-between py-4 border-b last:border-b-0">
               <div className="flex items-center space-x-4">
                 <img
-                  src={getImageUrl(item.thumbnailUrl)}
+                  src={getImageUrl(item.mainImageUrl)}
                   alt={item.productName}
                   className="w-16 h-16 object-cover rounded"
                 />
