@@ -18,87 +18,87 @@ const customAxios = axios.create({
 
 // 요청 인터셉터에 중복 요청 방지 로직 추가
 customAxios.interceptors.request.use(
-  config => {
-    // // 요청 URL과 파라미터로 고유 키 생성
-    // const requestKey = `${config.url}|${JSON.stringify(config.params || {})}`;
-    //
-    // // 이미 동일한 요청이 진행 중이면 취소
-    // if (pendingRequests.has(requestKey)) {
-    //   console.log('중복 요청 방지:', requestKey);
-    //   return Promise.reject(new Error('중복 요청이 취소되었습니다.'));
-    // }
-    //
-    // // 요청 진행 중 표시
-    // pendingRequests.set(requestKey, true);
-    //
-    // // 응답/에러 후 맵에서 제거하기 위한 cleanup 함수
-    // config.requestKey = requestKey;  // 동일 API 를 n 번 호출하는 현상 금지로직 삭제
-    if (config.url?.includes('/api/auth/reissue')) return config;
-    const token = localStorage.getItem('accessToken');
-    if (token) config.headers['Authorization'] = `Bearer ${token}`;
-    return config;
-  },
-  error => {
-    return Promise.reject(error);
-  }
+    config => {
+        // // 요청 URL과 파라미터로 고유 키 생성
+        // const requestKey = `${config.url}|${JSON.stringify(config.params || {})}`;
+        //
+        // // 이미 동일한 요청이 진행 중이면 취소
+        // if (pendingRequests.has(requestKey)) {
+        //   console.log('중복 요청 방지:', requestKey);
+        //   return Promise.reject(new Error('중복 요청이 취소되었습니다.'));
+        // }
+        //
+        // // 요청 진행 중 표시
+        // pendingRequests.set(requestKey, true);
+        //
+        // // 응답/에러 후 맵에서 제거하기 위한 cleanup 함수
+        // config.requestKey = requestKey;  // 동일 API 를 n 번 호출하는 현상 금지로직 삭제
+        if (config.url?.includes('/api/auth/reissue')) return config;
+        const token = localStorage.getItem('accessToken');
+        if (token) config.headers['Authorization'] = `Bearer ${token}`;
+        return config;
+    },
+    error => {
+        return Promise.reject(error);
+    }
 );
 
 // customAxios.js 파일의 인터셉터 부분
 customAxios.interceptors.response.use(
-  response => {
-    // // 요청 완료 후 맵에서 제거
-    // if (response.config?.requestKey) {
-    //   pendingRequests.delete(response.config.requestKey);
-    // }
-    return response;
-  },
-  async err => {
-    // // 요청 실패 시에도 맵에서 제거
-    // if (err.config?.requestKey) {
-    //   pendingRequests.delete(err.config.requestKey);
-    // }
+    response => {
+        // // 요청 완료 후 맵에서 제거
+        // if (response.config?.requestKey) {
+        //   pendingRequests.delete(response.config.requestKey);
+        // }
+        return response;
+    },
+    async err => {
+        // // 요청 실패 시에도 맵에서 제거
+        // if (err.config?.requestKey) {
+        //   pendingRequests.delete(err.config.requestKey);
+        // }
 
-    // err.config이 존재하는지 확인하는 안전 장치 추가
-    if (!err.config) {
-      console.error('에러 처리 중 config 객체가 없습니다:', err);
-      return Promise.reject(err);
-    }
-    
-    const orig = err.config;
+        // err.config이 존재하는지 확인하는 안전 장치 추가
+        if (!err.config) {
+            console.error('에러 처리 중 config 객체가 없습니다:', err);
+            return Promise.reject(err);
+        }
 
-    // URL이 undefined인지 확인하는 안전 장치 추가
-    if (!orig.url) {
-      console.error('에러 처리 중 URL이 없습니다:', err);
-      return Promise.reject(err);
-    }
+        const orig = err.config;
 
-    /* /api/auth/me 실패에 대해 재발급 로직을 트리거하지 않도록 스킵 */
-    if (orig.url.includes('/api/auth/me')) {
-      return Promise.reject(err);
+        // URL이 undefined인지 확인하는 안전 장치 추가
+        if (!orig.url) {
+            console.error('에러 처리 중 URL이 없습니다:', err);
+            return Promise.reject(err);
+        }
+
+        /* /api/auth/me 실패에 대해 재발급 로직을 트리거하지 않도록 스킵 */
+        if (orig.url.includes('/api/auth/me')) {
+            return Promise.reject(err);
+        }
+
+        if (orig.url.includes('/api/auth/reissue') || orig._retry) {
+            return Promise.reject(err);
+        }
+
+        if (err.response?.status === 401 &&
+            !orig.url.includes('/api/auth/reissue') &&
+            !orig._retry
+        ) {
+            orig._retry = true;
+            try {
+                const { data } = await customAxios.post('/api/auth/reissue', {});
+                localStorage.setItem('accessToken', data.accessToken);
+                orig.headers['Authorization'] = `Bearer ${data.accessToken}`;
+                return customAxios(orig);
+            } catch (refreshErr) {
+                // 인터셉터 안에서 직접 리다이렉트 하지 말고, App 에 이벤트 전달
+                emitter.emit('logout');
+                return Promise.reject(refreshErr);
+            }
+        }
+        return Promise.reject(err);
     }
-    
-    if (orig.url.includes('/api/auth/reissue') || orig._retry) {
-      return Promise.reject(err);
-    }
-    
-    if (err.response?.status === 401 &&
-      !orig.url.includes('/api/auth/reissue') &&
-      !orig._retry
-    ) {
-      orig._retry = true;
-      try {
-        const { data } = await customAxios.post('/api/auth/reissue', {});
-        localStorage.setItem('accessToken', data.accessToken);
-        orig.headers['Authorization'] = `Bearer ${data.accessToken}`;
-        return customAxios(orig);
-      } catch (refreshErr) {
-        // 인터셉터 안에서 직접 리다이렉트 하지 말고, App 에 이벤트 전달
-        emitter.emit('logout');
-        return Promise.reject(refreshErr);
-      }
-    }
-    return Promise.reject(err);
-  }
 );
 
 
@@ -294,6 +294,7 @@ export const companyAPI = {
 
     order: {
         getCompanyOrderItems: (companyName) => customAxios.get(`/api/orders/company/${companyName}`),
+        updateDeliveryStatus: (orderItemId, statusData) => customAxios.patch(`/api/orders/${orderItemId}`, statusData)
     }
 };
 

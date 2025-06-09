@@ -28,8 +28,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.*;
 
 @Service
 @RequiredArgsConstructor
@@ -228,21 +232,17 @@ public class OrderService {
         }
     }
 
-    /* 해당 기업의 상품을 주문상품 내역을 모두 반환 */
+    /* 해당 기업의 상품에 대해 모든 주문상품 내역을 반환 */
     @Transactional(readOnly = true)
     public ResponseEntity<List<PurchasedOrderItemResponse>> getAllOrderItemsByCompany(String companyName) {
         List<OrderItem> orderItems = orderItemRepository.findAllByCompanyName(companyName);
-        List<OrderItemDTO> orderItemDTOs = orderItems.stream()
-            .map(OrderItem::toDTO)
-            .toList();
-
-        Long orderId = orderItems.get(0).getOrder().getId();
         List<PurchasedOrderItemResponse> purchasedOrderItemResponses = new ArrayList<>();
-        for(OrderItemDTO dto : orderItemDTOs) {
+        for(OrderItem item : orderItems) {
+            OrderItemDTO dto = item.toDTO();
+            Long orderId = item.getOrder().getId();
             purchasedOrderItemResponses
                 .add(new PurchasedOrderItemResponse(dto, orderId));
         }
-
         return ResponseEntity.ok(purchasedOrderItemResponses);
     }
 

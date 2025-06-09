@@ -120,12 +120,16 @@ public class SecurityConfig {
                 "/api/products/**"
             ).permitAll()
 
-            // 장바구니/주문/주소 관련 (로그인 필요)
+            // 장바구니/주소 관련 (로그인 필요)
             .requestMatchers(
                 "/api/carts/**",
-                "/api/orders/**",
                 "/api/addresses/**"
             ).hasRole("USER")
+
+            // 주문 관련
+            .requestMatchers(
+                "/api/orders/**"
+            ).hasAnyRole("USER", "COMPANY")
 
             // 프로필 변경 관련
             .requestMatchers(

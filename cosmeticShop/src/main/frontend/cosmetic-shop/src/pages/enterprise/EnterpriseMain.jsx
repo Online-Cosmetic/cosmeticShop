@@ -73,9 +73,17 @@ const EnterpriseMain = () => {
     } = useQuery({
         queryKey: ['weeklySales', companyName],
         queryFn: async () => {
-            const response = await companyAPI.product.getWeeklySalesData(companyName);
-            return response.data;
-        }
+            try {
+                const response = await companyAPI.product.getWeeklySalesData(companyName);
+                console.log("Weekly sales data loaded:", response.data);
+                return response.data;
+            } catch (error) {
+                console.error("Error fetching weekly sales data:", error);
+                throw error;
+            }
+        },
+        retry: 1,
+        staleTime: 60000 // 1 minute
     });
 
     // 2. TOP 5 제품 쿼리
@@ -87,9 +95,17 @@ const EnterpriseMain = () => {
     } = useQuery({
         queryKey: ['topProducts', companyName],
         queryFn: async () => {
-            const response = await companyAPI.product.getTopProducts(companyName);
-            return response.data;
-        }
+            try {
+                const response = await companyAPI.product.getTopProducts(companyName);
+                console.log("Top products data loaded:", response.data);
+                return response.data;
+            } catch (error) {
+                console.error("Error fetching top products:", error);
+                throw error;
+            }
+        },
+        retry: 1,
+        staleTime: 60000 // 1 minute
     });
 
     // 차트 데이터 준비 (주간 판매 통계)
