@@ -20,6 +20,12 @@ function AddressForm({ onNewAddress }) {
             setLoadingAddresses(true);
             const { data } = await userAPI.addresses.getAll();
             setSavedAddresses(data);
+            
+            // 주소 목록을 가져온 후, 첫 번째 주소(기본 배송지)가 있으면 폼에 설정
+            if (data && data.length > 0) {
+                // 배송지 목록의 첫 번째 항목을 기본 배송지로 간주
+                setForm(data[0]);
+            }
         } catch (e) {
             console.error("주소 목록을 불러오는데 실패했습니다.", e);
             setError("주소 목록을 불러오는데 실패했습니다.");
@@ -28,13 +34,12 @@ function AddressForm({ onNewAddress }) {
         }
     };
 
-
     const handleSelect = (address) => {
         setForm(address);
         setShowDropdown(false);
     };
 
-    // 로그인된 사용자가 “Save this Address” 버튼을 눌렀을 때 호출
+    // 로그인된 사용자가 "Save this Address" 버튼을 눌렀을 때 호출
     const handleSave = async () => {
         setError("");
         // 간단한 유효성 검사
@@ -46,9 +51,17 @@ function AddressForm({ onNewAddress }) {
         try {
             setLoading(true);
             const { data } = await userAPI.addresses.add(form);
+            
+            // 새 주소를 기본 배송지로 설정
+            await userAPI.addresses.setDefault(data.id);
+            
             if (onNewAddress) {
                 onNewAddress(data);
             }
+            
+            // 저장 후 주소 목록 다시 불러오기
+            await fetchAddresses();
+            
             // 저장 후 폼 초기화
             setForm({ city: "", street: "", detail: "" });
             alert("주소가 저장되었습니다.");
@@ -59,7 +72,6 @@ function AddressForm({ onNewAddress }) {
             setLoading(false);
         }
     };
-
 
     return (
         <div className="space-y-4 border rounded-lg p-6 shadow">
@@ -82,12 +94,17 @@ function AddressForm({ onNewAddress }) {
                         {showDropdown && (
                             <ul className="absolute right-0 mt-2 w-60 border rounded bg-white shadow z-10">
                                 {savedAddresses.length > 0 ? (
-                                    savedAddresses.map((addr) => (
+                                    savedAddresses.map((addr, index) => (
                                         <li
                                             key={addr.id}
                                             onClick={() => handleSelect(addr)}
                                             className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                                         >
+                                            {index === 0 && (
+                                                <span className="inline-block mr-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                                                    기본
+                                                </span>
+                                            )}
                                             {addr.city}, {addr.street}
                                             {addr.detail && `, ${addr.detail}`}
                                         </li>

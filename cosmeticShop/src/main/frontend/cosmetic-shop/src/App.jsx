@@ -19,7 +19,6 @@ import ProductDetail from "./pages/product/ProductDetail.jsx";
 import Cart from "./pages/cart/Cart.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
 
-// import QnA from "./pages/qna/QnA.jsx";
 import QnA from "./pages/qna/QnAList.jsx";
 import QnADetail from "./pages/qna/QnADetail.jsx";
 import QnAWrite from "./pages/qna/QnAWrite.jsx";
@@ -32,6 +31,9 @@ import Checkout from "./pages/payment/Checkout.jsx";
 import UserLogin from "./pages/auth/UserLogin.jsx";
 import SignUp from "./pages/auth/SignUp.jsx";
 import OrderHistory from "./pages/user/MyComponents/OrderHistory.jsx";
+
+import AddressBook from "./pages/user/MyComponents/AddressBook.jsx";
+import AddressForm from "./components/order/AddressForm.jsx";
 
 // 기업 페이지
 import EnterpriseHeader from "./components/enterprise/EnterpriseHeader.jsx";
@@ -253,6 +255,10 @@ const App = () => {
                                     <Route path="order" element={<Order/>}/>
                                     <Route path="order/complete" element={<OrderComplete/>}/>
                                     <Route path="checkout" element={<Checkout />} />
+                                    {/* 일반 회원 전용 페이지 라우트 내부에 추가 */}
+                                    <Route path="addresses" element={<AddressBook />} />
+                                    <Route path="addresses/new" element={<AddressForm />} />
+                                    <Route path="addresses/edit/:id" element={<AddressForm />} />
                                 </Routes>
                             </PublicLayout>
                         </ProtectedRoute>

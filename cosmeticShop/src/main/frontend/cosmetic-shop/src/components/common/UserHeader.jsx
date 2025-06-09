@@ -2,7 +2,7 @@
 import React from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {useAuth} from "../../contexts/AuthContext.jsx";
-import {authAPI} from "../../utils/customAxios.js";
+import {authAPI, emitter} from "../../utils/customAxios.js";
 
 export default function UserHeader() {
     const {user} = useAuth();
@@ -10,7 +10,7 @@ export default function UserHeader() {
 
     const handleLogout = async () => {
         try {
-            await authAPI.logout();
+            await authAPI.logout(); // 이 함수가 내부적으로 emitter.emit('auth:logout')을 호출
             // 로컬 스토리지 정리
             localStorage.removeItem('accessToken');
             localStorage.removeItem('user');

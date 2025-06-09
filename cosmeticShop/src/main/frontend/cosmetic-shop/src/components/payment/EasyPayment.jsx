@@ -102,11 +102,11 @@ const EasyPayment = ({ orderId, amount, orderName, buyerInfo, onSuccess, onFail 
     };
 
     return (
-        <button 
-            className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition-colors"
+        <button
+            className="w-full py-2.5 bg-neutral-800 text-white font-bold rounded-lg transition-colors hover:bg-neutral-700"
             onClick={onClickPayment}
         >
-            카카오페이로 결제하기
+            결제하기
         </button>
     );
 };
