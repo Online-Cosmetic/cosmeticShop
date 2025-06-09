@@ -14,152 +14,121 @@ const customAxios = axios.create({
     }
 });
 
-// customAxios.js에 추가
-const pendingRequests = new Map();
+// const pendingRequests = new Map();
 
 // 요청 인터셉터에 중복 요청 방지 로직 추가
 customAxios.interceptors.request.use(
-  config => {
-    // 요청 URL과 파라미터로 고유 키 생성
-    const requestKey = `${config.url}|${JSON.stringify(config.params || {})}`;
-    
-    // 이미 동일한 요청이 진행 중이면 취소
-    if (pendingRequests.has(requestKey)) {
-      console.log('중복 요청 방지:', requestKey);
-      return Promise.reject(new Error('중복 요청이 취소되었습니다.'));
+    config => {
+        // // 요청 URL과 파라미터로 고유 키 생성
+        // const requestKey = `${config.url}|${JSON.stringify(config.params || {})}`;
+        //
+        // // 이미 동일한 요청이 진행 중이면 취소
+        // if (pendingRequests.has(requestKey)) {
+        //   console.log('중복 요청 방지:', requestKey);
+        //   return Promise.reject(new Error('중복 요청이 취소되었습니다.'));
+        // }
+        //
+        // // 요청 진행 중 표시
+        // pendingRequests.set(requestKey, true);
+        //
+        // // 응답/에러 후 맵에서 제거하기 위한 cleanup 함수
+        // config.requestKey = requestKey;  // 동일 API 를 n 번 호출하는 현상 금지로직 삭제
+        if (config.url?.includes('/api/auth/reissue')) return config;
+        const token = localStorage.getItem('accessToken');
+        if (token) config.headers['Authorization'] = `Bearer ${token}`;
+        return config;
+    },
+    error => {
+        return Promise.reject(error);
     }
-    
-    // 요청 진행 중 표시
-    pendingRequests.set(requestKey, true);
-    
-    // 응답/에러 후 맵에서 제거하기 위한 cleanup 함수
-    config.requestKey = requestKey;
-    
-    if (config.url?.includes('/api/auth/reissue')) return config;
-    const token = localStorage.getItem('accessToken');
-    if (token) config.headers['Authorization'] = `Bearer ${token}`;
-    return config;
-  },
-  error => {
-    return Promise.reject(error);
-  }
 );
 
 // customAxios.js 파일의 인터셉터 부분
 customAxios.interceptors.response.use(
-  response => {
-    // 요청 완료 후 맵에서 제거
-    if (response.config?.requestKey) {
-      pendingRequests.delete(response.config.requestKey);
-    }
-    return response;
-  },
-  async err => {
-    // 요청 실패 시에도 맵에서 제거
-    if (err.config?.requestKey) {
-      pendingRequests.delete(err.config.requestKey);
-    }
-    
-    // err.config이 존재하는지 확인하는 안전 장치 추가
-    if (!err.config) {
-      console.error('에러 처리 중 config 객체가 없습니다:', err);
-      return Promise.reject(err);
-    }
-    
-    const orig = err.config;
+    response => {
+        // // 요청 완료 후 맵에서 제거
+        // if (response.config?.requestKey) {
+        //   pendingRequests.delete(response.config.requestKey);
+        // }
+        return response;
+    },
+    async err => {
+        // // 요청 실패 시에도 맵에서 제거
+        // if (err.config?.requestKey) {
+        //   pendingRequests.delete(err.config.requestKey);
+        // }
 
-    // URL이 undefined인지 확인하는 안전 장치 추가
-    if (!orig.url) {
-      console.error('에러 처리 중 URL이 없습니다:', err);
-      return Promise.reject(err);
-    }
+        // err.config이 존재하는지 확인하는 안전 장치 추가
+        if (!err.config) {
+            console.error('에러 처리 중 config 객체가 없습니다:', err);
+            return Promise.reject(err);
+        }
 
-    /* /api/auth/me 실패에 대해 재발급 로직을 트리거하지 않도록 스킵 */
-    if (orig.url.includes('/api/auth/me')) {
-      return Promise.reject(err);
+        const orig = err.config;
+
+        // URL이 undefined인지 확인하는 안전 장치 추가
+        if (!orig.url) {
+            console.error('에러 처리 중 URL이 없습니다:', err);
+            return Promise.reject(err);
+        }
+
+        /* /api/auth/me 실패에 대해 재발급 로직을 트리거하지 않도록 스킵 */
+        if (orig.url.includes('/api/auth/me')) {
+            return Promise.reject(err);
+        }
+
+        if (orig.url.includes('/api/auth/reissue') || orig._retry) {
+            return Promise.reject(err);
+        }
+
+        if (err.response?.status === 401 &&
+            !orig.url.includes('/api/auth/reissue') &&
+            !orig._retry
+        ) {
+            orig._retry = true;
+            try {
+                const { data } = await customAxios.post('/api/auth/reissue', {});
+                localStorage.setItem('accessToken', data.accessToken);
+                orig.headers['Authorization'] = `Bearer ${data.accessToken}`;
+                return customAxios(orig);
+            } catch (refreshErr) {
+                // 인터셉터 안에서 직접 리다이렉트 하지 말고, App 에 이벤트 전달
+                emitter.emit('logout');
+                return Promise.reject(refreshErr);
+            }
+        }
+        return Promise.reject(err);
     }
-    
-    if (orig.url.includes('/api/auth/reissue') || orig._retry) {
-      return Promise.reject(err);
-    }
-    
-    if (err.response?.status === 401 &&
-      !orig.url.includes('/api/auth/reissue') &&
-      !orig._retry
-    ) {
-      orig._retry = true;
-      try {
-        const { data } = await customAxios.post('/api/auth/reissue', {});
-        localStorage.setItem('accessToken', data.accessToken);
-        orig.headers['Authorization'] = `Bearer ${data.accessToken}`;
-        return customAxios(orig);
-      } catch (refreshErr) {
-        // 인터셉터 안에서 직접 리다이렉트 하지 말고, App 에 이벤트 전달
-        emitter.emit('logout');
-        return Promise.reject(refreshErr);
-      }
-    }
-    return Promise.reject(err);
-  }
 );
 
-// // 요청 인터셉터 수정
-// customAxios.interceptors.request.use(config => {
-//     if (config.url?.includes('/api/auth/reissue')) return config;
-//     const token = localStorage.getItem('accessToken');
-//     if (token) config.headers['Authorization'] = `Bearer ${token}`;
-//     return config;
-// });
-//
-// // 응답 인터셉터: 401이면 한 번만 reissue 시도
-// customAxios.interceptors.response.use(
-//     res => {
-//         return res;
-//     },
-//     async err => {
-//         // CORS 오류 확인 및 로깅
-//         if (err.message && err.message.includes('Network Error')) {
-//             console.error('CORS 또는 네트워크 오류:', err);
-//             // 로그인/로그아웃 관련 요청이면 오류 메시지를 더 명확하게 제공
-//             if (err.config?.url?.includes('/api/auth/')) {
-//                 console.error('인증 관련 요청 실패. 서버에 CORS 설정이 필요할 수 있습니다.');
-//             }
-//         }
-//
-//         const orig = err.config;
-//
-//         /* /api/auth/me 실패에 대해 재발급 로직을 트리거하지 않도록 스킵 */
-//         if (orig.url?.includes('/api/auth/me')) {
-//             return Promise.reject(err);
-//         }
-//         if (orig.url?.includes('/api/auth/reissue') || orig._retry) {
-//             return Promise.reject(err);
-//         }
-//         if (err.response?.status === 401 &&
-//             !orig.url?.includes('/api/auth/reissue') &&
-//             !orig._retry
-//         ) {
-//             orig._retry = true;
-//             try {
-//                 const { data } = await customAxios.post('/api/auth/reissue', {});
-//                 localStorage.setItem('accessToken', data.accessToken);
-//                 orig.headers['Authorization'] = `Bearer ${data.accessToken}`;
-//                 return customAxios(orig);
-//             } catch (refreshErr) {
-//                 // 인터셉터 안에서 직접 리다이렉트 하지 말고, App 에 이벤트 전달
-//                 emitter.emit('logout');
-//                 return Promise.reject(refreshErr);
-//             }
-//         }
-//         return Promise.reject(err);
-//     }
-// );
+
+// 인증 상태 변경 이벤트를 전역으로 발행하는 헬퍼 함수 추가
+export const authEvents = {
+    login: (userData) => {
+        emitter.emit('auth:login', userData);
+    },
+    logout: () => {
+        emitter.emit('auth:logout');
+    }
+};
 
 
 // API 요청 함수들
 export const authAPI = {
-    login: (credentials) => customAxios.post('/api/auth/login', credentials),
-    logout: () => customAxios.post('/api/auth/logout'),
+    login: async (credentials) => {
+        const response = await customAxios.post('/api/auth/login', credentials);
+        if (response.data.accessToken) {
+            // 로그인 성공 시 이벤트 발행
+            authEvents.login(response.data);
+        }
+        return response;
+    },
+    logout: async () => {
+        const response = await customAxios.post('/api/auth/logout');
+        // 로그아웃 성공 시 이벤트 발행
+        authEvents.logout();
+        return response;
+    },
     signup: {
         user: (data) => customAxios.post('/api/auth/signup/user', data),
         company: (data) => customAxios.post('/api/auth/signup/company', data)
@@ -193,7 +162,8 @@ export const userAPI = {
         getAll: () => customAxios.get('/api/addresses'),
         add: (addressData) => customAxios.post('/api/addresses', addressData),
         update: (addressId, addressData) => customAxios.put(`/api/addresses/${addressId}`, addressData),
-        delete: (addressId) => customAxios.delete(`/api/addresses/${addressId}`)
+        delete: (addressId) => customAxios.delete(`/api/addresses/${addressId}`),
+        setDefault: (addressId) => customAxios.put(`/api/addresses/${addressId}/default`)
     },
 
     product: {
@@ -218,8 +188,8 @@ export const userAPI = {
         getSingleOrderDetail: (orderId) => customAxios.get(`/api/orders/${orderId}`),
         createOrder: (orderRequest) => customAxios.post('/api/orders', orderRequest),
         createOrders: (orderBatchRequest) => customAxios.post('/api/orders/batch', orderBatchRequest),
-        getMyOrders: () => customAxios.get('/api/orders'),
-        getMyOrdersByDeliveryStatus: () => customAxios.get(`/api/orders/status/${deliveryStatus}`),
+        getMyOrders: () => customAxios.get('/api/orders/my'),
+        getMyOrdersByDeliveryStatus: () => customAxios.get(`/api/orders/my/${deliveryStatus}`),
     },
 
     qna: {
@@ -324,6 +294,7 @@ export const companyAPI = {
 
     order: {
         getCompanyOrderItems: (companyName) => customAxios.get(`/api/orders/company/${companyName}`),
+        updateDeliveryStatus: (orderItemId, statusData) => customAxios.patch(`/api/orders/${orderItemId}`, statusData),
     }
 };
 

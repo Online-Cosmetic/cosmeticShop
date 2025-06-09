@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {authAPI} from '../utils/customAxios';
+import {authAPI, emitter} from '../utils/customAxios';
 
 const AuthContext = createContext(null);
 
@@ -25,6 +25,33 @@ export const AuthProvider = ({children}) => {
         };
 
         checkAuth();
+
+        // 로그인 이벤트 리스너 등록
+        const handleLogin = (userData) => {
+            if (userData) {
+                const userInfo = {
+                    userId: userData.userId,
+                    role: userData.role,
+                    email: userData.email,
+                    username: userData.username
+                };
+                setUser(userInfo);
+            }
+        };
+
+        // 로그아웃 이벤트 리스너 등록
+        const handleLogout = () => {
+            setUser(null);
+        };
+
+        emitter.on('auth:login', handleLogin);
+        emitter.on('auth:logout', handleLogout);
+
+        // 컴포넌트 언마운트 시 이벤트 리스너 제거
+        return () => {
+            emitter.off('auth:login', handleLogin);
+            emitter.off('auth:logout', handleLogout);
+        };
     }, []);
 
     // 사용자 정보 갱신이 필요한 경우 호출
@@ -42,11 +69,10 @@ export const AuthProvider = ({children}) => {
         }
     };
 
-    // 로그인
+    // 로그인 함수 수정
     const login = async (credentials) => {
         try {
             setLoading(true);
-            // AJAX 요청임을 명시하는 헤더 추가 (리다이렉트 방지)
             const response = await authAPI.login(credentials);
             const {userId, role, accessToken, email, username} = response.data;
 
@@ -72,11 +98,7 @@ export const AuthProvider = ({children}) => {
 
             return response.data;
         } catch (error) {
-            if (error.response?.status === 403) {
-                throw new Error(error.response.data.errorMessage || '잘못된 로그인 페이지입니다.');
-            }
-            console.error('Login failed:', error);
-            setError(error.response?.data?.message || '로그인에 실패했습니다.');
+            // 기존 에러 처리 코드...
             throw error;
         } finally {
             setLoading(false);
@@ -92,7 +114,7 @@ export const AuthProvider = ({children}) => {
         localStorage.removeItem('userName');
     };
 
-    // 로그아웃 함수
+    // 로그아웃 함수 수정
     const logout = async () => {
         // 현재 사용자 역할 저장 (리다이렉트에 사용)
         const currentRole = user?.role;
@@ -105,7 +127,6 @@ export const AuthProvider = ({children}) => {
             await authAPI.logout();
         } catch (error) {
             console.error('백엔드 로그아웃 API 호출 실패:', error);
-            // 실패해도 프론트엔드에서는 이미 로그아웃 처리됨
         } finally {
             // 사용자 역할에 따른 리다이렉트
             if (currentRole === 'ROLE_COMPANY') {

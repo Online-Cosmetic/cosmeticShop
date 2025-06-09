@@ -56,8 +56,9 @@ const FilterBar = ({ filters, onChange, onReset }) => {
                         className="text-sm text-gray-800 border border-gray-300 rounded px-2 py-1"
                     >
                         <option value="">Order Status</option>
-                        <option value="completed">Completed</option>
+                        <option value="ready">Ready</option>
                         <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
                 </div>

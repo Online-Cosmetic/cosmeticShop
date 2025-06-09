@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../../utils/customAxios';
 import { useAuth } from '../../contexts/AuthContext.jsx';
+import Footer from "../../components/common/Footer.jsx";
 
 export default function EnterpriseLogin() {
   const navigate = useNavigate();
@@ -59,8 +60,16 @@ export default function EnterpriseLogin() {
 
   return (
       <>
-        <div className="min-h-screen flex justify-center items-center bg-gray-100 py-6">
-          <div className="w-[700px] bg-white rounded-[30px] p-8 shadow-md max-h-[calc(100vh-60px)] overflow-auto">
+        {/* header */}
+        <header className="w-full border-b border-neutral-200">
+          <div className="max-w-screen-xl px-12 py-4 flex items-center justify-between">
+            <Link to="/company/dashboard" className="text-2xl text-black">
+              cosMall Enterprise
+            </Link>
+          </div>
+        </header>
+        <div className="flex justify-center items-center bg-gray-100 py-6">
+          <div className="w-[700px] bg-white rounded-[30px] my-8 px-8 py-16 shadow-md">
             <div className="mb-12 text-center">
               <h1 className="text-3xl font-semibold text-gray-900">Welcome Back</h1>
               <p className="text-xl text-slate-700 mt-4">Let's grow your business.</p>
@@ -72,7 +81,7 @@ export default function EnterpriseLogin() {
                     name="userId"
                     value={creds.userId}
                     onChange={handleChange}
-                    className="w-full h-10 px-4 bg-slate-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400"
+                    className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                     placeholder="User ID"
                     required
                 />
@@ -84,7 +93,7 @@ export default function EnterpriseLogin() {
                     type="password"
                     value={creds.password}
                     onChange={handleChange}
-                    className="w-full h-10 px-4 bg-slate-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400"
+                    className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                     placeholder="Password"
                     required
                 />
@@ -96,22 +105,23 @@ export default function EnterpriseLogin() {
               )}
               <button
                   type="submit"
-                  className="w-full py-4 bg-emerald-500 text-white text-lg font-medium rounded-xl hover:bg-emerald-600"
+                  className="w-full h-14 bg-emerald-500 text-white text-lg font-medium rounded-xl hover:bg-emerald-600"
               >
                 Sign in
               </button>
             </form>
-            <div className="text-center mt-10">
+            <div className="text-right mt-10">
               <span>Don't have an account? </span>
               <Link to="/enterprise/signup" className="text-emerald-600 hover:underline">
                 Sign up
               </Link>
             </div>
-            <div className="text-center text-gray-500 text-sm mt-6">
-              © 2025 CosMall, LLC. All rights reserved.
-            </div>
+            {/*<div className="text-center text-gray-500 text-sm mt-6">*/}
+            {/*  © 2025 CosMall, LLC. All rights reserved.*/}
+            {/*</div>*/}
           </div>
         </div>
+        <Footer/>
       </>
   );
 }

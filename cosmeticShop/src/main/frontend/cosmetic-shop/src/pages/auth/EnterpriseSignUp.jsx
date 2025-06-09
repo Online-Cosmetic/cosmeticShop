@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authAPI } from "../../utils/customAxios";
+import Footer from "../../components/common/Footer.jsx";
 
 function EnterpriseSignUp() {
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ function EnterpriseSignUp() {
     const [loading, setLoading] = useState(false);
 
     const inputClass =
-        "w-full h-10 px-4 bg-slate-50 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-400";
+        "w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -54,8 +55,15 @@ function EnterpriseSignUp() {
 
     return (
         <>
-            <div className="min-h-screen flex justify-center items-center bg-gray-100 py-6">
-                <div className="w-[700px] bg-white rounded-[30px] p-8 shadow-md max-h-[calc(100vh-60px)] overflow-auto">
+            <header className="w-full border-b border-neutral-200">
+                <div className="max-w-screen-xl px-12 py-4 flex items-center justify-between">
+                    <Link to="/company/dashboard" className="text-2xl text-black">
+                        cosMall Enterprise
+                    </Link>
+                </div>
+            </header>
+            <div className="flex justify-center items-center bg-gray-100 py-6">
+                <div className="w-[700px] bg-white rounded-[30px] my-8 px-8 py-16 shadow-md">
                     {/* 헤더 */}
                     <div className="mb-12 text-center">
                         <h1 className="text-3xl font-semibold text-gray-900">Sign Up</h1>
@@ -147,13 +155,13 @@ function EnterpriseSignUp() {
 
                         <button
                             type="submit"
-                            className="w-full py-4 bg-emerald-500 text-white text-lg font-medium rounded-xl hover:bg-emerald-600 transition"
+                            className="w-full h-14 bg-emerald-500 text-white text-lg font-medium rounded-xl hover:bg-emerald-600"
                             disabled={loading}
                         >
                             {loading ? "처리 중..." : "Sign Up"}
                         </button>
 
-                        <div className="text-center mt-4">
+                        <div className="text-right mt-10">
                             <span className="text-slate-700 mr-1">Already have an account?</span>
                             <Link
                                 to="/enterpriseLogin"
@@ -163,13 +171,10 @@ function EnterpriseSignUp() {
                             </Link>
                         </div>
                     </form>
-
-                    {/* 푸터 */}
-                    <div className="text-center text-gray-500 text-sm mt-6">
-                        © 2025 CosMall, LLC. All rights reserved.
-                    </div>
                 </div>
             </div>
+            {/* 푸터 */}
+            <Footer/>
         </>
     );
 }

@@ -1,23 +1,24 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { authAPI } from "../../utils/customAxios";
 
 export default function EnterpiseHeader() {
-    const { isAuthenticated, user, logout } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
         try {
-            // AuthContext의 logout 함수 사용 (직접 API 호출 대신)
-            await logout();
-            // navigate는 logout 함수 내에서 처리됨
-        } catch (error) {
-            console.error("로그아웃 실패:", error);
-            // 오류가 발생해도 로컬 스토리지는 정리
+            // authAPI.logout 함수 사용 (직접 API 호출)
+            await authAPI.logout(); // 이 함수가 내부적으로 emitter.emit('auth:logout')을 호출
+            // 로컬 스토리지 정리
             localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
             localStorage.removeItem('userEmail');
             localStorage.removeItem('userName');
+            navigate("/enterpriseLogin");
+        } catch (error) {
+            console.error("로그아웃 실패:", error);
             navigate("/enterpriseLogin");
         }
     };

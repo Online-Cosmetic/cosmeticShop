@@ -43,9 +43,10 @@ function SignUp() {
 
     return (
         <>
-            <div className="flex items-center justify-center min-h-screen bg-white">
+            <div className="flex items-center justify-center bg-white">
                 <div className="w-full max-w-sm space-y-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Create An Account</h1>
+                    <h1 className="text-3xl text-center font-bold text-gray-900">Create your
+                        Account</h1>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <input
                             name="userId"
@@ -53,7 +54,7 @@ function SignUp() {
                             onChange={handleChange}
                             type="text"
                             placeholder="ID"
-                            className="w-full px-4 py-2 border rounded"
+                            className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                             required
                         />
                         <input
@@ -62,7 +63,7 @@ function SignUp() {
                             onChange={handleChange}
                             type="password"
                             placeholder="Password"
-                            className="w-full px-4 py-2 border rounded"
+                            className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                             required
                         />
                         <input
@@ -71,7 +72,7 @@ function SignUp() {
                             onChange={handleChange}
                             type="text"
                             placeholder="User Name"
-                            className="w-full px-4 py-2 border rounded"
+                            className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                             required
                         />
                         <input
@@ -80,26 +81,32 @@ function SignUp() {
                             onChange={handleChange}
                             type="number"
                             placeholder="Age"
-                            className="w-full px-4 py-2 border rounded"
+                            className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                             required
                         />
-                        <select
-                            name="gender"
-                            value={form.gender}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border rounded"
-                            required
-                        >
-                            <option value="MALE">남성</option>
-                            <option value="FEMALE">여성</option>
-                        </select>
+                        <div className="relative">
+                            <select
+                                name="gender"
+                                value={form.gender}
+                                onChange={handleChange}
+                                className="w-full h-12 px-4 pr-10 bg-slate-50 border rounded-xl text-gray-700 appearance-none focus:ring-2 focus:ring-emerald-400"
+                                required
+                            >
+                                <option value="MALE">남성</option>
+                                <option value="FEMALE">여성</option>
+                            </select>
+                            {/* 화살표 아이콘 */}
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                ▼
+                            </div>
+                        </div>
                         <input
                             name="nickName"
                             value={form.nickName}
                             onChange={handleChange}
                             type="text"
                             placeholder="Nick Name"
-                            className="w-full px-4 py-2 border rounded"
+                            className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                             required
                         />
                         <input
@@ -108,7 +115,7 @@ function SignUp() {
                             onChange={handleChange}
                             type="email"
                             placeholder="Email Address"
-                            className="w-full px-4 py-2 border rounded"
+                            className="w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
                             required
                         />
                         {error && (
@@ -118,7 +125,7 @@ function SignUp() {
                         )}
                         <button
                             type="submit"
-                            className="w-full bg-black text-white py-3 rounded font-semibold hover:bg-gray-800"
+                            className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800"
                         >
                             Sign Up
                         </button>

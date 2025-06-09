@@ -9,7 +9,6 @@ import Review from './MyComponents/Review';
 import QnASection from './MyComponents/QnASection';
 import EditInfo from './MyComponents/EditInfo';
 import AddressBook from './MyComponents/AddressBook';
-import Payments from './MyComponents/Payments';
 import QnAMyDetail from './MyComponents/QnAMyDetail';
 
 const SECTIONS = [
@@ -21,7 +20,6 @@ const SECTIONS = [
   { key: 'qna', label: 'Q&A', Component: QnASection },
   { key: 'editInfo', label: '회원정보 수정', Component: EditInfo },
   { key: 'address', label: '배송지 관리', Component: AddressBook },
-  { key: 'payments', label: '결제수단 관리', Component: Payments },
 ];
 
 function MyPage() {

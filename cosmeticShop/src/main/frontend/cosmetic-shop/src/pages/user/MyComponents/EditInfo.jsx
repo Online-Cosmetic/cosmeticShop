@@ -1,24 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { userAPI } from '../../../utils/customAxios';
+// src/pages/user/MyComponents/EditInfo.jsx
+import React from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function EditInfo() {
-  const [name, setName] = useState('');
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const { user } = useAuth();
 
-  useEffect(() => {
-    userAPI.profile.getProfile()
-      .then(response => {
-        const data = response.data;
-        console.log(data)
-      })
-      .catch(error => {
-        console.error("프로필 조회 실패:", error);
-        alert("접근 권한이 없거나 프로필을 불러올 수 없습니다.");
-      });
-  }, []);
+  // 如果未登录，提示并提供跳转链接
+  if (!user) {
+    return (
+      <div className="max-w-md mx-auto mt-16 p-6 border border-gray-300 rounded">
+        <p className="text-center text-red-500">
+          먼저 <a href="/login" className="underline">로그인</a> 해주세요.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <section>
       <div className="max-w-[600px] mx-auto mt-6 transform -translate-x-4">
@@ -26,19 +23,34 @@ export default function EditInfo() {
         <hr className="border-gray-300 mb-6" />
 
         <div className="space-y-4">
+          {/* 이름 (username) */}
           <div className="flex items-center">
             <div className="w-[120px] text-lg">이름</div>
-            <div className="flex-1 text-lg">{name || 'Name'}</div>
+            <div className="flex-1 text-lg">{user.username || 'Name'}</div>
           </div>
 
+          {/* 아이디 (userId) */}
           <div className="flex items-center">
             <div className="w-[120px] text-lg">아이디</div>
-            <div className="flex-1 text-lg">{userId || 'User ID'}</div>
+            <div className="flex-1 text-lg">{user.userId || 'User ID'}</div>
           </div>
 
+          {/* 닉네임 (nickname) */}
+          <div className="flex items-center">
+            <div className="w-[120px] text-lg">닉네임</div>
+            <div className="flex-1 text-lg">{user.nickname || 'Nickname'}</div>
+            <button
+              type="button"
+              className="ml-4 px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
+            >
+              변경하기
+            </button>
+          </div>
+
+          {/* 비밀번호 (占位，不展示明文) */}
           <div className="flex items-center">
             <div className="w-[120px] text-lg">비밀번호</div>
-            <div className="flex-1 text-lg">{password ? '******' : '*******'}</div>
+            <div className="flex-1 text-lg">*******</div>
             <button
               type="button"
               className="ml-4 px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
@@ -47,20 +59,10 @@ export default function EditInfo() {
             </button>
           </div>
 
-          <div className="flex items-center">
-            <div className="w-[120px] text-lg">전화번호</div>
-            <div className="flex-1 text-lg">{phone || '000-0000-0000'}</div>
-            <button
-              type="button"
-              className="ml-4 px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
-            >
-              변경하기
-            </button>
-          </div>
-
+          {/* 이메일 (email) */}
           <div className="flex items-center">
             <div className="w-[120px] text-lg">이메일</div>
-            <div className="flex-1 text-lg">{email || 'abcd@gmail.com'}</div>
+            <div className="flex-1 text-lg">{user.email || 'abcd@gmail.com'}</div>
             <button
               type="button"
               className="ml-4 px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"

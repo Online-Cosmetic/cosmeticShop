@@ -102,11 +102,11 @@ const CardPaymentForToss = ({ orderId, amount, orderName, buyerInfo, onSuccess, 
     };
 
     return (
-        <button 
-            className="w-full py-3 bg-neutral-800 text-white font-semibold rounded-lg transition-colors hover:bg-neutral-700"
+        <button
+            className="w-full py-2.5 bg-neutral-800 text-white font-bold rounded-lg transition-colors hover:bg-neutral-700"
             onClick={onClickPayment}
         >
-            카드결제
+            결제하기
         </button>
     );
 };
