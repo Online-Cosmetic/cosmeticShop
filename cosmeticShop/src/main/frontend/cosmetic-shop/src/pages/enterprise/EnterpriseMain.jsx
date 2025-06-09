@@ -335,13 +335,13 @@ const EnterpriseMain = () => {
                                                     </td>
                                                     <td className="p-2">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                            tx.status === "paid"
+                                                            tx.status === "COMPLETED"
                                                                 ? "bg-green-100 text-emerald-900"
                                                                 : tx.status === "cancelled"
                                                                     ? "bg-rose-200 text-red-800"
                                                                     : "bg-sky-100 text-blue-800"
                                                         }`}>
-                                                            {tx.status === "paid" ? "완료" :
+                                                            {tx.status === "COMPLETED" ? "완료" :
                                                                 tx.status === "cancelled" ? "취소" : "진행중"}
                                                         </span>
                                                     </td>

@@ -14,18 +14,18 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
     Optional<PaymentHistory> findByImpUid(String impUid);
 
     @Query(value = """
-    SELECT DATE(p.created_at) as date, 
-           SUM(p.amount * oi.quantity) as total
-    FROM payment_history p
-    INNER JOIN orders o ON p.order_id = o.id
-    INNER JOIN order_items oi ON o.id = oi.order_id
-    INNER JOIN products prod ON oi.product_id = prod.id
-    INNER JOIN companies c ON prod.company_id = c.id
-    WHERE c.company_name = :companyName
-    AND p.created_at >= :startDate
-    AND p.status = 'paid'
-    GROUP BY DATE(p.created_at)
-    ORDER BY date DESC
+        SELECT DATE(p.created_at) as date, 
+               SUM(p.amount) as total
+        FROM payment_history p
+        INNER JOIN orders o ON p.order_id = o.id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products prod ON oi.product_id = prod.id
+        INNER JOIN companies c ON prod.company_id = c.id
+        WHERE c.company_name = :companyName
+        AND p.created_at >= :startDate
+        AND p.status = 'COMPLETED'
+        GROUP BY DATE(p.created_at)
+        ORDER BY date DESC
     """, nativeQuery = true)
     List<Object[]> findWeeklySalesByCompany(
         @Param("companyName") String companyName,
@@ -34,15 +34,15 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
 
     @Query(value = """
     SELECT prod.id, prod.name, prod.price, 
-           SUM(oi.quantity) as total_quantity,
-           SUM(p.amount * oi.quantity) as total_sales
+       SUM(oi.quantity) as total_quantity,
+       SUM(p.amount) as total_sales
     FROM payment_history p
     INNER JOIN orders o ON p.order_id = o.id
     INNER JOIN order_items oi ON o.id = oi.order_id
     INNER JOIN products prod ON oi.product_id = prod.id
     INNER JOIN companies c ON prod.company_id = c.id
     WHERE c.company_name = :companyName
-    AND p.status = 'paid'
+    AND p.status = 'COMPLETED'
     GROUP BY prod.id, prod.name, prod.price
     ORDER BY total_quantity DESC
     LIMIT 5
@@ -58,7 +58,8 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
     INNER JOIN order_items oi ON o.id = oi.order_id
     INNER JOIN products prod ON oi.product_id = prod.id
     INNER JOIN companies c ON prod.company_id = c.id
-    WHERE c.company_name = :companyName
+    WHERE c.company_name = :companyName   
+    AND p.status = 'COMPLETED'
     ORDER BY p.created_at DESC
     LIMIT :limit OFFSET :offset
     """, nativeQuery = true)
