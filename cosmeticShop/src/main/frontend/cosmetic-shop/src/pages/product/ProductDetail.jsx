@@ -186,12 +186,12 @@ function Detail({ title }) {
   const totalDiscountedPrice = discountedPrice * quantity;
 
   return (
-      <div className="min-h-screen bg-white-100 w-full">
+      <div className="min-h-screen  w-full">
         <ToastContainer position="top-right" autoClose={3000} />
 
         {/* 상품 상세 컨텐츠 */}
-        <main className="w-[90%] max-w-7xl mx-auto px-4 py-12">
-          <div className="flex flex-col md:flex-row gap-10 bg-white p-8 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl">
+        <main className="w-full max-w-7xl mx-auto p-4">
+          <div className="flex flex-col md:flex-row gap-10 p-8 rounded-xl shadow-lg">
             {/* 왼쪽: 이미지 슬라이더 */}
             <div className="md:w-1/2 w-full flex flex-col">
               <div className="relative rounded-xl overflow-hidden shadow-md group">
@@ -286,7 +286,7 @@ function Detail({ title }) {
                 </div>
 
                 {/* 가격 정보 영역 - 할인율 적용 */}
-                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                <div className="bg-white p-5 rounded-lg border border-gray-100">
                   {discountRate > 0 ? (
                       <div className="flex items-center mb-2">
                         <span className="bg-red-100 text-red-600 px-2 py-1 rounded-md font-semibold text-sm mr-2">{discountRate}% 할인</span>
@@ -313,20 +313,25 @@ function Detail({ title }) {
 
                   <div className="flex items-center justify-between">
                     <span className="text-gray-700 font-medium">수량</span>
-                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden shadow-sm">
+                    <div className="flex items-center border  rounded-lg overflow-hidden">
+                      {/* - 버튼 */}
                       <button
                           onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200 focus:outline-none"
+                          className="px-4 py-2 rounded-full bg-white text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-all duration-200 focus:outline-none"
                           disabled={quantity <= 1}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                         </svg>
                       </button>
-                      <span className="px-4 py-2 min-w-[3rem] text-center font-medium">{quantity}</span>
+
+                      {/* 수량 */}
+                      <span className="px-4 py-2 min-w-[3rem] text-center font-medium bg-white">{quantity}</span>
+
+                      {/* + 버튼 */}
                       <button
                           onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                          className="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200 focus:outline-none"
+                          className="px-4 py-2 rounded-full bg-white text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-all duration-200 focus:outline-none"
                           disabled={quantity >= product.stock}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

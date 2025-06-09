@@ -76,37 +76,43 @@ function ProductList({ products, title }) {
                                     </button>
                                 </div>
 
-                                <div className="p-5">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors duration-200">{product.title}</h3>
-                                    <p className="text-sm text-gray-500 line-clamp-2 mb-3 h-10">{product.content}</p>
+                                <div className="p-5 space-y-2">
+                                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors duration-200">
+                                        {product.title}
+                                    </h3>
 
-                                    {/* 할인율과 가격 정보 추가 */}
-                                    <div className="mt-2">
-                                        {discountRate > 0 ? (
-                                            <div className="flex items-center mb-1">
-                                                <span className="text-gray-500 text-sm line-through mr-2">{product.price.toLocaleString()}원</span>
-                                                <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded">{discountRate}% 할인</span>
+                                    <p className="text-sm text-gray-500 line-clamp-2">
+                                        {product.content}
+                                    </p>
+
+                                    <div className="space-y-1">
+                                        {discountRate > 0 && (
+                                            <div className="flex items-center">
+                <span className="text-gray-500 text-sm line-through mr-2">
+                    {product.price.toLocaleString()}원
+                </span>
+                                                <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded">
+                    {discountRate}% 할인
+                </span>
                                             </div>
-                                        ) : (
-                                            <div className="h-6">{/* 할인이 없을 때 공간 유지 */}</div>
                                         )}
                                         <p className="font-bold text-lg text-gray-900">
                                             {discountedPrice.toLocaleString()}원
                                         </p>
                                     </div>
 
-                                    {/* 빠른 보기 버튼 (호버 시 표시) */}
-                                    <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <button
-                                            className="w-full bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg py-2 text-sm font-medium hover:bg-emerald-100 transition-colors duration-200"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                navigate(`/detail/${product.id}`, { state: { mainImageUrl: product.imageUrl } });
-                                            }}
-                                        >
-                                            빠른 보기
-                                        </button>
-                                    </div>
+                                    {/*/!* 빠른 보기 버튼 (호버 시 표시) *!/*/}
+                                    {/*<div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">*/}
+                                    {/*    <button*/}
+                                    {/*        className="w-full bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg py-2 text-sm font-medium hover:bg-emerald-100 transition-colors duration-200"*/}
+                                    {/*        onClick={(e) => {*/}
+                                    {/*            e.stopPropagation();*/}
+                                    {/*            navigate(`/detail/${product.id}`, { state: { mainImageUrl: product.imageUrl } });*/}
+                                    {/*        }}*/}
+                                    {/*    >*/}
+                                    {/*        빠른 보기*/}
+                                    {/*    </button>*/}
+                                    {/*</div>*/}
                                 </div>
                             </div>
                         );
