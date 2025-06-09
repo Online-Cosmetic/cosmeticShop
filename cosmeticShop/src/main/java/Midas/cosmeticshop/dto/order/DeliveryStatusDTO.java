@@ -6,11 +6,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DeliveryStatusDTO {
-    Long orderItemId;
-    String deliveryStatus; // 변경할 deliveryStatus
+    private String deliveryStatus; // 변경할 deliveryStatus
 
-    DeliveryStatusDTO(Long orderItemId, String deliveryStatus) {
-        this.orderItemId = orderItemId;
+    DeliveryStatusDTO(String deliveryStatus) {
         this.deliveryStatus = deliveryStatus;
     }
 }

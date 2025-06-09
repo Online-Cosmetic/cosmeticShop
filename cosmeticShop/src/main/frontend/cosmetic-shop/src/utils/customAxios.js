@@ -188,8 +188,8 @@ export const userAPI = {
         getSingleOrderDetail: (orderId) => customAxios.get(`/api/orders/${orderId}`),
         createOrder: (orderRequest) => customAxios.post('/api/orders', orderRequest),
         createOrders: (orderBatchRequest) => customAxios.post('/api/orders/batch', orderBatchRequest),
-        getMyOrders: () => customAxios.get('/api/orders'),
-        getMyOrdersByDeliveryStatus: () => customAxios.get(`/api/orders/status/${deliveryStatus}`),
+        getMyOrders: () => customAxios.get('/api/orders/my'),
+        getMyOrdersByDeliveryStatus: () => customAxios.get(`/api/orders/my/${deliveryStatus}`),
     },
 
     qna: {
@@ -294,7 +294,7 @@ export const companyAPI = {
 
     order: {
         getCompanyOrderItems: (companyName) => customAxios.get(`/api/orders/company/${companyName}`),
-        updateDeliveryStatus: (orderItemId, statusData) => customAxios.patch(`/api/orders/${orderItemId}`, statusData)
+        updateDeliveryStatus: (orderItemId, statusData) => customAxios.patch(`/api/orders/${orderItemId}`, statusData),
     }
 };
 

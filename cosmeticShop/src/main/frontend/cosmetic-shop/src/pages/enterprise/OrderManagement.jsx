@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, {useState, useEffect} from 'react';
+import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import FilterBar from "../../components/enterprise/FilterBar.jsx";
-import { companyAPI } from "../../utils/customAxios.js";
+import {companyAPI} from "../../utils/customAxios.js";
 
 function OrderManagement() {
     const queryClient = useQueryClient();
@@ -41,8 +41,10 @@ function OrderManagement() {
 
     // Update delivery status mutation
     const updateDeliveryStatus = useMutation({
-        mutationFn: ({ orderItemId, status }) => {
-            return companyAPI.order.updateDeliveryStatus(orderItemId, { status });
+        mutationFn: ({orderItemId, status}) => {
+            console.log("orderItemId = " + orderItemId)
+            console.log("status = " + status)
+            return companyAPI.order.updateDeliveryStatus(orderItemId, {deliveryStatus: status});
         },
         onSuccess: () => {
             // Invalidate and refetch orders after status update
@@ -65,35 +67,47 @@ function OrderManagement() {
             });
         }
 
-        // Apply status filter
+        // Apply status filter - 여기서 상태 이름 매핑
         if (filters.status) {
-            result = result.filter(order => order.deliveryStatus === filters.status);
+            // 필터바의 상태값을 서버 상태값으로 변환
+            let statusMapping = {
+                'completed': 'COMP',
+                'processing': 'PROG',
+                'cancelled': 'CANC',
+                'ready': 'READY'
+            };
+
+            const serverStatus = statusMapping[filters.status.toLowerCase()] || filters.status;
+            result = result.filter(order => order.orderItemDTO.deliveryStatus === serverStatus);
         }
 
         // Apply type/product filter
         if (filters.type) {
             result = result.filter(order =>
-                order.productName.toLowerCase().includes(filters.type.toLowerCase())
+                order.orderItemDTO.productName.toLowerCase().includes(filters.type.toLowerCase())
             );
         }
+
+        // OrderId 기준으로 오름차순 정렬
+        result.sort((a, b) => a.orderId - b.orderId);
 
         setFilteredOrders(result);
     }, [orders, filters]);
 
     // Handle filter changes
     const handleFilterChange = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
+        setFilters(prev => ({...prev, [key]: value}));
         setCurrentPage(1); // Reset to first page when filters change
     };
 
     const handleReset = () => {
-        setFilters({ date: "", type: "", status: "" });
+        setFilters({date: "", type: "", status: ""});
         setCurrentPage(1);
     };
 
     // Handle status change
     const handleStatusChange = (orderItemId, newStatus) => {
-        updateDeliveryStatus.mutate({ orderItemId, status: newStatus });
+        updateDeliveryStatus.mutate({orderItemId, status: newStatus});
     };
 
     // Calculate pagination
@@ -103,7 +117,7 @@ function OrderManagement() {
 
     // Get status display info
     const getStatusInfo = (status) => {
-        switch(status) {
+        switch (status) {
             case 'READY':
                 return {
                     class: 'bg-orange-100 text-orange-600',
@@ -156,7 +170,7 @@ function OrderManagement() {
                 </div>
 
                 {/* Filter Section */}
-                <FilterBar filters={filters} onChange={handleFilterChange} onReset={handleReset} />
+                <FilterBar filters={filters} onChange={handleFilterChange} onReset={handleReset}/>
 
                 {isLoading ? (
                     <div className="text-center py-10">Loading orders...</div>
@@ -166,10 +180,14 @@ function OrderManagement() {
                     </div>
                 ) : (
                     <>
-                        {/* Table Header */}
-                        <div className="grid grid-cols-7 bg-neutral-50 p-4 border-b border-neutral-300 font-extrabold text-sm text-neutral-800 rounded-t-2xl">
+                        {/* Table Header - 열 추가 */}
+                        <div
+                            className="grid grid-cols-9 bg-neutral-50 p-4 border-b border-neutral-300 font-extrabold text-sm text-neutral-800 rounded-t-2xl">
                             <div>Order ID</div>
+                            <div>Image</div>
                             <div>Product Name</div>
+                            <div>Quantity</div>
+                            <div>Price</div>
                             <div>Address</div>
                             <div>Order Date</div>
                             <div>Customer Name</div>
@@ -179,14 +197,33 @@ function OrderManagement() {
 
                         {/* Table Rows */}
                         {paginatedOrders.length === 0 ? (
-                            <div className="text-center py-10 text-gray-500">No orders found matching your filters.</div>
+                            <div className="text-center py-10 text-gray-500">No orders found matching your
+                                filters.</div>
                         ) : (
                             paginatedOrders.map((order, i) => {
-                                const statusInfo = getStatusInfo(order.deliveryStatus);
+                                const statusInfo = getStatusInfo(order.orderItemDTO.deliveryStatus);
                                 return (
-                                    <div key={order.orderItemId || i} className="grid grid-cols-7 items-center py-3 border-b border-gray-100 text-sm">
+                                    <div key={i} className="grid grid-cols-9 items-center py-3 border-b border-gray-100 text-sm">
                                         <div className="text-neutral-800 font-semibold">#{order.orderId}</div>
-                                        <div className="text-neutral-800 font-semibold">{order.productName}</div>
+                                        {/* 상품 이미지 추가 */}
+                                        <div className="h-12 w-12 overflow-hidden rounded">
+                                            {order.orderItemDTO.mainImageUrl ? (
+                                                <img
+                                                    src={order.orderItemDTO.mainImageUrl}
+                                                    alt={order.orderItemDTO.productName}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="h-full w-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+                                                    No Image
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="text-neutral-800 font-semibold">{order.orderItemDTO.productName}</div>
+                                        {/* 수량 추가 */}
+                                        <div className="text-neutral-800">{order.orderItemDTO.quantity}</div>
+                                        {/* 가격 추가 */}
+                                        <div className="text-neutral-800 font-semibold">₩{order.orderItemDTO.price.toLocaleString()}</div>
                                         <div className="text-gray-600">{order.address}</div>
                                         <div className="text-neutral-800 font-semibold">
                                             {new Date(order.orderDate).toLocaleDateString()}
@@ -200,7 +237,7 @@ function OrderManagement() {
                                         <div>
                                             {statusInfo.nextStatus && (
                                                 <button
-                                                    onClick={() => handleStatusChange(order.orderItemId, statusInfo.nextStatus)}
+                                                    onClick={() => handleStatusChange(order.orderItemDTO.orderItemId, statusInfo.nextStatus)}
                                                     disabled={updateDeliveryStatus.isLoading}
                                                     className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 disabled:bg-gray-300"
                                                 >
@@ -241,19 +278,19 @@ function OrderManagement() {
                         {/* Status Legend */}
                         <div className="flex justify-center gap-4 pt-6">
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 bg-orange-400 rounded opacity-20" />
+                                <div className="w-4 h-4 bg-orange-400 rounded opacity-20"/>
                                 <span className="text-xs font-bold text-orange-400">Ready</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 bg-violet-600 rounded opacity-20" />
+                                <div className="w-4 h-4 bg-violet-600 rounded opacity-20"/>
                                 <span className="text-xs font-bold text-violet-600">Processing</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 bg-teal-600 rounded opacity-20" />
+                                <div className="w-4 h-4 bg-teal-600 rounded opacity-20"/>
                                 <span className="text-xs font-bold text-teal-600">Completed</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 bg-red-600 rounded opacity-20" />
+                                <div className="w-4 h-4 bg-red-600 rounded opacity-20"/>
                                 <span className="text-xs font-bold text-red-600">Cancelled</span>
                             </div>
                         </div>

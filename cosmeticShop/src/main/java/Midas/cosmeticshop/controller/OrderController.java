@@ -71,7 +71,7 @@ public class OrderController {
     }
 
     /* 주문 내역 전체 조회 : Order가 주내용 */
-    @GetMapping
+    @GetMapping("/my")
     public ResponseEntity<List<OrderDTO>> getMyOrders(@AuthenticationPrincipal BaseUserDetails baseUserDetails) {
 
         List<OrderDTO> orderDTOs = orderService.getMyOrders(baseUserDetails);
@@ -79,7 +79,7 @@ public class OrderController {
     }
 
     /* 배송상태에 따른 '주문상품' 조회 : orderItem이 주내용 */
-    @GetMapping("/status/{deliveryStatus}")
+    @GetMapping("/my/{deliveryStatus}")
     public ResponseEntity<List<PurchasedOrderItemResponse>> getMyOrdersByDeliveryStatus(
         @AuthenticationPrincipal BaseUserDetails baseUserDetails,
         @PathVariable String deliveryStatus) {
@@ -136,8 +136,10 @@ public class OrderController {
     @PatchMapping("/{orderItemId}")
     public ResponseEntity<Void> changeItemDeliveryStatus(
         @AuthenticationPrincipal BaseUserDetails baseUserDetails,
+        @PathVariable Long orderItemId,
         @Valid @RequestBody DeliveryStatusDTO deliveryStatusDTO) {
 
-        return orderService.changeItemDeliveryStatus(baseUserDetails, deliveryStatusDTO);
+        System.out.println("DeliveryStatusDTO = " + deliveryStatusDTO.toString());
+        return orderService.changeItemDeliveryStatus(baseUserDetails, orderItemId, deliveryStatusDTO);
     }
 }

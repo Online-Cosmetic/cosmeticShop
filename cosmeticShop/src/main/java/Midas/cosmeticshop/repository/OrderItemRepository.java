@@ -17,7 +17,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @Modifying
     @Query("UPDATE OrderItem oi SET oi.deliveryStatus = :deliveryStatus " +
         "WHERE oi.id = :orderItemId")
-    ResponseEntity<Void> updateDeliveryStatus(@Param("orderItemId") Long orderItemId, @Param("deliveryStatus") DeliveryStatus deliveryStatus);
+    void updateDeliveryStatus(@Param("orderItemId") Long orderItemId, @Param("deliveryStatus") DeliveryStatus deliveryStatus);
 
     @Query("SELECT oi FROM OrderItem oi JOIN FETCH oi.product p " +
         "WHERE p.company.companyName = :companyName")

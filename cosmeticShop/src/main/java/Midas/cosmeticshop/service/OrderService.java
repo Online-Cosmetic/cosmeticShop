@@ -65,6 +65,7 @@ public class OrderService {
             int discountedPrice = orderItemDTO.getPrice() * (100 - discountRate) / 100;
 
             OrderItemDTO calculatedOrderItemDTO = OrderItemDTO.builder()
+                // orderItemId는 아직 생성되지 않았으므로 넣지 않음
                 .productId(product.getId())
                 .productName(product.getProductName())
                 .quantity(orderItemDTO.getQuantity())
@@ -154,12 +155,26 @@ public class OrderService {
             .orElseThrow(() -> new RuntimeException("주문 정보가 없습니다 !!!"));
 
         List<PurchasedOrderItemResponse> purchasedOrderItemResponses = new ArrayList<>();
+
         for(Order order : allByUser) {
+            OrderAddress orderAddress = order.getOrderAddress();
+            // 주소를 하나의 문자열로 조합
+            String fullAddress = orderAddress.getCity() + " " +
+                                 orderAddress.getStreet() + " " +
+                                 orderAddress.getDetail();
+
             Long orderId = order.getId();
             for(OrderItem item : order.getOrderItems()) {
                 if(item.getDeliveryStatus().equals(status)) {
-                    purchasedOrderItemResponses
-                        .add(new PurchasedOrderItemResponse(item.toDTO(), orderId));
+                    purchasedOrderItemResponses.add(
+                        PurchasedOrderItemResponse.builder()
+                            .orderItemDTO(item.toDTO())
+                            .orderId(orderId)
+                            .address(fullAddress)
+                            .orderDate(order.getCreatedAt())
+                            .buyerName(user.getUsername()) // 사용자 이름 사용
+                            .build()
+                    );
                 }
             }
         }
@@ -237,39 +252,50 @@ public class OrderService {
     public ResponseEntity<List<PurchasedOrderItemResponse>> getAllOrderItemsByCompany(String companyName) {
         List<OrderItem> orderItems = orderItemRepository.findAllByCompanyName(companyName);
         List<PurchasedOrderItemResponse> purchasedOrderItemResponses = new ArrayList<>();
+
         for(OrderItem item : orderItems) {
             OrderItemDTO dto = item.toDTO();
-            Long orderId = item.getOrder().getId();
-            purchasedOrderItemResponses
-                .add(new PurchasedOrderItemResponse(dto, orderId));
+            Order order = item.getOrder();
+            Long orderId = order.getId();
+            User buyer = order.getUser();
+            OrderAddress orderAddress = order.getOrderAddress();
+
+            // 주소를 하나의 문자열로 조합
+            String fullAddress = orderAddress.getCity() + " " +
+                                 orderAddress.getStreet() + " " +
+                                 orderAddress.getDetail();
+
+            PurchasedOrderItemResponse response = PurchasedOrderItemResponse.builder()
+                .orderItemDTO(dto)
+                .orderId(orderId)
+                .address(fullAddress)
+                .orderDate(order.getCreatedAt())
+                .buyerName(buyer.getUsername()) // 사용자 이름 사용
+                .build();
+
+            purchasedOrderItemResponses.add(response);
         }
+
         return ResponseEntity.ok(purchasedOrderItemResponses);
     }
 
     /* 기업의 주문상품 배송상태 변경 메소드 */
     @Transactional
     public ResponseEntity<Void> changeItemDeliveryStatus(
-        BaseUserDetails baseUserDetails, @Valid DeliveryStatusDTO deliveryStatusDTO) {
+        BaseUserDetails baseUserDetails, Long orderItemId, @Valid DeliveryStatusDTO deliveryStatusDTO) {
 
         Company company = companyRepository.findByUserId(baseUserDetails.getUsername());
         if(company == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        Long orderItemId = deliveryStatusDTO.getOrderItemId();
         DeliveryStatus deliveryStatus = DeliveryStatus.valueOf(deliveryStatusDTO.getDeliveryStatus());
 
-        return orderItemRepository.updateDeliveryStatus(orderItemId, deliveryStatus);
-    }
-
-    @Transactional
-    public ResponseEntity<String> changeItemDeliveryStatus(Long orderItemId, String deliveryStatus) {
-        DeliveryStatus status = DeliveryStatus.valueOf(deliveryStatus);
         try {
-            orderItemRepository.updateDeliveryStatus(orderItemId, status);
-            return ResponseEntity.ok("배송 상태가 성공적으로 변경되었습니다.");
+            orderItemRepository.updateDeliveryStatus(orderItemId, deliveryStatus);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("배송 상태 변경에 실패했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
