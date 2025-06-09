@@ -97,7 +97,7 @@ function ProductPage() {
     return (
         <div className="max-w-screen-xl mx-auto px-4 py-8">
             {/* 카테고리 네비게이션 */}
-            <div className="mb-8 border-b border-gray-200">
+            <div className="mb-8 ">
                 <div className="flex overflow-x-auto pb-2 hide-scrollbar">
                     {CATEGORY_LIST.map((cat) => (
                         <Link

@@ -34,7 +34,7 @@ export default function EnterpiseHeader() {
     return (
         <header className="w-full border-b border-neutral-200">
             <div className="max-w-screen-xl px-12 py-4 flex items-center justify-between">
-                <Link to="/company/dashboard" className="text-2xl text-black">
+                <Link to="/enterprise/dashboard" className="text-2xl text-black">
                     cosMall Enterprise
                 </Link>
                 {isAuthenticated && user?.role === 'ROLE_COMPANY' ? (
