@@ -32,13 +32,32 @@ function ProductCard({
 
     // 이미지 URL 처리 로직 수정
     const getProductImageUrl = () => {
-        // 이미지 우선순위: thumbnailImage -> productImage -> 기본 이미지
+        // 디버깅을 위한 로그 추가
+        console.log("상품 이미지 정보:", {
+            productId: product.productId || product.id,
+            thumbnailImage: product.thumbnailImage,
+            thumbnailImageUrl: product.thumbnailImageUrl,
+            mainImageUrl: product.mainImageUrl
+        });
+
+        // 완전한 URL이 이미 있는 경우 (http:// 또는 https://로 시작하는 경우)
+        if (product.mainImageUrl && (product.mainImageUrl.startsWith('http://') || product.mainImageUrl.startsWith('https://'))) {
+            return product.mainImageUrl;
+        }
+
+        if (product.thumbnailImageUrl && (product.thumbnailImageUrl.startsWith('http://') || product.thumbnailImageUrl.startsWith('https://'))) {
+            return product.thumbnailImageUrl;
+        }
+
+        // 이미지 우선순위: thumbnailImage -> thumbnailImageUrl -> mainImageUrl -> productImage -> 기본 이미지
         if (product.thumbnailImage) {
             return getImageUrl(product.thumbnailImage);
-        } else if (product.productImage) {
-            return getImageUrl(product.productImage);
+        } else if (product.thumbnailImageUrl) {
+            return getImageUrl(product.thumbnailImageUrl);
         } else if (product.mainImageUrl) {
             return getImageUrl(product.mainImageUrl);
+        } else if (product.productImage) {
+            return getImageUrl(product.productImage);
         } else {
             return "https://via.placeholder.com/300x200.png?text=No+Image";
         }

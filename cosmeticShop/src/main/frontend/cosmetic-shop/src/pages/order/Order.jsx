@@ -77,11 +77,29 @@ function Order() {
             // 직접 구매인 경우 location state에서 먼저 확인하고 없으면 로컬 스토리지에서 가져오기
             if (isDirectOrder) {
                 if (directProductData && directProductData.length > 0) {
-                    items = directProductData;
+                    items = directProductData.map(item => {
+                        // 이미지 처리
+                        const thumbnailImage = item.thumbnailImage || "";
+                        return {
+                            ...item,
+                            // 이미지 필드를 일관성 있게 설정
+                            thumbnailImage: thumbnailImage,
+                            thumbnailImageUrl: thumbnailImage
+                        };
+                    });
                 } else {
                     const directOrderItems = JSON.parse(localStorage.getItem('directOrderItems') || '[]');
                     if (directOrderItems.length > 0) {
-                        items = directOrderItems;
+                        items = directOrderItems.map(item => {
+                            // 이미지 처리
+                            const thumbnailImage = item.thumbnailImage || "";
+                            return {
+                                ...item,
+                                // 이미지 필드를 일관성 있게 설정
+                                thumbnailImage: thumbnailImage,
+                                thumbnailImageUrl: thumbnailImage
+                            };
+                        });
                     }
                 }
 
@@ -142,13 +160,15 @@ function Order() {
                 setOrderPrice(totalPrice + shippingFee);
             }
 
-            // Process images to ensure they're only loaded once
+            // 이미지 필드를 일관되게 설정
             const processedItems = items.map(item => {
-                // Ensure we have a single, consistent image URL
-                const imageUrl = item.thumbnailImageUrl || item.mainImageUrl || "https://via.placeholder.com/300x200.png?text=No+Image";
+                // 이미지 필드 중 하나가 있으면 사용
+                const imageUrl = item.thumbnailImage || item.thumbnailImageUrl || item.mainImageUrl || "";
+
                 return {
                     ...item,
-                    // Set both image properties to the same URL to avoid multiple requests
+                    // 모든 이미지 필드에 동일한 값 설정
+                    thumbnailImage: imageUrl,
                     thumbnailImageUrl: imageUrl,
                     mainImageUrl: imageUrl
                 };

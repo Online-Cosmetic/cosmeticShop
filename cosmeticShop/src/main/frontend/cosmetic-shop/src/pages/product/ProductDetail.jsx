@@ -139,8 +139,16 @@ function Detail({ title }) {
 
     // 할인가격 미리 계산
     const discountedPrice = calculateDiscountedPrice(product.price, product.discountRate || 0);
+
     // 현재 보고 있는 이미지 URL 가져오기 (캐시 버스팅 포함)
-    const currentImageUrl = imageUrls[currentImageIndex];
+    // URL에서 쿼리 파라미터 제거 (캐시 버스팅 타임스탬프 등)
+    const cleanImageUrl = imageUrls[currentImageIndex].split('?')[0];
+
+    // 이미지가 백엔드 서버의 절대 경로인지 확인
+    const thumbnailImage = cleanImageUrl.includes('/images')
+        ? cleanImageUrl.substring(cleanImageUrl.indexOf('/images'))
+        : product.thumbnailImageUrl;
+
 
     // 주문 상품 정보 보완
     const orderItem = {
@@ -150,8 +158,10 @@ function Detail({ title }) {
       quantity: quantity,
       price: product.price,
       discountRate: product.discountRate || 0,
-      thumbnailImageUrl: currentImageUrl,
-      mainImageUrl: currentImageUrl, // 둘 다 설정하여 어떤 필드를 사용하든 이미지가 나오도록 함
+      // thumbnailImageUrl: currentImageUrl,
+      // mainImageUrl: currentImageUrl, // 둘 다 설정하여 어떤 필드를 사용하든 이미지가 나오도록 함
+      thumbnailImageUrl: thumbnailImage,
+      mainImageUrl: thumbnailImage, // 둘 다 설정하여 어떤 필드를 사용하든 이미지가 나오도록 함
       discountedPrice: discountedPrice
     };
 
