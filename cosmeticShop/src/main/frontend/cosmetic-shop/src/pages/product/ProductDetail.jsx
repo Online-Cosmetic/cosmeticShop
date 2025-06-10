@@ -287,16 +287,41 @@ function Detail({ title }) {
                   <button className="text-gray-400 hover:text-rose-500 transition-all duration-300 transform hover:scale-110 p-2 rounded-full hover:bg-rose-50">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none"
                          viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                            d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0
-                      116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
                   </button>
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-700 text-lg leading-relaxed">{product.description || "상세 설명이 없습니다."}</p>
+                {/* 가격 정보 - 할인율이 있는 경우 할인 전 가격 표시 */}
+                <div className="mt-6">
+                  {discountRate > 0 ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <span className="text-lg text-gray-500 line-through mr-3">
+                          {product.price.toLocaleString()}원
+                        </span>
+                        <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded">
+                          {discountRate}% OFF
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-3xl font-bold text-red-600">
+                          {discountedPrice.toLocaleString()}원
+                        </span>
+                        <span className="ml-2 text-sm text-gray-500">
+                          ({(product.price - discountedPrice).toLocaleString()}원 할인)
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-3xl font-bold text-gray-900">
+                      {product.price.toLocaleString()}원
+                    </div>
+                  )}
                 </div>
+
+                {/* 기존 내용 유지 */}
+                <p className="text-gray-700">{product.description}</p>
 
                 {/* 가격 정보 영역 - 할인율 적용 */}
                 <div className="bg-white p-5 rounded-lg border border-gray-100">

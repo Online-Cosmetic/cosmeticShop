@@ -20,6 +20,7 @@ public class CartGetDTO {
     private int quantity;
     private String companyName;
     private int price;
+    private int discountRate; // 할인율 추가
     private String productImage;
 
     public CartGetDTO(Cart cart) {
@@ -28,6 +29,7 @@ public class CartGetDTO {
         this.productName = cart.getProduct().getProductName();
         this.companyName = cart.getProduct().getCompany().getCompanyName();
         this.price = cart.getProduct().getPrice();
+        this.discountRate = cart.getProduct().getDiscountRate(); // 상품 엔티티에서 할인율 가져오기
         if (cart.getProduct().getThumbnailImage() != null) {
             this.productImage = cart.getProduct().getThumbnailImage().getImageUrl();
         }

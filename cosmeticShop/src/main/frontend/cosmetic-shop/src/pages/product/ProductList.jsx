@@ -29,10 +29,13 @@ function ProductList({ products, title }) {
                     <p className="col-span-3 text-center text-gray-500">해당 카테고리에 상품이 없습니다.</p>
                 ) : (
                     products.map((product) => {
-                        // 할인된 가격 계산
+                        // 할인된 가격 계산 - 백엔드에서 받은 discountRate 사용
                         const discountRate = product.discountRate || 0;
                         const discountedPrice = calculateDiscountedPrice(product.price, discountRate);
                         const isLiked = likedProducts[product.id] || false;
+
+                        // 디버깅용 로깅 (개발 중에만 사용하고 실제 배포 시 제거)
+                        console.log(`상품 ${product.productName || product.title} 할인율:`, discountRate);
 
                         return (
                             <div
@@ -77,41 +80,34 @@ function ProductList({ products, title }) {
 
                                 <div className="p-5 space-y-2">
                                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors duration-200">
-                                        {product.title}
+                                        {product.title || product.productName}
                                     </h3>
 
                                     <p className="text-sm text-gray-500 line-clamp-2">
-                                        {product.content}
+                                        {product.content || product.description}
                                     </p>
 
-                                    <div className="space-y-1">
-                                        {discountRate > 0 && (
-                                            <div className="flex items-center">
-                <span className="text-gray-500 text-sm line-through mr-2">
-                    {product.price.toLocaleString()}원
-                </span>
-                                                <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded">
-                    {discountRate}% 할인
-                </span>
-                                            </div>
+                                    <div className="space-y-1 mt-2">
+                                        {discountRate > 0 ? (
+                                            <>
+                                                <div className="flex items-center">
+                                                    <span className="text-gray-500 text-sm line-through mr-2">
+                                                        {product.price.toLocaleString()}원
+                                                    </span>
+                                                    <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded font-medium">
+                                                        {discountRate}% 할인
+                                                    </span>
+                                                </div>
+                                                <p className="font-bold text-lg text-red-600">
+                                                    {discountedPrice.toLocaleString()}원
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <p className="font-bold text-lg text-gray-900">
+                                                {product.price.toLocaleString()}원
+                                            </p>
                                         )}
-                                        <p className="font-bold text-lg text-gray-900">
-                                            {discountedPrice.toLocaleString()}원
-                                        </p>
                                     </div>
-
-                                    {/*/!* 빠른 보기 버튼 (호버 시 표시) *!/*/}
-                                    {/*<div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">*/}
-                                    {/*    <button*/}
-                                    {/*        className="w-full bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg py-2 text-sm font-medium hover:bg-emerald-100 transition-colors duration-200"*/}
-                                    {/*        onClick={(e) => {*/}
-                                    {/*            e.stopPropagation();*/}
-                                    {/*            navigate(`/detail/${product.id}`, { state: { mainImageUrl: product.imageUrl } });*/}
-                                    {/*        }}*/}
-                                    {/*    >*/}
-                                    {/*        빠른 보기*/}
-                                    {/*    </button>*/}
-                                    {/*</div>*/}
                                 </div>
                             </div>
                         );

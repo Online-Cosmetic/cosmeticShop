@@ -63,6 +63,17 @@ function ProductCard({
         }
     };
 
+    // 할인율 배지 컴포넌트 추가
+    const DiscountBadge = ({ discountRate }) => {
+        if (!discountRate || discountRate <= 0) return null;
+
+        return (
+            <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-br-md">
+                {discountRate}%
+            </div>
+        );
+    };
+
     return (
         <div
             className={`flex gap-6 border-b border-gray-100 w-full items-start ${
@@ -91,11 +102,7 @@ function ProductCard({
                             e.target.src = "https://placehold.co/600x400";
                         }}
                     />
-                    {discountRate > 0 && (
-                        <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-br-md">
-                            {discountRate}%
-                        </div>
-                    )}
+                    <DiscountBadge discountRate={discountRate} />
                 </div>
             </div>
 
@@ -141,12 +148,12 @@ function ProductCard({
                     {discountRate > 0 ? (
                         <div className="flex items-center mb-1">
                             <span className="text-gray-500 text-sm line-through mr-2">{product.price.toLocaleString()}원</span>
-                            <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded">{discountRate}% 할인</span>
+                            <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded font-medium">{discountRate}% 할인</span>
                         </div>
                     ) : (
                         <div className="h-5">{/* 할인이 없을 때 공간 유지 */}</div>
                     )}
-                    <p className="font-bold text-xl text-gray-900">
+                    <p className={`font-bold text-xl ${discountRate > 0 ? 'text-red-600' : 'text-gray-900'}`}>
                         {discountedPrice.toLocaleString()}원
                     </p>
                 </div>

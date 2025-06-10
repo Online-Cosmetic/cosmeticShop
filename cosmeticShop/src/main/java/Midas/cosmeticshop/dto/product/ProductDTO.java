@@ -14,6 +14,7 @@ public class ProductDTO {
     private String productName;
     private String description;
     private int price;
+    private int discountRate; // 할인율 필드 추가
     private int stock;
     private Long companyId;
     private String thumbnailImageUrl;
@@ -26,6 +27,7 @@ public class ProductDTO {
             product.getProductName(),
             product.getDescription(),
             product.getPrice(),
+            product.getDiscountRate(), // 할인율 값 추가
             product.getStock(),
             product.getCompany().getId(),
             product.getThumbnailImage().getImageUrl()

@@ -261,7 +261,7 @@ function Order() {
         return true;
     };
 
-    // 주문 생성 후 결제창 띄우기
+    // Order.jsx - handleProceedOrder 함수에서 할인가를 고려한 주문 생성
     const handleProceedOrder = async () => {
         setErrorMsg("");
         setShowPayment(false);
@@ -279,31 +279,37 @@ function Order() {
         }
 
         try {
-            // Log the selected address to verify it's being included
-            console.log("Submitting order with address:", selectedAddress);
+            // 주문 상품 정보에 할인가 적용
+            const orderItems = cartItems.map(item => {
+                // 할인율 적용 가격 계산
+                const discountRate = item.discountRate || 0;
+                const discountedPrice = Math.floor(item.price * (1 - discountRate / 100));
 
-            const orderRequest = {
-                orderItemDTO: cartItems.map(item => ({
+                return {
                     productId: item.productId,
                     productName: item.productName,
                     quantity: item.quantity,
-                    price: item.price
-                })),
+                    price: item.price,
+                    discountRate: discountRate,
+                    finalPrice: discountedPrice // 할인된 최종 가격 추가
+                };
+            });
+
+            const orderRequest = {
+                orderItemDTO: orderItems,
                 addressDTO: {
-                    // Ensure all address fields are included
                     id: selectedAddress.id,
                     city: selectedAddress.city,
                     street: selectedAddress.street,
                     detail: selectedAddress.detail || ""
                 },
                 recipientName: getBuyerInfo().name,
-                totalPrice: orderPrice,
-                orderStatus: 'PENDING',  // 초기 주문 상태
-                orderDate: new Date().toISOString(),  // 주문 일시
+                totalPrice: orderPrice, // CartSummary에서 계산된 최종 가격
+                orderStatus: 'PENDING',
+                orderDate: new Date().toISOString(),
             };
 
-            // Log the full request payload
-            console.log("Order request payload:", orderRequest);
+            console.log("주문 요청:", orderRequest);
 
             const res = await userAPI.order.createOrder(orderRequest);
             const newOrderId = res.data.orderId;
