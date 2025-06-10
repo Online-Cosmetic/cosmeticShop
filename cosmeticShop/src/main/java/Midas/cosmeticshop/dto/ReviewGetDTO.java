@@ -28,6 +28,7 @@ public class ReviewGetDTO {
     private LocalDateTime revisedAt;
     private List<ReviewImageDTO> reviewImages;
     private boolean isLiked;
+    private boolean isMyReview; // 내 리뷰 여부
 
     public ReviewGetDTO(Review review, boolean isLiked) {
         this.id = review.getId();
@@ -47,6 +48,14 @@ public class ReviewGetDTO {
     // 명시적인 isLiked() 메소드 추가
     public boolean isLiked() {
         return this.isLiked;
+    }
+
+    public boolean isMyReview() {
+        return isMyReview;
+    }
+
+    public void setIsMyReview(boolean isMyReview) {
+        this.isMyReview = isMyReview;
     }
 
     @Getter

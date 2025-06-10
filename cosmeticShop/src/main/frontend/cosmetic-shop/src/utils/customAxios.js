@@ -247,10 +247,12 @@ export const userAPI = {
     },
 
     review: {
-        getProductReviews: (productId) => customAxios.get('/api/reviews', {
-            params: { productId }
+        getProductReviews: (productId, sortBy = 'popular') =>
+            customAxios.get(`/api/reviews`, {
+                params: { productId, sortBy }
         }),
-        getMyProductReviews: (productId) => customAxios.get('/api/reviews/me', {
+        getMyProductReviews: (productId) =>
+            customAxios.get('/api/reviews/me', {
             params: productId ? { productId } : {}
         }),
         createReview: (reviewData) => customAxios.post('/api/reviews', reviewData),

@@ -44,11 +44,16 @@ public class ReviewService {
         this.fileStorageService = fileStorageService;
     }
 
-    public List<ReviewGetDTO> getReview(Long productId, String userId) {
-        List<Review> reviewList = ReviewRepo.findByProductIdOrderByLikedDesc(productId);
-        List<ReviewGetDTO> reviewDTOList = new ArrayList<>();
+    // 파라미터 추가: sortBy - "latest" 또는 "popular"
+    public List<ReviewGetDTO> getReview(Long productId, String userId, String sortBy) {
+        List<Review> reviewList = "latest".equals(sortBy)
+            ? ReviewRepo.findByProductIdOrderByCreatedAtDesc(productId)
+            : ReviewRepo.findByProductIdOrderByLikedDesc(productId);
 
-        if(userId==null) {
+        List<ReviewGetDTO> reviewDTOList = new ArrayList<>();
+        List<ReviewGetDTO> myReviewDTOList = new ArrayList<>(); // 내 리뷰만 담는 리스트
+
+        if(userId == null) {
             for(Review review : reviewList) {
                 reviewDTOList.add(new ReviewGetDTO(review, false));
             }
@@ -56,17 +61,33 @@ public class ReviewService {
         }
 
         for (Review review : reviewList) {
-            if(ReviewLikeRepo.existsByReviewIdAndUserUserId(review.getId(), userId))
-                reviewDTOList.add(new ReviewGetDTO(review, true));
-            else
-                reviewDTOList.add(new ReviewGetDTO(review, false));
+            boolean isLiked = ReviewLikeRepo.existsByReviewIdAndUserUserId(review.getId(), userId);
+            ReviewGetDTO dto = new ReviewGetDTO(review, isLiked);
+
+            // 내가 작성한 리뷰인지 확인
+            if(review.getUser().getUserId().equals(userId)) {
+                dto.setIsMyReview(true); // 내 리뷰 표시
+                myReviewDTOList.add(dto); // 내 리뷰 목록에 추가
+            } else {
+                reviewDTOList.add(dto);
+            }
         }
-        reviewDTOList.sort(
-            comparing(ReviewGetDTO::isLiked).reversed()
-                .thenComparing(ReviewGetDTO::getLiked, reverseOrder())
-                .thenComparing(ReviewGetDTO::getCreatedAt, reverseOrder())
-        );
-        return reviewDTOList;
+
+        // 내 리뷰는 최신순으로 정렬
+        myReviewDTOList.sort(comparing(ReviewGetDTO::getCreatedAt, reverseOrder()));
+
+        // 다른 사람의 리뷰는 선택된 방식으로 정렬
+        if("latest".equals(sortBy)) {
+            reviewDTOList.sort(comparing(ReviewGetDTO::getCreatedAt, reverseOrder()));
+        } else {
+            // 인기순 정렬 (liked 내림차순)
+            reviewDTOList.sort(comparing(ReviewGetDTO::getLiked, reverseOrder()));
+        }
+
+        // 내 리뷰를 맨 위에 추가
+        myReviewDTOList.addAll(reviewDTOList);
+
+        return myReviewDTOList;
     }
 
     public List<ReviewGetDTO> getAllMyReviews(String userId) {

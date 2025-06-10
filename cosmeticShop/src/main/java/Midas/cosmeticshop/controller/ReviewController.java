@@ -24,12 +24,15 @@ public class ReviewController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReviewGetDTO>> getReview (@RequestParam("productId") Long productId,
-                                                         Authentication authentication) {
+    public ResponseEntity<List<ReviewGetDTO>> getReview(
+        @RequestParam("productId") Long productId,
+        @RequestParam(value = "sortBy", defaultValue = "popular") String sortBy,
+        Authentication authentication) {
+
         if (authentication==null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken)
-            return ResponseEntity.ok().body(reviewService.getReview(productId, null));
+            return ResponseEntity.ok().body(reviewService.getReview(productId, null, sortBy));
         else
-            return ResponseEntity.ok().body(reviewService.getReview(productId, authentication.getName()));
+            return ResponseEntity.ok().body(reviewService.getReview(productId, authentication.getName(), sortBy));
     }
 
     @GetMapping("/me")

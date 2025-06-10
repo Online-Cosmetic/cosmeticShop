@@ -32,6 +32,7 @@ function Detail({title}) {
     const [likedReviews, setLikedReviews] = useState({});
     const [hasPurchased, setHasPurchased] = useState(false);
     const [hasReviewed, setHasReviewed] = useState(false);
+    const [sortBy, setSortBy] = useState('popular'); // 'popular' 또는 'latest'
 
     // 카테고리 ID를 카테고리 이름으로 변환하는 함수
     const getCategoryNameById = (categoryId) => {
@@ -134,32 +135,59 @@ function Detail({title}) {
     }, [id]);
 
     // 리뷰 데이터 가져오기
-    useEffect(() => {
-        const fetchReviews = async () => {
-            if (!id) return;
+    const fetchReviews = async () => {
+        if (!id) return;
 
-            try {
-                setReviewsLoading(true);
-                const response = await userAPI.review.getProductReviews(id);
-                setReviews(response.data);
+        try {
+            setReviewsLoading(true);
+            const response = await userAPI.review.getProductReviews(id, sortBy);
+            setReviews(response.data);
 
-                // 리뷰 좋아요 상태 초기화
-                if (isAuthenticated) {
-                    const likedMap = {};
-                    response.data.forEach(review => {
-                        likedMap[review.id] = review.isLiked; // 서버에서 전달받은 isLiked 값 사용
-                    });
-                    setLikedReviews(likedMap);
-                }
-            } catch (err) {
-                console.error("리뷰 로딩 중 오류 발생:", err);
-            } finally {
-                setReviewsLoading(false);
+            // 리뷰 좋아요 상태 초기화
+            if (isAuthenticated) {
+                const likedMap = {};
+                response.data.forEach(review => {
+                    likedMap[review.id] = review.isLiked;
+                });
+                setLikedReviews(likedMap);
             }
-        };
+        } catch (err) {
+            console.error("리뷰 로딩 중 오류 발생:", err);
+        } finally {
+            setReviewsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchReviews();
-    }, [id, isAuthenticated]);
+    }, [id, isAuthenticated, sortBy]); // sortBy 의존성 추가
+
+    // 정렬 변경 핸들러
+    const handleSortChange = (newSortBy) => {
+        setSortBy(newSortBy);
+    };
+
+    // 리뷰 삭제 핸들러
+    const handleDeleteReview = async (reviewId) => {
+        if (!isAuthenticated) {
+            toast.error("로그인이 필요한 서비스입니다.");
+            return;
+        }
+
+        try {
+            // 삭제 확인
+            if (window.confirm("리뷰를 삭제하시겠습니까?")) {
+                await userAPI.review.deleteReview(reviewId);
+                toast.success("리뷰가 삭제되었습니다.");
+                // 리뷰 목록 다시 가져오기
+                fetchReviews();
+            }
+        } catch (error) {
+            console.error("리뷰 삭제 중 오류 발생:", error);
+            toast.error("리뷰 삭제에 실패했습니다.");
+        }
+    };
+
 
     // 사용자가 상품을 구매했는지, 리뷰를 작성했는지 확인
     useEffect(() => {
@@ -774,91 +802,116 @@ function Detail({title}) {
                     </section>
                 )}
 
-                {/* 리뷰 영역 */}
-                <section className="mt-16 pt-12 border-t border-gray-200">
-                    <div className="flex justify-between items-center mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900">
-                            상품 리뷰
-                        </h2>
-                        {isAuthenticated && hasPurchased && !hasReviewed && (
+                {/*리뷰 섹션에 정렬 옵션 추가*/}
+                <div className="mt-12">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold">상품 리뷰</h2>
+                        <div className="flex items-center">
                             <button
-                                onClick={goToReviewWrite}
-                                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors duration-200 font-medium"
+                                onClick={() => handleSortChange('popular')}
+                                className={`px-3 py-1 mr-2 rounded-md ${sortBy === 'popular'
+                                    ? 'bg-emerald-500 text-white'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                             >
-                                리뷰 작성하기
+                                공감순
                             </button>
-                        )}
+                            <button
+                                onClick={() => handleSortChange('latest')}
+                                className={`px-3 py-1 rounded-md ${sortBy === 'latest'
+                                    ? 'bg-emerald-500 text-white'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                            >
+                                최신순
+                            </button>
+                        </div>
                     </div>
 
-                    {reviewsLoading ? (
-                        <div className="text-center py-10">리뷰를 불러오는 중입니다...</div>
-                    ) : reviews.length === 0 ? (
-                        <div className="text-center py-10 bg-gray-50 rounded-lg">
-                            <p className="text-gray-500">아직 작성된 리뷰가 없습니다.</p>
-                            {isAuthenticated && hasPurchased && !hasReviewed && (
-                                <button
-                                    onClick={goToReviewWrite}
-                                    className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors duration-200 font-medium"
-                                >
-                                    첫 리뷰 작성하기
-                                </button>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="space-y-8">
-                            {reviews.map(review => (
-                                <div key={review.id} className="bg-white p-6 rounded-lg shadow-md">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            {/* 리뷰 작성자 정보 */}
-                                            <div className="flex items-center mb-2">
-                                                <span className="font-semibold text-gray-700 mr-2">{review.user.nickName}</span>
-                                                <div className="flex text-yellow-400">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <span key={i}>
-                                                            {i < review.rating ? <FaStar /> : <FaRegStar />}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                                <span className="ml-2 text-sm text-gray-500">{formatDate(review.createdAt)}</span>
-                                            </div>
-                                            <p className="text-sm text-gray-500">{formatDate(review.createdAt)}</p>
+                    {/* 리뷰 목록 */}
+                    <div className="space-y-4">
+                        {reviewsLoading ? (
+                            <div className="text-center py-4">리뷰를 불러오는 중...</div>
+                        ) : reviews && reviews.length > 0 ? (
+                            reviews.map(review => (
+                                <div key={review.id} className="border rounded-lg p-4">
+                                    {/* 리뷰 작성자 정보 */}
+                                    <div className="flex justify-between items-center mb-2">
+                                        <div className="font-bold">
+                                            {review.user?.nickName || "사용자"}
                                         </div>
-                                        {/* 리뷰 좋아요 버튼 */}
-                                        <button
-                                            onClick={() => handleReviewLike(review.id)}
-                                            className={`flex items-center ${
-                                                review.isLiked ? 'text-red-500' : 'text-gray-400'
-                                            } hover:text-red-500 transition-colors`}
-                                        >
-                                            <FaThumbsUp className="mr-1" />
-                                            <span>{review.liked}</span>
-                                        </button>
+                                        <div className="text-sm text-gray-500">
+                                            {review.createdAt && new Date(review.createdAt).toLocaleDateString()}
+                                        </div>
                                     </div>
+
+                                    {/* 별점 */}
+                                    <div className="flex items-center mb-2">
+                                        {review.rating && [...Array(5)].map((_, i) => (
+                                            <span key={i} className="text-yellow-400">
+              {i < review.rating ? <FaStar /> : <FaRegStar />}
+            </span>
+                                        ))}
+                                    </div>
+
+                                    {/* 리뷰 내용 - 이 부분을 수정 */}
+                                    {review.content ? (
+                                        <p className="mb-2">{review.content}</p>
+                                    ) : (
+                                        <p className="mb-2 text-gray-500">내용 없음</p>
+                                    )}
 
                                     {/* 리뷰 이미지 */}
                                     {review.reviewImages && review.reviewImages.length > 0 && (
-                                        <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
-                                            {review.reviewImages.map((image, idx) => (
+                                        <div className="flex gap-2 mb-2">
+                                            {review.reviewImages.map(img => (
                                                 <img
-                                                    key={idx}
-                                                    src={getImageUrl(image.imageUrl)}
-                                                    alt={`리뷰 이미지 ${idx + 1}`}
-                                                    className="w-20 h-20 object-cover rounded-md flex-shrink-0"
-                                                    onError={(e) => {
-                                                        e.target.src = "https://via.placeholder.com/80x80.png?text=No+Image";
-                                                    }}
+                                                    key={img.id}
+                                                    src={img.imageUrl ? getImageUrl(img.imageUrl) : ''}
+                                                    alt="리뷰 이미지"
+                                                    className="w-16 h-16 object-cover rounded"
                                                 />
                                             ))}
                                         </div>
                                     )}
 
-                                    <p className="text-gray-700">{review.content}</p>
+                                    {/* 좋아요 및 수정/삭제 버튼 */}
+                                    <div className="flex justify-between mt-2">
+                                        <button
+                                            onClick={() => handleReviewLike(review.id)}
+                                            className="flex items-center gap-1 text-sm"
+                                            disabled={!isAuthenticated}
+                                        >
+                                            <FaThumbsUp className={likedReviews[review.id] ? "text-blue-500" : "text-gray-400"} />
+                                            <span>{review.liked || 0}</span>
+                                        </button>
+
+                                        {/* 내 리뷰인 경우에만 수정/삭제 버튼 표시 */}
+                                        {review.isMyReview && (
+                                            <div className="space-x-2">
+                                                <button
+                                                    onClick={() => navigate(`/user/review/edit/${review.id}`)}
+                                                    className="text-sm text-blue-500"
+                                                >
+                                                    수정
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteReview(review.id)}
+                                                    className="text-sm text-red-500"
+                                                >
+                                                    삭제
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </section>
+                            ))
+                        ) : (
+                            <div className="text-center py-4 text-gray-500">
+                                아직 작성된 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!
+                            </div>
+                        )}
+                    </div>
+
+                </div>
             </main>
         </div>
     );
