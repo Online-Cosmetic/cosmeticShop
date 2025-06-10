@@ -19,8 +19,8 @@ const SECTIONS = [
 
   { key: 'orderHistory', label: '주문 조회', Component: OrderHistory },
   { key: 'returnOrders', label: '취소/반품/교환환 ', Component: CancelledOrders },
-  { key: 'wishlist', label: '자바구니', Component: Wishlist },
-  { key: 'OrderList', label: '찜 목록', Component: OrderList },
+  { key: 'orderList', label: '자바구니', Component: OrderList },
+  { key: 'wishlist', label: '찜 목록', Component: Wishlist },
   { key: 'review', label: '리뷰', Component: Review },
   { key: 'qna', label: 'Q&A', Component: QnASection },
   { key: 'Coupons', label: '쿠픈', Component: Coupons },
