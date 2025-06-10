@@ -11,14 +11,19 @@ import EditInfo from './MyComponents/EditInfo';
 import AddressBook from './MyComponents/AddressBook';
 import Payments from './MyComponents/Payments';
 import QnAMyDetail from './MyComponents/QnAMyDetail';
+import Coupons from './MyComponents/Coupons'
+import Default from './MyComponents/Default'
 
 const SECTIONS = [
+  { key: 'Default', label: '주문 조회', Component: Default },
+
   { key: 'orderHistory', label: '주문 조회', Component: OrderHistory },
   { key: 'returnOrders', label: '취소/반품/교환환 ', Component: CancelledOrders },
   { key: 'orderList', label: '자바구니', Component: OrderList },
   { key: 'wishlist', label: '찜 목록', Component: Wishlist },
-  { key: 'review', label: '리뷰뷰', Component: Review },
+  { key: 'review', label: '리뷰', Component: Review },
   { key: 'qna', label: 'Q&A', Component: QnASection },
+  { key: 'Coupons', label: '쿠픈', Component: Coupons },
   { key: 'editInfo', label: '회원정보 수정정', Component: EditInfo },
   { key: 'address', label: '배송지 관리리', Component: AddressBook },
   { key: 'payments', label: '결제수단 관리리', Component: Payments },
@@ -45,15 +50,15 @@ function MyPage() {
         <aside className="w-full md:w-48 mb-8 md:mb-0">
           <h1 className="text-xl font-bold mb-6">My Page</h1>
           <h2 className="font-bold mb-2">Orders</h2>
-          {SECTIONS.slice(0, 3).map(s => (
+          {SECTIONS.slice(1, 4).map(s => (
             <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
           ))}
           <h2 className="mt-6 font-bold mb-2">Activities</h2>
-          {SECTIONS.slice(3, 6).map(s => (
+          {SECTIONS.slice(4, 8).map(s => (
             <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
           ))}
           <h2 className="mt-6 font-bold mb-2">Info</h2>
-          {SECTIONS.slice(6).map(s => (
+          {SECTIONS.slice(8).map(s => (
             <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
           ))}
         </aside>
