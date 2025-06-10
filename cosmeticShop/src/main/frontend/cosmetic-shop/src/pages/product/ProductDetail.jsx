@@ -17,6 +17,9 @@ function Detail({ title }) {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likedRelatedProducts, setLikedRelatedProducts] = useState({});
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
 
   // 이미지 슬라이더 관련 상태 추가
   const [imageUrls, setImageUrls] = useState([]);
@@ -33,6 +36,33 @@ function Detail({ title }) {
     };
     return categoryMap[categoryId] || 'all';
   };
+
+  // 좋아요 상태 가져오기
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchLikedProducts = async () => {
+        try {
+          const response = await userAPI.product.likes.getLikedProducts();
+          const likedProductIds = response.data.map(item => item.productId);
+
+          // 현재 상품이 좋아요 목록에 있는지 확인
+          if (product && likedProductIds.includes(product.productId)) {
+            setIsLiked(true);
+          }
+
+          // 관련 상품 좋아요 상태 설정
+          const likedMap = {};
+          likedProductIds.forEach(id => {
+            likedMap[id] = true;
+          });
+          setLikedRelatedProducts(likedMap);
+        } catch (error) {
+          console.error("좋아요 목록을 가져오는데 실패했습니다:", error);
+        }
+      };
+      fetchLikedProducts();
+    }
+  }, [isAuthenticated, product]);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -107,6 +137,40 @@ function Detail({ title }) {
     setCurrentImageIndex((prevIndex) =>
         prevIndex === imageUrls.length - 1 ? 0 : prevIndex + 1
     );
+  };
+
+  // 좋아요 토글 함수
+  const handleToggleLike = async (productId) => {
+    if (!isAuthenticated) {
+      toast.error("로그인이 필요한 서비스입니다.");
+      navigate("/login", { state: { from: `/detail/${id}` } });
+      return;
+    }
+
+    setIsLikeLoading(true);
+    try {
+      const response = await userAPI.product.likes.toggleLike(productId);
+      const newLikeStatus = response.data; // 토글 후 좋아요 상태 (true/false)
+
+      // 현재 상품의 좋아요 상태 업데이트
+      if (productId === product.productId) {
+        setIsLiked(newLikeStatus);
+      }
+      // 관련 상품의 좋아요 상태 업데이트
+      else {
+        setLikedRelatedProducts(prev => ({
+          ...prev,
+          [productId]: newLikeStatus
+        }));
+      }
+
+      toast.success(newLikeStatus ? "상품을 찜 목록에 추가했습니다." : "상품을 찜 목록에서 제거했습니다.");
+    } catch (error) {
+      console.error("좋아요 토글에 실패했습니다:", error);
+      toast.error("찜하기에 실패했습니다.");
+    } finally {
+      setIsLikeLoading(false);
+    }
   };
 
   // 장바구니에 추가 함수
@@ -284,39 +348,51 @@ function Detail({ title }) {
                 <div className="flex justify-between items-center border-b border-gray-100 pb-4">
                   <h1 className="text-3xl font-bold text-gray-900 leading-tight">{product.productName}</h1>
                   {/* 하트 아이콘(찜) */}
-                  <button className="text-gray-400 hover:text-rose-500 transition-all duration-300 transform hover:scale-110 p-2 rounded-full hover:bg-rose-50">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
+                  <button
+                      onClick={() => handleToggleLike(product.productId)}
+                      disabled={isLikeLoading}
+                      className={`transition-all duration-300 transform hover:scale-110 p-2 rounded-full ${
+                          isLiked ? 'text-rose-500 bg-rose-50' : 'text-gray-400 hover:text-rose-500 hover:bg-rose-50'
+                      }`}
+                  >
+                    {isLiked ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
+                          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                        </svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    )}
                   </button>
                 </div>
 
                 {/* 가격 정보 - 할인율이 있는 경우 할인 전 가격 표시 */}
                 <div className="mt-6">
                   {discountRate > 0 ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center">
+                      <div className="space-y-2">
+                        <div className="flex items-center">
                         <span className="text-lg text-gray-500 line-through mr-3">
                           {product.price.toLocaleString()}원
                         </span>
-                        <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded">
+                          <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded">
                           {discountRate}% OFF
                         </span>
-                      </div>
-                      <div className="flex items-center">
+                        </div>
+                        <div className="flex items-center">
                         <span className="text-3xl font-bold text-red-600">
                           {discountedPrice.toLocaleString()}원
                         </span>
-                        <span className="ml-2 text-sm text-gray-500">
+                          <span className="ml-2 text-sm text-gray-500">
                           ({(product.price - discountedPrice).toLocaleString()}원 할인)
                         </span>
+                        </div>
                       </div>
-                    </div>
                   ) : (
-                    <div className="text-3xl font-bold text-gray-900">
-                      {product.price.toLocaleString()}원
-                    </div>
+                      <div className="text-3xl font-bold text-gray-900">
+                        {product.price.toLocaleString()}원
+                      </div>
                   )}
                 </div>
 
@@ -490,17 +566,26 @@ function Detail({ title }) {
 
                             {/* 하트 버튼 */}
                             <button
-                                className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-full text-gray-400 hover:text-rose-500 hover:bg-white transition-all duration-300 shadow-sm"
+                                className={`absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-full shadow-sm transition-all duration-300 ${
+                                    likedRelatedProducts[relatedProduct.id] ? 'text-rose-500' : 'text-gray-400 hover:text-rose-500'
+                                } hover:bg-white`}
                                 onClick={(e) => {
                                   e.stopPropagation(); // 부모 요소의 클릭 이벤트 전파 방지
-                                  // 좋아요 기능 구현 예정
+                                  handleToggleLike(relatedProduct.id);
                                 }}
+                                disabled={isLikeLoading}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
-                                   viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round"
-                                      d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-                              </svg>
+                              {likedRelatedProducts[relatedProduct.id] ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                                  </svg>
+                              ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
+                                       viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                          d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+                                  </svg>
+                              )}
                             </button>
                           </div>
                           <div className="p-5">

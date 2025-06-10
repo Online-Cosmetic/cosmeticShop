@@ -20,8 +20,8 @@ public class ProductLikeGetDTO {
     private String productName;
     private String companyName;
     private int price;
-    private int discountedPrice;
-    private String productImage;
+    private int discountRate;
+    private String imageUrl;  // 통일된 이미지 URL 필드
 
     public ProductLikeGetDTO(ProductLike productLike) {
         Product product = productLike.getProduct();
@@ -29,10 +29,16 @@ public class ProductLikeGetDTO {
         this.productName = product.getProductName();
         this.companyName = product.getCompany().getCompanyName();
         this.price = product.getPrice();
-        this.discountedPrice = product.getPrice() * (100-product.getDiscountRate()/100);
-        List<ProductImage> productImages = product.getProductImages();
-        if (productImages != null && !productImages.isEmpty()) {
-            this.productImage = productImages.get(0).getImageUrl();
+        this.discountRate = product.getDiscountRate();
+        
+        // 이미지 URL 설정 로직 - 우선순위에 따라 하나의 필드만 사용
+        if (product.getThumbnailImage() != null) {
+            this.imageUrl = product.getThumbnailImage().getImageUrl();
+        } else {
+            List<ProductImage> productImages = product.getProductImages();
+            if (productImages != null && !productImages.isEmpty()) {
+                this.imageUrl = productImages.get(0).getImageUrl();
+            }
         }
     }
 }

@@ -152,6 +152,8 @@ export const userAPI = {
         search: (query) => customAxios.get('/api/products/search', {params: {query}}),
         // 추가: 최신순으로 전체 상품 조회
         getLatest: () => customAxios.get('/api/products/batch/latest'),
+        // 추가: 인기순(좋아요 순)으로 전체 상품 조회
+        getPopular: () => customAxios.get('/api/products/batch/popular'),
         // 추가: 카테고리별 상품 조회
         getByCategory: (categoryName) => {
             // 카테고리 이름을 카테고리 ID로 변환
@@ -161,6 +163,13 @@ export const userAPI = {
             };
             const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
             return customAxios.get(`/api/products/batch/${categoryId}`);
+        },
+        // 상품 좋아요 관련 API
+        likes: {
+            // 좋아요한 상품 목록 조회
+            getLikedProducts: () => customAxios.get('/api/products/likes'),
+            // 상품 좋아요 토글 (좋아요 추가/삭제)
+            toggleLike: (productId) => customAxios.post(`/api/products/${productId}/likes/toggle`)
         }
     },
 

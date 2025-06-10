@@ -1,19 +1,57 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
+import { userAPI } from "../../utils/customAxios";
+import { useAuth } from "../../contexts/AuthContext";
 
-function ProductList({ products, title }) {
+function ProductList({ products, title, sortOption, onSortChange }) {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
     // 좋아요 상태 관리
     const [likedProducts, setLikedProducts] = useState({}); // 개별 상품 상태 저장
+    const [isLoading, setIsLoading] = useState(false);
 
-    const toggleLike = (productId) => {
-        setLikedProducts((prev) => ({
-            ...prev,
-            [productId]: !prev[productId], // 해당 상품 id만 토글
-        }));
+    // 로그인한 사용자의 좋아요 상품 목록 가져오기
+    useEffect(() => {
+        if (isAuthenticated) {
+            const fetchLikedProducts = async () => {
+                try {
+                    const response = await userAPI.product.likes.getLikedProducts();
+                    const likedMap = {};
+                    response.data.forEach(item => {
+                        likedMap[item.productId] = true;
+                    });
+                    setLikedProducts(likedMap);
+                } catch (error) {
+                    console.error("좋아요 목록을 가져오는데 실패했습니다:", error);
+                }
+            };
+            fetchLikedProducts();
+        }
+    }, [isAuthenticated]);
+
+    const toggleLike = async (productId) => {
+        if (!isAuthenticated) {
+            alert("로그인이 필요한 서비스입니다.");
+            navigate("/login");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await userAPI.product.likes.toggleLike(productId);
+            const isLiked = response.data; // 토글 후 좋아요 상태 (true/false)
+
+            setLikedProducts(prev => ({
+                ...prev,
+                [productId]: isLiked
+            }));
+        } catch (error) {
+            console.error("좋아요 토글에 실패했습니다:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // 할인된 가격 계산 함수
@@ -23,7 +61,25 @@ function ProductList({ products, title }) {
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-8 capitalize">{title}</h2>
+            <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-bold capitalize">{title}</h2>
+
+                {/* 정렬 옵션 선택 */}
+                <div className="flex items-center space-x-2">
+                    <label htmlFor="sort" className="text-sm font-medium text-gray-700">정렬:</label>
+                    <select
+                        id="sort"
+                        value={sortOption || 'latest'}
+                        onChange={(e) => onSortChange && onSortChange(e.target.value)}
+                        className="border border-gray-300 rounded-md py-1 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                        <option value="latest">최신순</option>
+                        <option value="popular">인기순</option>
+                        <option value="priceAsc">가격 낮은순</option>
+                        <option value="priceDesc">가격 높은순</option>
+                    </select>
+                </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {products.length === 0 ? (
                     <p className="col-span-3 text-center text-gray-500">해당 카테고리에 상품이 없습니다.</p>
