@@ -244,6 +244,22 @@ export const userAPI = {
 
         // 간편결제 (KG이니시스)
         processKGinisis: (paymentData) => customAxios.post('/api/payments/kginisis', paymentData)
+    },
+
+    review: {
+        getProductReviews: (productId) => customAxios.get('/api/reviews', {
+            params: { productId }
+        }),
+        getMyProductReviews: (productId) => customAxios.get('/api/reviews/me', {
+            params: productId ? { productId } : {}
+        }),
+        createReview: (reviewData) => customAxios.post('/api/reviews', reviewData),
+        updateReview: (reviewId, reviewData) => customAxios.put(`/api/reviews/${reviewId}`, reviewData),
+        deleteReview: (reviewId) => customAxios.delete(`/api/reviews/${reviewId}`),
+        toggleLike: (reviewId) => customAxios.post(`/api/reviews/${reviewId}/likes/toggle`),
+        uploadImages: (formData) => customAxios.post('/api/reviews/images', formData),
+        checkPurchased: (productId) => customAxios.get(`/api/reviews/check-purchased/${productId}`),
+        checkReviewed: (productId) => customAxios.get(`/api/reviews/check-reviewed/${productId}`)
     }
 };
 

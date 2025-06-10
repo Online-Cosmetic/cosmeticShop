@@ -62,6 +62,11 @@ function OrderComplete() {
     }
   };
 
+  // 리뷰 작성 페이지로 이동
+  const goToReviewWrite = (productId) => {
+    navigate(`/user/review/write/${productId}`);
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">로딩 중...</div>;
   }
@@ -73,7 +78,7 @@ function OrderComplete() {
   return (
     <div className="w-full max-w-5xl mx-auto my-8 px-4">
       <h1 className="text-3xl font-bold mb-8">주문 완료</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* 주문 정보 */}
         <div className="bg-white p-6 rounded-lg shadow">
@@ -126,7 +131,7 @@ function OrderComplete() {
         <h2 className="text-xl font-semibold mb-4">주문 상품</h2>
         <div className="space-y-4">
           {order.orderItems?.map((item, index) => (
-            <div key={index} className="flex items-center justify-between py-4 border-b last:border-b-0">
+            <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 border-b last:border-b-0">
               <div className="flex items-center space-x-4">
                 <img
                   src={getImageUrl(item.mainImageUrl)}
@@ -136,9 +141,17 @@ function OrderComplete() {
                 <div>
                   <p className="font-medium">{item.productName}</p>
                   <p className="text-gray-600">수량: {item.quantity}개</p>
+                  <p className="font-medium">{(item.price * item.quantity).toLocaleString()}원</p>
                 </div>
               </div>
-              <p className="font-medium">{(item.price * item.quantity).toLocaleString()}원</p>
+              <div className="mt-4 sm:mt-0">
+                <button
+                  onClick={() => goToReviewWrite(item.productId)}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors duration-200 font-medium"
+                >
+                  리뷰 작성하기
+                </button>
+              </div>
             </div>
           ))}
         </div>

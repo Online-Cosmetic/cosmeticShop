@@ -35,6 +35,10 @@ import OrderHistory from "./pages/user/MyComponents/OrderHistory.jsx";
 import AddressBook from "./pages/user/MyComponents/AddressBook.jsx";
 import AddressForm from "./components/order/AddressForm.jsx";
 
+// 리뷰 관련 페이지
+import ReviewWrite from "./pages/user/MyComponents/ReviewWrite.jsx";
+import ThanksForReview from "./pages/review/ThanksForReview.jsx";
+
 // 기업 페이지
 import EnterpriseHeader from "./components/enterprise/EnterpriseHeader.jsx";
 import EnterpriseSidebar from "./components/enterprise/EnterpriseSidebar.jsx";
@@ -259,6 +263,11 @@ const App = () => {
                                     <Route path="addresses" element={<AddressBook />} />
                                     <Route path="addresses/new" element={<AddressForm />} />
                                     <Route path="addresses/edit/:id" element={<AddressForm />} />
+
+                                    {/* 리뷰 관련 라우트 */}
+                                    <Route path="review/write/:productId" element={<ReviewWrite />} />
+                                    <Route path="review/edit/:reviewId" element={<ReviewWrite />} />
+                                    <Route path="review/thanks" element={<ThanksForReview />} />
                                 </Routes>
                             </PublicLayout>
                         </ProtectedRoute>

@@ -4,10 +4,12 @@ import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.dto.ReviewPostDTO;
 import Midas.cosmeticshop.dto.ReviewPutDTO;
 import Midas.cosmeticshop.service.ReviewService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,7 +24,7 @@ public class ReviewController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReviewGetDTO>> getReview (@RequestParam("ProductId") Long productId,
+    public ResponseEntity<List<ReviewGetDTO>> getReview (@RequestParam("productId") Long productId,
                                                          Authentication authentication) {
         if (authentication==null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken)
             return ResponseEntity.ok().body(reviewService.getReview(productId, null));
@@ -31,9 +33,17 @@ public class ReviewController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<ReviewGetDTO>> getMyReview (@RequestParam("productId") Long productId,
-                                                           Authentication authentication) {
-        return ResponseEntity.ok().body(reviewService.getMyReview(productId, authentication.getName()));
+    public ResponseEntity<List<ReviewGetDTO>> getMyReview(
+        @RequestParam(value = "productId", required = false) Long productId,
+        Authentication authentication) {
+
+        if (productId != null) {
+            // 특정 상품에 대한 내 리뷰만 가져오기
+            return ResponseEntity.ok().body(reviewService.getMyReview(productId, authentication.getName()));
+        } else {
+            // 내가 작성한 모든 리뷰 가져오기
+            return ResponseEntity.ok().body(reviewService.getAllMyReviews(authentication.getName()));
+        }
     }
 
     @PostMapping
@@ -43,7 +53,6 @@ public class ReviewController {
         return ResponseEntity.ok().build();
     }
 
-    //rating도 수정되게 할건지?
     @PutMapping("/{reviewId}")
     public ResponseEntity<Void> putReview (@PathVariable("reviewId") Long id,
                                            @RequestBody ReviewPutDTO reviewPutDTO,
@@ -59,5 +68,16 @@ public class ReviewController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/images")
+    public ResponseEntity<List<String>> uploadImages(
+        @RequestParam("images") List<MultipartFile> images,
+        Authentication authentication) {
 
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<String> imageUrls = reviewService.saveImages(images);
+        return ResponseEntity.ok(imageUrls);
+    }
 }

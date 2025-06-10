@@ -18,11 +18,13 @@ public class ReviewLikeService {
     private final ReviewLikeRepository ReviewLikeRepo;
     private final UserRepository UserRepo;
     private final ReviewRepository ReviewRepo;
+    private final OrderService orderService;
 
-    public ReviewLikeService (ReviewLikeRepository ReviewLikeRepo, UserRepository UserRepo, ReviewRepository ReviewRepo) {
+    public ReviewLikeService (ReviewLikeRepository ReviewLikeRepo, UserRepository UserRepo, ReviewRepository ReviewRepo, OrderService orderService) {
         this.ReviewLikeRepo = ReviewLikeRepo;
         this.UserRepo = UserRepo;
         this.ReviewRepo = ReviewRepo;
+        this.orderService = orderService;
     }
 
     @Transactional
@@ -46,5 +48,16 @@ public class ReviewLikeService {
             ReviewLikeRepo.incrementLiked(reviewId);
             return true;
         }
+    }
+
+    public Boolean checkPurchased(Long productId, String userId) {
+        // 사용자가 해당 상품을 구매했는지 확인하는 로직
+        // OrderRepository를 통해 사용자의 주문 내역 중 해당 상품이 있는지 확인
+        return orderService.hasUserPurchasedProduct(userId, productId);
+    }
+
+    public Boolean checkReviewed(Long productId, String userId) {
+        // 사용자가 해당 상품에 대해 리뷰를 작성했는지 확인하는 로직
+        return ReviewRepo.existsByProductIdAndUserUserId(productId, userId);
     }
 }

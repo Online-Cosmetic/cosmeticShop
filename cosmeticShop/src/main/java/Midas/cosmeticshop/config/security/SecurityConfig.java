@@ -127,7 +127,8 @@ public class SecurityConfig {
             // 장바구니/주소 관련 (로그인 필요)
             .requestMatchers(
                 "/api/carts/**",
-                "/api/addresses/**"
+                "/api/addresses/**",
+                "/api/reviews/**"
             ).hasRole("USER")
 
             // 주문 관련

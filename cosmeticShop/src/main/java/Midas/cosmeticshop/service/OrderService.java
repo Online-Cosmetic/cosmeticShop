@@ -298,4 +298,23 @@ public class OrderService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    /**
+     * 사용자가 특정 상품을 구매했는지 확인하는 메소드
+     * @param userId 사용자 ID
+     * @param productId 상품 ID
+     * @return 구매 여부 (true: 구매함, false: 구매하지 않음)
+     */
+    @Transactional(readOnly = true)
+    public boolean hasUserPurchasedProduct(String userId, Long productId) {
+        User user = userRepository.findByUserId(userId)
+            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        // 사용자가 주문한 모든 주문 아이템 중에서 특정 상품이 포함되어 있는지 확인
+        return orderItemRepository.existsByOrderUserAndProductIdAndDeliveryStatusIn(
+            user, 
+            productId, 
+            List.of(DeliveryStatus.COMP, DeliveryStatus.PROG)  // 배송 완료 또는 진행 중인 주문만 포함
+        );
+    }
 }
