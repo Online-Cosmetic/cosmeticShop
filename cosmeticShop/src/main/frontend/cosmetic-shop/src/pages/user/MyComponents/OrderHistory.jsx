@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { userAPI } from '../../../utils/customAxios.js';
+import { getImageUrl } from '../../../utils/imageUtils.js';
 
 export default function OrderHistory() {
     const [orders, setOrders] = useState([]);
@@ -49,7 +50,7 @@ export default function OrderHistory() {
                                 >
                                     <div className="flex items-center space-x-4">
                                         <img
-                                            src={item.mainImageUrl}
+                                            src={getImageUrl(item.mainImageUrl)}
                                             alt={item.productName}
                                             className="w-24 h-24 object-cover rounded"
                                         />

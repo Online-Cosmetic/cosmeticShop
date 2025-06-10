@@ -91,15 +91,29 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    /* 상품 이미지 교체 */
+    /* 상품 설명만 수정 */
+    @PatchMapping("/{productId}/description")
+    public ResponseEntity<Void> updateProductDescription(
+        @AuthenticationPrincipal BaseUserDetails userDetails,
+        @PathVariable Long productId,
+        @RequestBody ProductDescriptionDTO dto
+    ) {
+        productService.updateProductDescription(userDetails, productId, dto.getDescription());
+        return ResponseEntity.noContent().build();
+    }
+
+    /* 상품 이미지 교체 - 개선된 버전 */
     @PutMapping("/{productId}/images")
     public ResponseEntity<Void> updateProductImages(
         @AuthenticationPrincipal BaseUserDetails userDetails,
         @PathVariable Long productId,
         @RequestParam(value = "mainImage", required = false) MultipartFile mainImage,
-        @RequestParam(value = "additionalImages", required = false) MultipartFile[] additionalImages
+        @RequestParam(value = "additionalImages", required = false) MultipartFile[] additionalImages,
+        @RequestParam(value = "deleteMainImage", defaultValue = "false") boolean deleteMainImage,
+        @RequestParam(value = "deleteAdditionalImages", defaultValue = "false") boolean deleteAdditionalImages
     ) {
-        productService.updateProductImages(userDetails, productId, mainImage, additionalImages);
+        productService.updateProductImages(userDetails, productId, mainImage, additionalImages,
+            deleteMainImage, deleteAdditionalImages);
         return ResponseEntity.noContent().build();
     }
 }

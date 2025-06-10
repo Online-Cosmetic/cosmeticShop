@@ -10,19 +10,19 @@ function Cart() {
     const [checkedItems, setCheckedItems] = useState(new Set()); // 체크박스에 체크한 상품 정보만 summary 에 포함시키기 위해
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        async function fetchCart() {
-            setLoading(true);
-            try {
-                const res = await userAPI.cart.getAllCarts();
-                setCartItems(res.data.items || []);
-            } catch (e) {
-                alert('장바구니 정보를 불러오지 못했습니다.');
-            } finally {
-                setLoading(false);
-            }
+    const fetchCart = async () => {
+        setLoading(true);
+        try {
+            const res = await userAPI.cart.getAllCarts();
+            setCartItems(res.data.items || []);
+        } catch (e) {
+            alert('장바구니 정보를 불러오지 못했습니다.');
+        } finally {
+            setLoading(false);
         }
+    };
 
+    useEffect(() => {
         fetchCart();
     }, []);
 
@@ -43,14 +43,33 @@ function Cart() {
             alert('선택한 상품이 없습니다.');
             return;
         }
-        
+
         // 체크된 아이템 ID 배열로 변환
         const selectedCartIds = Array.from(checkedItems);
-        
+
         // 선택된 장바구니 아이템 ID를 쿼리 파라미터로 전달
-        navigate("/user/order", { 
+        navigate("/user/order", {
             state: { selectedCartIds }
         });
+    };
+
+    const handleDeleteItem = async (productId) => {
+        try {
+            await userAPI.cart.removeFromCart(productId);
+            // Remove the item from checkedItems if it was checked
+            setCheckedItems(prev => {
+                const newChecked = new Set(prev);
+                if (newChecked.has(productId)) {
+                    newChecked.delete(productId);
+                }
+                return newChecked;
+            });
+            // Refresh the cart to show updated items
+            fetchCart();
+        } catch (error) {
+            console.error(`장바구니 아이템 삭제 실패: ${error.message}`);
+            alert('장바구니 아이템을 삭제하지 못했습니다.');
+        }
     };
 
     return (
@@ -76,6 +95,7 @@ function Cart() {
                                         editable={false}
                                         isChecked={checkedItems.has(product.id)}
                                         onCheck={() => handleCheckItem(product.id)}
+                                        onDelete={() => handleDeleteItem(product.id)}
                                     />
                                 ))
                             )}

@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import FilterBar from "../../components/enterprise/FilterBar.jsx";
 import {companyAPI} from "../../utils/customAxios.js";
+import { getImageUrl } from "../../utils/imageUtils.js";
 
 function OrderManagement() {
     const queryClient = useQueryClient();
@@ -160,7 +161,7 @@ function OrderManagement() {
         <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-4">
             <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-12">
                 <div className="flex justify-between items-center">
-                    <h2 className="text-3xl font-bold text-neutral-800">Order Lists</h2>
+                    <h2 className="text-3xl font-bold text-neutral-800">주문상품 내역</h2>
                     <button
                         onClick={() => refetch()}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
@@ -209,7 +210,7 @@ function OrderManagement() {
                                         <div className="h-12 w-12 overflow-hidden rounded">
                                             {order.orderItemDTO.mainImageUrl ? (
                                                 <img
-                                                    src={order.orderItemDTO.mainImageUrl}
+                                                    src={order.orderItemDTO.mainImageUrl ? getImageUrl(order.orderItemDTO.mainImageUrl) : "https://placehold.co/64x64"}
                                                     alt={order.orderItemDTO.productName}
                                                     className="h-full w-full object-cover"
                                                 />

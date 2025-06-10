@@ -233,47 +233,88 @@ public class ProductService {
         return products.map(ProductListDTO::from);
     }
 
-    /* 상품 이미지 교체 */
-    @Transactional
-    public void updateProductImages(BaseUserDetails userDetails, Long productId,
-                                    MultipartFile mainImage, MultipartFile[] additionalImages) {
+    /* 상품 설명만 업데이트 */
+    public void updateProductDescription(BaseUserDetails userDetails, Long productId, String description) {
         String userId = userDetails.getUsername();
         String role = userDetails.getAuthorities().iterator().next().getAuthority();
 
         if (!"ROLE_COMPANY".equals(role)) {
-            throw new IllegalArgumentException("권한이 없습니다. 기업 회원만 상품 이미지를 수정할 수 있습니다.");
+            throw new IllegalArgumentException("권한이 없습니다. 기업 회원만 상품 수정이 가능합니다.");
         }
 
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
 
-        // 회사 ID 확인
+        // 해당 상품이 현재 기업의 것인지 확인
         if (!product.getCompany().getUserId().equals(userId)) {
-            throw new IllegalArgumentException("자신의 상품만 수정할 수 있습니다.");
+            throw new IllegalArgumentException("해당 상품의 수정 권한이 없습니다.");
         }
 
-        // 기존 이미지 삭제
-        if (product.getThumbnailImage() != null) {
-            thumnailImageRepository.delete(product.getThumbnailImage());
-            product.setThumbnailImage(null);
+        // 설명만 업데이트
+        product.setDescription(description);
+        productRepository.save(product);
+    }
+
+    /* 상품 이미지 업데이트 - 개선된 버전 */
+    public void updateProductImages(BaseUserDetails userDetails, Long productId,
+                                    MultipartFile mainImage, MultipartFile[] additionalImages,
+                                    boolean deleteMainImage, boolean deleteAdditionalImages) {
+
+        String userId = userDetails.getUsername();
+        String role = userDetails.getAuthorities().iterator().next().getAuthority();
+
+        if (!"ROLE_COMPANY".equals(role)) {
+            throw new IllegalArgumentException("권한이 없습니다. 기업 회원만 상품 수정이 가능합니다.");
         }
 
-        if (product.getProductImages() != null && !product.getProductImages().isEmpty()) {
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+
+        // 해당 상품이 현재 기업의 것인지 확인
+        if (!product.getCompany().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("해당 상품의 수정 권한이 없습니다.");
+        }
+
+        // 메인 이미지 처리
+        if (deleteMainImage) {
+            // 기존 메인 이미지가 있으면 삭제
+            if (product.getThumbnailImage() != null) {
+                String oldImageUrl = product.getThumbnailImage().getImageUrl();
+                fileStorageService.deleteFile(oldImageUrl);
+                thumnailImageRepository.delete(product.getThumbnailImage());
+                product.setThumbnailImage(null);
+            }
+        }
+
+        // 새 메인 이미지 업로드
+        if (mainImage != null && !mainImage.isEmpty()) {
+            // 기존 메인 이미지가 있으면 삭제
+            if (product.getThumbnailImage() != null) {
+                String oldImageUrl = product.getThumbnailImage().getImageUrl();
+                fileStorageService.deleteFile(oldImageUrl);
+                thumnailImageRepository.delete(product.getThumbnailImage());
+            }
+
+            String mainImageUrl = fileStorageService.storeFile(mainImage);
+            ThumbnailImage thumbnailImage = ThumbnailImage.create(
+                new ProductImageItemDTO(product.getId(), mainImageUrl));
+            product.setThumbnailImage(thumbnailImage);
+            thumnailImageRepository.save(product.getThumbnailImage());
+        }
+
+        // 추가 이미지 처리
+        if (deleteAdditionalImages) {
+            // 기존 추가 이미지들 삭제
+            for (ProductImage image : product.getProductImages()) {
+                fileStorageService.deleteFile(image.getImageUrl());
+            }
             productImageRepository.deleteAll(product.getProductImages());
             product.getProductImages().clear();
         }
 
-        // 새 메인 이미지 저장
-        if (mainImage != null && !mainImage.isEmpty()) {
-            String mainImageUrl = fileStorageService.storeFile(mainImage);
-            ThumbnailImage thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(product.getId(), mainImageUrl));
-            product.setThumbnailImage(thumbnailImage);
-            thumnailImageRepository.save(thumbnailImage);
-        }
-
-        // 새 추가 이미지 저장
-        List<ProductImage> newImages = new ArrayList<>();
-        if (additionalImages != null) {
+        // 새 추가 이미지 업로드
+        if (additionalImages != null && additionalImages.length > 0) {
+            List<ProductImage> newImages = new ArrayList<>();
             for (MultipartFile image : additionalImages) {
                 if (!image.isEmpty()) {
                     String imageUrl = fileStorageService.storeFile(image);
@@ -283,10 +324,11 @@ public class ProductService {
                     newImages.add(productImage);
                 }
             }
+            product.getProductImages().addAll(newImages);
+            productImageRepository.saveAll(newImages);
         }
 
-        product.getProductImages().addAll(newImages);
-        productImageRepository.saveAll(newImages);
+        productRepository.save(product);
     }
 
     /* 사용자 ID로 기업 ID 조회 */

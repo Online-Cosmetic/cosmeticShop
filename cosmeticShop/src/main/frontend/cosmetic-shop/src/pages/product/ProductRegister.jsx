@@ -65,7 +65,7 @@ function ProductRegister() {
     return (
         <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-4">
         <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-12">
-            <h2 className="text-4xl font-bold text-black">Product Registration</h2>
+            <h2 className="text-4xl font-bold text-black">상품 등록</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-8">
                 {/* 카테고리 */}
                 <div className="flex items-center gap-10">

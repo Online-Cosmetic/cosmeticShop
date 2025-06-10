@@ -112,6 +112,10 @@ public class SecurityConfig {
 
         // 경로별 인가 작업  = url 이 부분적으로 라도 중복되는 경우, role 검증을 하는 requestMatchers 를 먼저 호출해야한다
         http.authorizeHttpRequests(auth -> auth
+            // 정적 리소스에 대한 접근 허용 (순서 중요 - 가장 먼저 배치)
+            .requestMatchers(
+                "/css/**", "/js/**", "/images/**", "/favicon.ico")
+            .permitAll()
 
             // 로그인·회원가입 API
             .requestMatchers(
@@ -162,11 +166,6 @@ public class SecurityConfig {
                 "/",
                 "/index.html"
             ).permitAll()
-
-            // JS/CSS/이미지
-            .requestMatchers(
-                "/css/**", "/js/**", "/images/**", "/favicon.ico")
-            .permitAll()
 
             // 관리자 화면
             .requestMatchers("/admin/**").hasRole("ADMIN")

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { companyAPI } from "../../utils/customAxios.js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 const EnterpriseMain = () => {
     // QueryClient 인스턴스 가져오기
@@ -146,9 +147,10 @@ const EnterpriseMain = () => {
                             </h2>
                             <button
                                 onClick={() => refetchSalesData()}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                                className="p-2 text-gray-500 rounded-lg hover:text-emerald-700 hover:scale-110 transition-all duration-200"
+                                aria-label="주간 판매 데이터 새로고침"
                             >
-                                새로고침
+                                <ArrowPathIcon className="w-5 h-5" />
                             </button>
                         </div>
 
@@ -235,9 +237,10 @@ const EnterpriseMain = () => {
                             <h3 className="text-gray-900 text-xl font-semibold">인기 상품 Top 5</h3>
                             <button
                                 onClick={() => refetchTopProducts()}
-                                className="text-blue-500 hover:text-blue-700"
+                                className="p-2 text-gray-500 rounded-lg hover:text-emerald-700 hover:scale-110 transition-all duration-200"
+                                aria-label="인기 상품 새로고침"
                             >
-                                새로고침
+                                <ArrowPathIcon className="w-5 h-5" />
                             </button>
                         </div>
 
@@ -288,9 +291,10 @@ const EnterpriseMain = () => {
                                         refetchTransactions();
                                     }, 0);
                                 }}
-                                className="text-blue-500 hover:text-blue-700"
+                                className="p-2 text-gray-500 rounded-lg hover:text-emerald-700 hover:scale-110 transition-all duration-200"
+                                aria-label="트랜잭션 새로고침"
                             >
-                                새로고침
+                                <ArrowPathIcon className="w-5 h-5" />
                             </button>
                         </div>
 
