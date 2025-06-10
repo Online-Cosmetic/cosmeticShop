@@ -19,17 +19,17 @@ public class RecommendController {
 
     private final RecommendService recommendService;
 
-    @GetMapping
+    @GetMapping("/sales")
     public ResponseEntity<List<ProductPreviewDTO>> getRecommendBySales (Authentication authentication) {
         return ResponseEntity.ok().body(recommendService.getRecommendBySales(authentication.getName()));
     }
 
-    @GetMapping
+    @GetMapping("/company")
     public ResponseEntity<List<ProductPreviewDTO>> getRecommendByCompany (@RequestParam("companyId") Long companyId, Authentication authentication) {
         return ResponseEntity.ok().body(recommendService.getRecommendByCompany(authentication.getName(), companyId));
     }
 
-    @GetMapping
+    @GetMapping("/category")
     public ResponseEntity<List<ProductPreviewDTO>> getRecommendByCategory (@RequestParam("categoryId") Long categoryId, Authentication authentication) {
         return ResponseEntity.ok().body(recommendService.getRecommendByCategory(authentication.getName(), categoryId));
     }

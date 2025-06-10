@@ -62,10 +62,15 @@ function Order() {
             console.error("장바구니 상품 로드 오류:", error);
             return { data: { items: [] } };
         }
-    }, [selectedCartIds, cartItems]);
+    }, [selectedCartIds]); // Removed cartItems from dependencies to prevent re-creation
 
     // 상품 데이터 로드 함수 - useEffect 밖으로 분리
     const loadProductItems = useCallback(async () => {
+        // 이미 로드된 경우 중복 호출 방지
+        if (cartItemsLoadedRef.current && cartItems.length > 0) {
+            return true;
+        }
+
         try {
             let items = [];
 
@@ -137,7 +142,20 @@ function Order() {
                 setOrderPrice(totalPrice + shippingFee);
             }
 
-            setCartItems(items);
+            // Process images to ensure they're only loaded once
+            const processedItems = items.map(item => {
+                // Ensure we have a single, consistent image URL
+                const imageUrl = item.thumbnailImageUrl || item.mainImageUrl || "https://via.placeholder.com/300x200.png?text=No+Image";
+                return {
+                    ...item,
+                    // Set both image properties to the same URL to avoid multiple requests
+                    thumbnailImageUrl: imageUrl,
+                    mainImageUrl: imageUrl
+                };
+            });
+
+            setCartItems(processedItems);
+            cartItemsLoadedRef.current = true;
             return true;
         } catch (e) {
             console.error('상품 정보 로딩 오류:', e);
@@ -168,39 +186,50 @@ function Order() {
         }
     }, [selectedAddress]);
 
-    // 데이터 로드 useEffect
+    // 데이터 로드 useEffect - 한 번만 실행되도록 빈 의존성 배열 사용
     useEffect(() => {
+        // 이미 로드된 경우 중복 실행 방지를 위한 플래그
+        let isMounted = true;
+
         async function fetchData() {
+            if (!isMounted) return;
             setLoading(true);
 
             try {
                 // 주소 정보 로드 - 가장 먼저 로드하여 UI 렌더링 준비
                 const addressesLoaded = await loadAddressData();
+                if (!isMounted) return;
 
                 // 상품 정보 로드
                 const productsLoaded = await loadProductItems();
+                if (!isMounted) return;
 
                 if (!productsLoaded || !addressesLoaded) {
                     alert('주문 정보를 불러오지 못했습니다.');
                 }
             } catch (e) {
                 console.error('주문 정보 로딩 오류:', e);
-                alert('주문 정보를 불러오지 못했습니다.');
+                if (isMounted) {
+                    alert('주문 정보를 불러오지 못했습니다.');
+                }
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         }
 
         fetchData();
 
-        // 컴포넌트 언마운트 시 로컬 스토리지 정리
+        // 컴포넌트 언마운트 시 로컬 스토리지 정리 및 플래그 설정
         return () => {
+            isMounted = false;
             if (isDirectOrder) {
                 localStorage.removeItem('directOrderItems');
                 localStorage.removeItem('directOrderTotalPrice');
             }
         };
-    }, [loadProductItems, loadAddressData]);
+    }, []); // 빈 의존성 배열로 컴포넌트 마운트 시 한 번만 실행
 
     // 필수 구매자 정보 검증
     const validateBuyerInfo = () => {
@@ -230,6 +259,9 @@ function Order() {
         }
 
         try {
+            // Log the selected address to verify it's being included
+            console.log("Submitting order with address:", selectedAddress);
+
             const orderRequest = {
                 orderItemDTO: cartItems.map(item => ({
                     productId: item.productId,
@@ -237,12 +269,21 @@ function Order() {
                     quantity: item.quantity,
                     price: item.price
                 })),
-                addressDTO: selectedAddress,
+                addressDTO: {
+                    // Ensure all address fields are included
+                    id: selectedAddress.id,
+                    city: selectedAddress.city,
+                    street: selectedAddress.street,
+                    detail: selectedAddress.detail || ""
+                },
                 recipientName: getBuyerInfo().name,
                 totalPrice: orderPrice,
                 orderStatus: 'PENDING',  // 초기 주문 상태
                 orderDate: new Date().toISOString(),  // 주문 일시
             };
+
+            // Log the full request payload
+            console.log("Order request payload:", orderRequest);
 
             const res = await userAPI.order.createOrder(orderRequest);
             const newOrderId = res.data.orderId;
@@ -278,7 +319,10 @@ function Order() {
                         <div className="flex-1 flex flex-col space-y-6 overflow-y-auto min-h-0">
                             <AddressForm
                                 savedAddresses={addresses}
-                                onAddressSelect={(addr) => setSelectedAddress(addr)}
+                                onAddressSelect={(addr) => {
+                                    console.log("Selected address:", addr);
+                                    setSelectedAddress(addr);
+                                }}
                             />
                             <section className="flex-1 flex flex-col border rounded-lg p-5 shadow min-h-0">
                                 <h3 className="text-xl font-semibold mb-3">Order Items</h3>

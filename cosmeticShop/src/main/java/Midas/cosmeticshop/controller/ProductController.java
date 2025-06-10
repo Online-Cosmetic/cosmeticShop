@@ -10,6 +10,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
@@ -104,7 +107,7 @@ public class ProductController {
 
     /* 상품 이미지 교체 - 개선된 버전 */
     @PutMapping("/{productId}/images")
-    public ResponseEntity<Void> updateProductImages(
+    public ResponseEntity<?> updateProductImages(
         @AuthenticationPrincipal BaseUserDetails userDetails,
         @PathVariable Long productId,
         @RequestParam(value = "mainImage", required = false) MultipartFile mainImage,
@@ -112,8 +115,23 @@ public class ProductController {
         @RequestParam(value = "deleteMainImage", defaultValue = "false") boolean deleteMainImage,
         @RequestParam(value = "deleteAdditionalImages", defaultValue = "false") boolean deleteAdditionalImages
     ) {
+//        productService.updateProductImages(userDetails, productId, mainImage, additionalImages,
+//            deleteMainImage, deleteAdditionalImages);
+//        return ResponseEntity.noContent().build();
+        // 이미지 업데이트
         productService.updateProductImages(userDetails, productId, mainImage, additionalImages,
             deleteMainImage, deleteAdditionalImages);
-        return ResponseEntity.noContent().build();
+
+        // 업데이트된 이미지 정보 반환 (캐시 무효화를 위해)
+        ProductDTO dto = productService.getProductInfo(productId);
+        ProductImageDTO imageDTO = productService.getProductImages(productId);
+
+        // 업데이트된 이미지 정보를 담은 응답 생성
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("product", dto);
+        response.put("images", imageDTO);
+
+        return ResponseEntity.ok(response);
     }
 }

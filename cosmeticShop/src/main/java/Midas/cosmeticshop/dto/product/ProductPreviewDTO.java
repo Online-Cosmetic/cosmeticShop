@@ -21,7 +21,7 @@ public class ProductPreviewDTO { // 여러 상품 나와있을때 최소한의 �
             product.getProductName(),
             product.getDescription(),
             product.getPrice(),
-            product.getThumbnailImage().getImageUrl()
+            product.getThumbnailImage() != null ? product.getThumbnailImage().getImageUrl() : null
         );
     }
 }

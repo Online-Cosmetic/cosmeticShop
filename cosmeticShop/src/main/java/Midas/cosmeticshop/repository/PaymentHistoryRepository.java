@@ -24,6 +24,7 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
         WHERE c.company_name = :companyName
         AND p.created_at >= :startDate
         AND p.status = 'COMPLETED'
+        AND prod.active = true
         GROUP BY DATE(p.created_at)
         ORDER BY date DESC
     """, nativeQuery = true)
@@ -43,6 +44,7 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
     INNER JOIN companies c ON prod.company_id = c.id
     WHERE c.company_name = :companyName
     AND p.status = 'COMPLETED'
+    AND prod.active = true
     GROUP BY prod.id, prod.name, prod.price
     ORDER BY total_quantity DESC
     LIMIT 5
@@ -60,6 +62,7 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
     INNER JOIN companies c ON prod.company_id = c.id
     WHERE c.company_name = :companyName   
     AND p.status = 'COMPLETED'
+    AND prod.active = true
     ORDER BY p.created_at DESC
     LIMIT :limit OFFSET :offset
     """, nativeQuery = true)

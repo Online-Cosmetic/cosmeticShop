@@ -1,6 +1,7 @@
 package Midas.cosmeticshop.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -19,5 +20,12 @@ public class CorsMvcConfig implements WebMvcConfigurer {
             .allowedHeaders("Authorization", "Content-Type", "Accept")
             .exposedHeaders("Authorization")
             .allowCredentials(true);
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/images/**")
+            .addResourceLocations("file:C:/Users/yongsuchoi/ideaProjects/cosMall/cosmeticShop/src/main/resources/static/images/")
+            .setCacheControl(CacheControl.noCache().mustRevalidate());
     }
 }

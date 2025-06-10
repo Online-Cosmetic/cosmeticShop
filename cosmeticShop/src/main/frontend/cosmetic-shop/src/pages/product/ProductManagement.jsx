@@ -236,6 +236,9 @@ function ProductManagement() {
             if (imagesDeleted || mainImage || additionalImages.length > 0) {
                 await handleSaveImages(productId);
             }
+            
+            // 페이지 자동 새로고침 (또는 데이터 다시 불러오기)
+            window.location.reload(); // 전체 페이지 새로고침 방식
 
             // 모든 작업이 완료되면 편집 상태 초기화
             resetEditState();

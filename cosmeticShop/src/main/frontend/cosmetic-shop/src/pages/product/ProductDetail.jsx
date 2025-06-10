@@ -139,6 +139,8 @@ function Detail({ title }) {
 
     // 할인가격 미리 계산
     const discountedPrice = calculateDiscountedPrice(product.price, product.discountRate || 0);
+    // 현재 보고 있는 이미지 URL 가져오기 (캐시 버스팅 포함)
+    const currentImageUrl = imageUrls[currentImageIndex];
 
     // 주문 상품 정보 보완
     const orderItem = {
@@ -148,7 +150,8 @@ function Detail({ title }) {
       quantity: quantity,
       price: product.price,
       discountRate: product.discountRate || 0,
-      thumbnailImage: imageUrls[0], // 여기는 product.data.productDTO.thumbnailImageUrl 로 수정해야할지도
+      thumbnailImageUrl: currentImageUrl,
+      mainImageUrl: currentImageUrl, // 둘 다 설정하여 어떤 필드를 사용하든 이미지가 나오도록 함
       discountedPrice: discountedPrice
     };
 

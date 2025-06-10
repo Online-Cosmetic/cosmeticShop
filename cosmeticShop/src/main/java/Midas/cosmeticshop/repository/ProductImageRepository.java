@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ProductImageRepository extends JpaRepository<ProductImage, Long> {
     List<ProductImage> findAllByProduct_Id(Long productId);
+    List<ProductImage> findAllByProduct_IdOrderByIdDesc(Long productId);
 }
