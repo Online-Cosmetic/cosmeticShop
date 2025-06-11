@@ -4,8 +4,10 @@ import Midas.cosmeticshop.dto.QnaDTO;
 import Midas.cosmeticshop.dto.QnaListDTO;
 import Midas.cosmeticshop.dto.QnaPostDTO;
 import Midas.cosmeticshop.entity.Qna;
+import Midas.cosmeticshop.entity.user.Admin;
 import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.repository.QnaRepository;
+import Midas.cosmeticshop.repository.user.AdminRepository;
 import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,10 +22,12 @@ public class QnaService {
 
     private final QnaRepository QnaRepo;
     private final UserRepository UserRepo;
+    private final AdminRepository AdminRepo;
 
-    public QnaService (QnaRepository qnaRepo, UserRepository userRepo) {
+    public QnaService(QnaRepository qnaRepo, UserRepository userRepo, AdminRepository adminRepo) {
         this.QnaRepo = qnaRepo;
         this.UserRepo = userRepo;
+        this.AdminRepo = adminRepo;
     }
 
     // Get all answered QnAs
@@ -67,10 +71,10 @@ public class QnaService {
     }
 
     // Admin delete QnA (no user check)
-    public void adminDeleteQna(Long qnaId, String userId) {
-        User user = UserRepo.findByUserId(userId)
-            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
-        if (!user.getRole().equals("ADMIN"))
+    public void adminDeleteQna(Long qnaId, String adminId) {
+        Admin admin = AdminRepo.findByUserId(adminId)
+            .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        if (!admin.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 QnA 삭제가 가능합니다.");
 
         Qna qna = QnaRepo.findById(qnaId)
@@ -148,13 +152,22 @@ public class QnaService {
         QnaRepo.save(qna);
     }
 
-    public void putQnaAnswer (Long qnaId, String answer, String userId) {
+    // 기존 메소드들은 그대로 유지...
+
+    // QnA 답변 작성 메소드 수정
+    public void putQnaAnswer(Long qnaId, String answer, String adminId) {
+        // QnA 존재 확인
         Qna qna = QnaRepo.findById(qnaId)
             .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
-        User user = UserRepo.findByUserId(userId)
-            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
-        if (!user.getRole().equals("ADMIN"))
+        
+        // 관리자 권한 확인 - Admin 객체 사용
+        Admin admin = AdminRepo.findByUserId(adminId)
+            .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        
+        if (!admin.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 QnA 답변 작성이 가능합니다.");
+        
+        // 답변 저장
         qna.setAnswer(answer);
         qna.setAnsweredAt(LocalDateTime.now());
         QnaRepo.save(qna);

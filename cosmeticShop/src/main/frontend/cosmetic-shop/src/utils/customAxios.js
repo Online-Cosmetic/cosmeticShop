@@ -328,6 +328,9 @@ export const adminAPI = {
         // Get all unanswered QnAs
         getUnansweredQnas: () => customAxios.get('/api/qnas/unanswered'),
 
+        // QnA 상세 정보 조회
+        getDetail: (qnaId) => customAxios.get(`/api/qnas/detail/${qnaId}`),
+
         // Search answered QnAs by title
         searchAnsweredQnasByTitle: (title) => customAxios.get('/api/qnas/answered/search', {
             params: { title }
@@ -345,6 +348,14 @@ export const adminAPI = {
         answerQna: (qnaId, answer) => customAxios.put(`/api/qnas/${qnaId}/answers`, null, {
             params: { answer }
         })
+    },
+
+    badKeyword: {
+        getAllBadKeywords: () => customAxios.get('/api/admin/bad-keywords'),
+        addBadKeyword: (keyword) => customAxios.post(`/api/admin/bad-keywords?badKeyword=${encodeURIComponent(keyword)}`),
+        deleteBadKeyword: (badKeywordId) => customAxios.delete(`/api/admin/bad-keywords/${badKeywordId}`),
+        getBadReviews: () => customAxios.get('/api/admin/reviews/bad-keywords'),
+        deleteReviewsWithBadKeywords: () => customAxios.delete('/api/admin/reviews/bad-keywords/all')
     },
 
     // Coupon Management

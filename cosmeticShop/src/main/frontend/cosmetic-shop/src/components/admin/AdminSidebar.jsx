@@ -9,7 +9,8 @@ export default function AdminSidebar() {
     const menuItems = [
         { label: "Statistics", path: "/admin/statistics" },
         { label: "Manage Q&A", path: "/admin/qna" },
-        { label: "Coupon Issuance", path: "/admin/coupon" }
+        { label: "Coupon Issuance", path: "/admin/coupon" },
+        { label: "Manage BadKeyword & Bad Review", path: "/admin/badkeyword" }
     ];
 
     return (

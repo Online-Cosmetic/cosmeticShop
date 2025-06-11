@@ -175,7 +175,8 @@ public class SecurityConfig {
             .requestMatchers(
                 "/api/qnas/admin/**",
                 "/api/qnas/answered/**",
-                "/api/qnas/unanswered/**"
+                "/api/qnas/unanswered/**",
+                "/api/qnas/{qnaId}/answers"
             ).hasRole("ADMIN")
 
             .requestMatchers(

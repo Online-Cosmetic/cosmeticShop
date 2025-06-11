@@ -1,6 +1,7 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BadKeywordDTO;
+import Midas.cosmeticshop.dto.BadKeywordRequest;
 import Midas.cosmeticshop.dto.CouponPostDTO;
 import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.service.AdminService;
@@ -31,7 +32,7 @@ public class AdminController {
     }
 
     @PostMapping("/bad-keywords")
-    public ResponseEntity<Void> postBadKeyword(@RequestParam("badKeyword") String badKeyword ,Authentication authentication) {
+    public ResponseEntity<Void> postBadKeyword(@RequestParam("badKeyword") String badKeyword, Authentication authentication) {
         adminService.postBadKeyword(badKeyword, authentication.getName());
         return ResponseEntity.ok().build();
     }
@@ -47,8 +48,8 @@ public class AdminController {
         return ResponseEntity.ok().body(adminService.getBadReviews(authentication.getName()));
     }
 
-    @DeleteMapping("/reviews/bad")
-    public ResponseEntity<Void> deleteBadReviews(Authentication authentication) {
+    @DeleteMapping("/reviews/bad-keywords/all")
+    public ResponseEntity<Void> deleteAllReviewsWithBadKeywords(Authentication authentication) {
         adminService.deleteBadReviews(authentication.getName());
         return ResponseEntity.ok().build();
     }
