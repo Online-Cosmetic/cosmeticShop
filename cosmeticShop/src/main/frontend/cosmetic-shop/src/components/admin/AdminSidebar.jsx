@@ -7,11 +7,9 @@ export default function AdminSidebar() {
     const { pathname } = useLocation();
 
     const menuItems = [
-        // { label: "Main", path: "/admin/dashboard" },
-        // { label: "Manage Ent User Sign Up", path: "/admin/enteruser" },
-        // { label: "Manage Product Register", path: "/admin/product/register" },
+        { label: "Statistics", path: "/admin/statistics" },
         { label: "Manage Q&A", path: "/admin/qna" },
-        // { label: "Coupon Issuance", path: "/admin/coupon" }               // 아직 라우팅 안 되어 있음
+        { label: "Coupon Issuance", path: "/admin/coupon" }
     ];
 
     return (

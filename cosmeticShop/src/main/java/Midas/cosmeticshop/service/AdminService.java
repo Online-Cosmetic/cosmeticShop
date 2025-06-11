@@ -6,13 +6,13 @@ import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.entity.BadKeyword;
 import Midas.cosmeticshop.entity.Coupon;
 import Midas.cosmeticshop.entity.Review;
+import Midas.cosmeticshop.entity.user.Admin;
 import Midas.cosmeticshop.entity.user.Company;
-import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.repository.BadKeywordRepository;
 import Midas.cosmeticshop.repository.CouponRepository;
 import Midas.cosmeticshop.repository.ReviewRepository;
+import Midas.cosmeticshop.repository.user.AdminRepository;
 import Midas.cosmeticshop.repository.user.CompanyRepository;
-import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;
@@ -29,24 +29,24 @@ public class AdminService {
 
     private final ReviewRepository ReviewRepo;
     private final BadKeywordRepository BadKeywordRepo;
-    private final UserRepository UserRepo;
+    private final AdminRepository adminRepo;
     private final CompanyRepository CompanyRepo;
     private final CouponRepository CouponRepo;
 
     public AdminService (ReviewRepository ReviewRepo,
                          BadKeywordRepository BadKeywordRepo,
-                         UserRepository UserRepo,
+                         AdminRepository adminRepo,
                          CompanyRepository CompanyRepo,
                          CouponRepository CouponRepo) {
         this.ReviewRepo = ReviewRepo;
         this.BadKeywordRepo = BadKeywordRepo;
-        this.UserRepo = UserRepo;
+        this.adminRepo = adminRepo;
         this.CompanyRepo = CompanyRepo;
         this.CouponRepo = CouponRepo;
     }
 
     public List<BadKeywordDTO> getBadkeywords (String userId) {
-        User user = UserRepo.findByUserId(userId)
+        Admin user = adminRepo.findByUserId(userId)
             .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
@@ -59,7 +59,7 @@ public class AdminService {
     }
 
     public void postBadKeyword (String keyword, String userId) {
-        User user = UserRepo.findByUserId(userId)
+        Admin user = adminRepo.findByUserId(userId)
             .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
@@ -69,7 +69,7 @@ public class AdminService {
     }
 
     public void deleteBadKeyword (Long badKeywordId, String userId) {
-        User user = UserRepo.findByUserId(userId)
+        Admin user = adminRepo.findByUserId(userId)
             .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
@@ -79,7 +79,7 @@ public class AdminService {
     }
 
     public List<ReviewGetDTO> getBadReviews (String userId) {
-        User user = UserRepo.findByUserId(userId)
+        Admin user = adminRepo.findByUserId(userId)
             .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
@@ -99,7 +99,7 @@ public class AdminService {
 
     @Transactional
     public void deleteBadReviews (String userId) {
-        User user = UserRepo.findByUserId(userId)
+        Admin user = adminRepo.findByUserId(userId)
             .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
@@ -110,7 +110,7 @@ public class AdminService {
     }
 
     public void deleteReview(Long reviewId, String userId) {
-        User user = UserRepo.findByUserId(userId)
+        Admin user = adminRepo.findByUserId(userId)
             .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if (!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
@@ -119,13 +119,15 @@ public class AdminService {
         ReviewRepo.delete(review);
     }
 
+    /* 새로운 쿠폰을 발행하는 메소드 */
     public void postCoupon(CouponPostDTO couponPostDTO, String userId) {
-        User user = UserRepo.findByUserId(userId)
+        Admin user = adminRepo.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
         if(!user.getRole().equals("ADMIN"))
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
         Company company = CompanyRepo.findByCompanyName(couponPostDTO.getCompanyName())
                 .orElseThrow(() -> new EntityNotFoundException("기업이 존재하지 않습니다."));
+
         Coupon coupon = new Coupon();
         coupon.setCouponName(couponPostDTO.getCouponName());
         coupon.setDiscountRate(coupon.getDiscountRate());

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../../utils/customAxios';
-import { useAuth } from '../../contexts/AuthContext.jsx';
 import Footer from "../../components/common/Footer.jsx";
 
 export default function EnterpriseLogin() {

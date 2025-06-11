@@ -47,8 +47,11 @@ import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
 import ThanksForEnterpriseSignUp from './pages/enterprise/ThanksForEnterpriseSignUp';
 
 // 관리자 페이지
+import AdminLogin from "./pages/admin/AdminLogin.jsx";
+import AdminMain from "./pages/admin/AdminMain.jsx";
 import AdminQnAManagement from "./pages/admin/AdminQnAManagement.jsx";
 import AdminQnAResponse from "./pages/admin/AdminQnAResponse.jsx";
+import AdminCouponIssuance from "./pages/admin/AdminCouponIssuance.jsx";
 import AdminSidebar from "./components/admin/AdminSidebar.jsx";
 import AdminHeader from "./components/admin/AdminHeader.jsx";
 
@@ -244,6 +247,9 @@ const App = () => {
                 {/* 로그아웃 */}
                 <Route path="/logout" element={<Logout/>}/>
 
+                {/* 새로 추가하는 관리자 라우트 */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+
                 {/* 일반 회원 전용 페이지 */}
                 <Route
                     path="/user/*"
@@ -299,12 +305,22 @@ const App = () => {
                 <Route
                     path="/admin/*"
                     element={
-                        <AdminLayout>
-                            <Routes>
-                                <Route path="/qna" element={<AdminQnAManagement />} />
-                                <Route path="/qna/:id/response" element={<AdminQnAResponse />} />
-                            </Routes>
-                        </AdminLayout>
+                        <ProtectedRoute requiredRole="ROLE_ADMIN">
+                            <AdminLayout>
+                                <Routes>
+                                    {/*<Route path="/" element={<AdminMain />} />*/}
+                                    <Route path="main" element={<AdminMain />} />
+                                    <Route path="statistics" element={
+                                        <div className="w-full max-w-[1262px] mx-auto p-4 flex justify-center items-center min-h-[400px]">
+                                            <div className="text-xl text-gray-500">Statistics page will be implemented later.</div>
+                                        </div>
+                                    } />
+                                    <Route path="qna" element={<AdminQnAManagement />} />
+                                    <Route path="qna/:id/response" element={<AdminQnAResponse />} />
+                                    <Route path="coupon" element={<AdminCouponIssuance />} />
+                                </Routes>
+                            </AdminLayout>
+                        </ProtectedRoute>
                     }
                 />
 

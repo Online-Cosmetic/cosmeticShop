@@ -26,6 +26,58 @@ public class QnaService {
         this.UserRepo = userRepo;
     }
 
+    // Get all answered QnAs
+    public List<QnaListDTO> getAnsweredQnas() {
+        List<Qna> qnaList = QnaRepo.findByAnswerIsNotNull();
+        List<QnaListDTO> qnaListDTOList = new ArrayList<>();
+        for(Qna qna : qnaList) {
+            qnaListDTOList.add(new QnaListDTO(qna));
+        }
+        return qnaListDTOList;
+    }
+
+    // Get all unanswered QnAs
+    public List<QnaListDTO> getUnansweredQnas() {
+        List<Qna> qnaList = QnaRepo.findByAnswerIsNull();
+        List<QnaListDTO> qnaListDTOList = new ArrayList<>();
+        for(Qna qna : qnaList) {
+            qnaListDTOList.add(new QnaListDTO(qna));
+        }
+        return qnaListDTOList;
+    }
+
+    // Get answered QnAs with title containing the given string
+    public List<QnaListDTO> getAnsweredQnasByTitle(String title) {
+        List<Qna> qnaList = QnaRepo.findByAnswerIsNotNullAndQuestionTitleContaining(title);
+        List<QnaListDTO> qnaListDTOList = new ArrayList<>();
+        for(Qna qna : qnaList) {
+            qnaListDTOList.add(new QnaListDTO(qna));
+        }
+        return qnaListDTOList;
+    }
+
+    // Get unanswered QnAs with title containing the given string
+    public List<QnaListDTO> getUnansweredQnasByTitle(String title) {
+        List<Qna> qnaList = QnaRepo.findByAnswerIsNullAndQuestionTitleContaining(title);
+        List<QnaListDTO> qnaListDTOList = new ArrayList<>();
+        for(Qna qna : qnaList) {
+            qnaListDTOList.add(new QnaListDTO(qna));
+        }
+        return qnaListDTOList;
+    }
+
+    // Admin delete QnA (no user check)
+    public void adminDeleteQna(Long qnaId, String userId) {
+        User user = UserRepo.findByUserId(userId)
+            .orElseThrow(() -> new EntityNotFoundException("사용자가 존재하지 않습니다."));
+        if (!user.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 QnA 삭제가 가능합니다.");
+
+        Qna qna = QnaRepo.findById(qnaId)
+            .orElseThrow(() -> new EntityNotFoundException("QnA가 존재하지 않습니다."));
+        QnaRepo.delete(qna);
+    }
+
     //사용자가 작성한 QnaList를 반환
     public List<QnaListDTO> getMyQnas (String userId) {
         List<Qna> qnaList = QnaRepo.findByUserUserId(userId);

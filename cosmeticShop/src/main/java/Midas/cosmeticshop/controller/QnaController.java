@@ -89,4 +89,36 @@ public class QnaController {
         return ResponseEntity.ok().build();
     }
 
+    // Admin endpoints for QnA management
+
+    // Get all answered QnAs
+    @GetMapping("/answered")
+    public ResponseEntity<List<QnaListDTO>> getAnsweredQnas() {
+        return ResponseEntity.ok().body(qnaService.getAnsweredQnas());
+    }
+
+    // Get all unanswered QnAs
+    @GetMapping("/unanswered")
+    public ResponseEntity<List<QnaListDTO>> getUnansweredQnas() {
+        return ResponseEntity.ok().body(qnaService.getUnansweredQnas());
+    }
+
+    // Search answered QnAs by title
+    @GetMapping("/answered/search")
+    public ResponseEntity<List<QnaListDTO>> searchAnsweredQnasByTitle(@RequestParam("title") String title) {
+        return ResponseEntity.ok().body(qnaService.getAnsweredQnasByTitle(title));
+    }
+
+    // Search unanswered QnAs by title
+    @GetMapping("/unanswered/search")
+    public ResponseEntity<List<QnaListDTO>> searchUnansweredQnasByTitle(@RequestParam("title") String title) {
+        return ResponseEntity.ok().body(qnaService.getUnansweredQnasByTitle(title));
+    }
+
+    // Admin delete QnA
+    @DeleteMapping("/admin/{qnaId}")
+    public ResponseEntity<Void> adminDeleteQna(@PathVariable Long qnaId, Authentication authentication) {
+        qnaService.adminDeleteQna(qnaId, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
 }

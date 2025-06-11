@@ -124,6 +124,12 @@ public class SecurityConfig {
                 "/api/products/**"
             ).permitAll()
 
+            // 관리자 페이지 접근 경로 허용
+            .requestMatchers(
+                "/admin/login",
+                "/admin/login/**"
+            ).permitAll()
+
             // 장바구니/주소 관련 (로그인 필요)
             .requestMatchers(
                 "/api/carts/**",
@@ -154,19 +160,42 @@ public class SecurityConfig {
 
             // QNA 관련
             .requestMatchers(
-                "/api/qnas/**"
+                "/api/qnas/all",
+                "/api/qnas/detail/**",
+                "/api/qnas/search/**"
             ).permitAll()
+
+            // QNA 관련 (로그인 필요)
+            .requestMatchers(
+                "/api/qnas",
+                "/api/qnas/me/**"
+            ).hasAnyRole("USER", "ADMIN")
+
+            // QNA 관련 (관리자 전용)
+            .requestMatchers(
+                "/api/qnas/admin/**",
+                "/api/qnas/answered/**",
+                "/api/qnas/unanswered/**"
+            ).hasRole("ADMIN")
 
             .requestMatchers(
                 HttpMethod.POST, "/api/products",
                 "/api/company/**"
-            ).hasRole("COMPANY")
+            ).hasAnyRole("COMPANY", "ADMIN")
 
             // HTML 페이지
             .requestMatchers(
                 "/",
                 "/index.html"
             ).permitAll()
+
+            // 관리자 API 전용 경로
+            .requestMatchers(
+                "/api/admin/**",
+                "/api/qnas/admin/**",
+                "/api/qnas/answered/**",
+                "/api/qnas/unanswered/**"
+            ).hasRole("ADMIN")
 
             // 관리자 화면
             .requestMatchers("/admin/**").hasRole("ADMIN")

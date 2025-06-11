@@ -262,6 +262,10 @@ export const userAPI = {
         uploadImages: (formData) => customAxios.post('/api/reviews/images', formData),
         checkPurchased: (productId) => customAxios.get(`/api/reviews/check-purchased/${productId}`),
         checkReviewed: (productId) => customAxios.get(`/api/reviews/check-reviewed/${productId}`)
+    },
+
+    coupon: {
+
     }
 };
 
@@ -310,6 +314,46 @@ export const companyAPI = {
     order: {
         getCompanyOrderItems: (companyName) => customAxios.get(`/api/orders/company/${companyName}`),
         updateDeliveryStatus: (orderItemId, statusData) => customAxios.patch(`/api/orders/${orderItemId}`, statusData),
+    }
+};
+
+// Admin API functions
+export const adminAPI = {
+
+    // QnA Management
+    qna: {
+        // Get all answered QnAs
+        getAnsweredQnas: () => customAxios.get('/api/qnas/answered'),
+
+        // Get all unanswered QnAs
+        getUnansweredQnas: () => customAxios.get('/api/qnas/unanswered'),
+
+        // Search answered QnAs by title
+        searchAnsweredQnasByTitle: (title) => customAxios.get('/api/qnas/answered/search', {
+            params: { title }
+        }),
+
+        // Search unanswered QnAs by title
+        searchUnansweredQnasByTitle: (title) => customAxios.get('/api/qnas/unanswered/search', {
+            params: { title }
+        }),
+
+        // Admin delete QnA
+        adminDeleteQna: (qnaId) => customAxios.delete(`/api/qnas/admin/${qnaId}`),
+
+        // Answer QnA (reusing the existing updateAnswer function from userAPI.qna)
+        answerQna: (qnaId, answer) => customAxios.put(`/api/qnas/${qnaId}/answers`, null, {
+            params: { answer }
+        })
+    },
+
+    // Coupon Management
+    coupon: {
+        // Issue a new coupon
+        issueCoupon: (couponData) => customAxios.post('/api/admin/coupons', couponData),
+
+        // Get all companies for dropdown
+        getAllCompanyNames: () => customAxios.get('/api/company/names')
     }
 };
 

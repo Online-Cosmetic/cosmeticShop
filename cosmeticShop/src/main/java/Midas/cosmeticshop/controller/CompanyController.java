@@ -1,7 +1,9 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.dto.CompanyNamesDTO;
 import Midas.cosmeticshop.dto.product.ProductListDTO;
+import Midas.cosmeticshop.repository.user.CompanyRepository;
 import Midas.cosmeticshop.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CompanyController {
 
     private final ProductService productService;
+    private final CompanyRepository companyRepository;
 
     /* 로그인한 기업의 상품 목록 조회 */
     @GetMapping("/products")
@@ -32,5 +35,16 @@ public class CompanyController {
 
         Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size);
         return ResponseEntity.ok(products);
+    }
+
+    /* 등록된 모든 기업명을 조회 */
+    @GetMapping("/names")
+    public ResponseEntity<CompanyNamesDTO> getAllCompanies(
+        @AuthenticationPrincipal BaseUserDetails userDetails) {
+        String role = userDetails.getAuthorities().iterator().next().getAuthority();
+        if(!role.equals("ROLE_ADMIN")) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(new CompanyNamesDTO(companyRepository.findAllCompanyNames()));
     }
 }

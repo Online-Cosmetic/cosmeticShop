@@ -27,12 +27,10 @@ function Footer() {
                         </svg>
                         <span>Github</span>
                     </a>
-                    {/*<a href="#" className="hover:underline">Terms</a>*/}
-                    {/*<a href="#" className="hover:underline">Contact</a>*/}
                 </div>
             </div>
 
-            {/* 임시 /company, /admin 이동 */}
+            {/* 수정된 임시 링크 부분 */}
             <div className="max-w-screen-xl mx-auto px-4 py-4 flex justify-center gap-6">
                 <Link
                     to="/company"
@@ -41,7 +39,7 @@ function Footer() {
                     (임시) 기업 페이지
                 </Link>
                 <Link
-                    to="/admin/qna"
+                    to="/admin/login"
                     className="px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg"
                 >
                     (임시) 관리자 페이지
