@@ -90,8 +90,6 @@ function ProductList({ products, title, sortOption, onSortChange }) {
                         const discountedPrice = calculateDiscountedPrice(product.price, discountRate);
                         const isLiked = likedProducts[product.id] || false;
 
-                        // 디버깅용 로깅 (개발 중에만 사용하고 실제 배포 시 제거)
-                        console.log(`상품 ${product.productName || product.title} 할인율:`, discountRate);
 
                         return (
                             <div

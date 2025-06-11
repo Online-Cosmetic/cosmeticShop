@@ -365,6 +365,35 @@ export const adminAPI = {
 
         // Get all companies for dropdown
         getAllCompanyNames: () => customAxios.get('/api/company/names')
+    },
+
+    // Statistics Management
+    statistics: {
+        // Get daily order statistics
+        getDailyStats: (startDate, endDate) => customAxios.get('/api/admin/order_stats/day', {
+            params: { startDate, endDate }
+        }),
+
+        // Get monthly order statistics
+        getMonthlyStats: (startDate, endDate) => customAxios.get('/api/admin/order_stats/month', {
+            params: { startDate, endDate }
+        }),
+
+        // Get yearly order statistics
+        getYearlyStats: (startDate, endDate) => customAxios.get('/api/admin/order_stats/year', {
+            params: { startDate, endDate }
+        }),
+
+        // Get dashboard summary statistics (for AdminMain.jsx)
+        getDashboardStats: async () => {
+            // Get stats for the last 30 days
+            const endDate = new Date().toISOString().split('T')[0]; // Today
+            const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 30 days ago
+
+            return customAxios.get('/api/admin/order_stats/day', {
+                params: { startDate, endDate }
+            });
+        }
     }
 };
 

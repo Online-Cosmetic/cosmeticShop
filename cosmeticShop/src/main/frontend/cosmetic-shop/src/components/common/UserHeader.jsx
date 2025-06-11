@@ -37,12 +37,6 @@ export default function UserHeader() {
             // 로그인 상태일 때 표시할 메뉴
             return (
                 <div className="flex items-center space-x-6">
-                    <button
-                        onClick={handleLogout}
-                        className="text-gray-700 hover:text-red-400 transition"
-                    >
-                        Logout
-                    </button>
                     <Link to="/user/mypage" className="text-gray-700 hover:text-emerald-600">
                         My Page
                     </Link>
