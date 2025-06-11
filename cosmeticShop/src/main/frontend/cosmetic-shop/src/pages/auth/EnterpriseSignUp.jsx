@@ -14,19 +14,25 @@ function EnterpriseSignUp() {
     });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-
-    const inputClass =
-        "w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2 focus:ring-emerald-400"
+    // 오류가 발생한 필드를 시각적으로 표시
+    const [errorFields, setErrorFields] = useState([]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
         setError("");
+        
+        // 해당 필드의 오류 하이라이트 제거
+        if (errorFields.includes(name)) {
+            setErrorFields(prev => prev.filter(field => field !== name));
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError("");
+        setErrorFields([]);
 
         try {
             // authAPI 사용 (리다이렉트 방지)
@@ -38,19 +44,54 @@ function EnterpriseSignUp() {
                 phoneNumber: form.phoneNumber
             });
 
-            alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
-            navigate("/enterpriseLogin");
+            // 회원가입 성공 시 감사 페이지로 이동
+            navigate("/thanks-for-enterprise-signup");
         } catch (err) {
             console.error("회원가입 오류:", err);
 
-            if (err.response?.data?.message) {
-                setError(err.response.data.message);
+            // 백엔드에서 전송된 오류 메시지 확인
+            if (err.response && err.response.data) {
+                // 백엔드에서 반환된 오류 메시지가 문자열인 경우 직접 사용
+                const errorMessage = err.response.data;
+                
+                // 특정 오류 메시지에 따라 필드 하이라이트
+                if (errorMessage.includes("아이디")) {
+                    highlightField("userId");
+                } else if (errorMessage.includes("전화번호")) {
+                    highlightField("phoneNumber");
+                } else if (errorMessage.includes("이메일")) {
+                    highlightField("email");
+                } else if (errorMessage.includes("회사")) {
+                    highlightField("companyName");
+                }
+                
+                setError(errorMessage);
+            } else if (err.message === "Network Error") {
+                setError("네트워크 연결에 문제가 발생했습니다. 인터넷 연결을 확인해주세요.");
             } else {
-                setError("회원가입에 실패했습니다. 입력 정보를 확인해주세요.");
+                setError("회원가입에 실패했습니다. 입력 정보를 확인하거나 잠시 후 다시 시도해주세요.");
             }
         } finally {
             setLoading(false);
         }
+    };
+    
+    // 필드 하이라이트 함수
+    const highlightField = (fieldName) => {
+        setErrorFields(prev => [...prev, fieldName]);
+        // 3초 후 하이라이트 제거
+        setTimeout(() => {
+            setErrorFields(prev => prev.filter(field => field !== fieldName));
+        }, 3000);
+    };
+    
+    // 입력 필드 클래스 결정 함수
+    const getFieldClass = (fieldName) => {
+        const baseClass = "w-full h-12 px-4 bg-slate-50 border rounded-xl focus:ring-2";
+        if (errorFields.includes(fieldName)) {
+            return `${baseClass} border-red-500 focus:ring-red-400 animate-pulse`;
+        }
+        return `${baseClass} focus:ring-emerald-400`;
     };
 
     return (
@@ -72,6 +113,19 @@ function EnterpriseSignUp() {
                         </p>
                     </div>
 
+                    {/* 오류 메시지 표시 섹션 - 상단에 배치 */}
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-red-600 font-medium">회원가입 실패</span>
+                            </div>
+                            <p className="text-red-500 mt-1 ml-7">{error}</p>
+                        </div>
+                    )}
+
                     {/* 회원가입 폼 */}
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
@@ -82,7 +136,7 @@ function EnterpriseSignUp() {
                                 onChange={handleChange}
                                 type="text"
                                 placeholder="User ID"
-                                className={inputClass}
+                                className={getFieldClass("userId")}
                                 required
                             />
                         </div>
@@ -97,7 +151,7 @@ function EnterpriseSignUp() {
                                 onChange={handleChange}
                                 type="password"
                                 placeholder="At least 8 characters"
-                                className={inputClass}
+                                className={getFieldClass("password")}
                                 required
                             />
                         </div>
@@ -112,7 +166,7 @@ function EnterpriseSignUp() {
                                 onChange={handleChange}
                                 type="text"
                                 placeholder="ex) CosMall Co."
-                                className={inputClass}
+                                className={getFieldClass("companyName")}
                                 required
                             />
                         </div>
@@ -127,7 +181,7 @@ function EnterpriseSignUp() {
                                 onChange={handleChange}
                                 type="email"
                                 placeholder="example@email.com"
-                                className={inputClass}
+                                className={getFieldClass("email")}
                                 required
                             />
                         </div>
@@ -142,16 +196,10 @@ function EnterpriseSignUp() {
                                 onChange={handleChange}
                                 type="tel"
                                 placeholder="+82 2-123-4567 or 010-1234-5678"
-                                className={inputClass}
+                                className={getFieldClass("phoneNumber")}
                                 required
                             />
                         </div>
-
-                        {error && (
-                            <div className="text-red-500 text-sm text-center">
-                                {error}
-                            </div>
-                        )}
 
                         <button
                             type="submit"
@@ -164,7 +212,7 @@ function EnterpriseSignUp() {
                         <div className="text-right mt-10">
                             <span className="text-slate-700 mr-1">Already have an account?</span>
                             <Link
-                                to="/enterpriseLogin"
+                                to="/enterprise/login"
                                 className="text-emerald-600 font-medium hover:underline"
                             >
                                 Sign in

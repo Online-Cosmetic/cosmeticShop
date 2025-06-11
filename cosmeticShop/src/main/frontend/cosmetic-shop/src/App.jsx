@@ -18,22 +18,18 @@ import ProductPage from "./pages/product/ProductPage.jsx";
 import ProductDetail from "./pages/product/ProductDetail.jsx";
 import Cart from "./pages/cart/Cart.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
-
 import QnA from "./pages/qna/QnAList.jsx";
 import QnADetail from "./pages/qna/QnADetail.jsx";
 import QnAWrite from "./pages/qna/QnAWrite.jsx";
-
 import Order from "./pages/order/Order.jsx";
 import OrderComplete from "./pages/order/OrderComplete";
-
 import Checkout from "./pages/payment/Checkout.jsx";
-
 import UserLogin from "./pages/auth/UserLogin.jsx";
 import SignUp from "./pages/auth/SignUp.jsx";
 import OrderHistory from "./pages/user/MyComponents/OrderHistory.jsx";
-
 import AddressBook from "./pages/user/MyComponents/AddressBook.jsx";
 import AddressForm from "./components/order/AddressForm.jsx";
+import ThanksForSignUp from './pages/user/MyComponents/ThanksForSignUp';
 
 // 리뷰 관련 페이지
 import ReviewWrite from "./pages/user/MyComponents/ReviewWrite.jsx";
@@ -48,11 +44,13 @@ import EnterpriseLogin from "./pages/auth/EnterpriseLogin.jsx";
 import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
 import ProductManagement from "./pages/product/ProductManagement.jsx";
 import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
+import ThanksForEnterpriseSignUp from './pages/enterprise/ThanksForEnterpriseSignUp';
 
 // 관리자 페이지
 import AdminQnAManagement from "./pages/admin/AdminQnAManagement.jsx";
 import AdminQnAResponse from "./pages/admin/AdminQnAResponse.jsx";
-
+import AdminSidebar from "./components/admin/AdminSidebar.jsx";
+import AdminHeader from "./components/admin/AdminHeader.jsx";
 
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
@@ -61,9 +59,6 @@ import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 
 // 데이터
 import data from "./utils/data.js";
-
-import AdminSidebar from "./components/admin/AdminSidebar.jsx";
-import AdminHeader from "./components/admin/AdminHeader.jsx";
 
 // User용 Layout 컴포넌트
 const PublicLayout = ({children}) => (
@@ -233,6 +228,9 @@ const App = () => {
                         </PublicLayout>
                     }
                 />
+
+                <Route path="/thanks-for-signup" element={<ThanksForSignUp />}/>
+                <Route path="/thanks-for-enterprise-signup" element={<ThanksForEnterpriseSignUp />} />
 
                 <Route
                     path={"/forgotPassword"}
