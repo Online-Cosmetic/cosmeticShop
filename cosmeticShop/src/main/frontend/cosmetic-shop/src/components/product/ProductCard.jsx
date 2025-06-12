@@ -10,6 +10,11 @@ function ProductCard({
                        isChecked = false,
                        onCheck = () => {},
                        onDelete = () => {},
+                       // 쿠폰 관련 props 추가
+                       availableCoupons = [],
+                       selectedCoupon = null,
+                       onSelectCoupon = () => {},
+                       couponDiscount = 0,
                      }) {
 
     const handleQuantityChange = async (newQuantity) => {
@@ -109,9 +114,9 @@ function ProductCard({
             <div className="flex flex-col gap-2 flex-1">
                 <div>
                     {product.brand && (
-                        <p className="text-sm text-gray-500 font-medium">{product.brand}</p>
+                        <p className="text-sm text-gray-500 font-medium product-description">{product.brand}</p>
                     )}
-                    <p className="text-lg font-semibold text-gray-900">{product.productName || product.name}</p>
+                    <p className="text-lg font-semibold text-gray-900 product-name">{product.productName || product.name}</p>
                 </div>
 
                 {editable ? (
@@ -143,59 +148,59 @@ function ProductCard({
                     </div>
                 )}
 
-                {/* 할인율과 가격 정보 - 할인율이 0%여도 표시 */}
+                {/* 할인율과 가격 정보 */}
                 <div className="mt-1">
-                    {discountRate > 0 ? (
-                        <div className="flex items-center mb-1">
-                            <span className="text-gray-500 text-sm line-through mr-2">{product.price.toLocaleString()}원</span>
-                            <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded font-medium">{discountRate}% 할인</span>
-                        </div>
-                    ) : (
-                        <div className="h-5">{/* 할인이 없을 때 공간 유지 */}</div>
+                    {discountRate > 0 && (
+                        <span className="text-red-500 font-medium mr-2 product-price">{discountRate}%</span>
                     )}
-                    <p className={`font-bold text-xl ${discountRate > 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                        {discountedPrice.toLocaleString()}원
-                    </p>
+                    <span className="font-bold text-gray-900 product-price">{discountedPrice.toLocaleString()}원</span>
+                    {discountRate > 0 && (
+                        <span className="text-gray-400 text-sm line-through ml-2 product-price">{product.price?.toLocaleString()}원</span>
+                    )}
                 </div>
 
-                {product.promotion && (
-                    <div className="mt-1 bg-amber-50 text-amber-700 px-3 py-1 rounded-md text-sm font-medium inline-block">
-                        {product.promotion}
+                {/* 선택된 쿠폰 표시 (주문 페이지에서만) */}
+                {isOrderPage && availableCoupons.length > 0 && (
+                    <div className="mt-2">
+                        <select
+                            value={selectedCoupon ? selectedCoupon.id : ""}
+                            onChange={(e) => {
+                                const couponId = e.target.value;
+                                if (couponId === "") {
+                                    onSelectCoupon(null);
+                                } else {
+                                    const selectedCoupon = availableCoupons.find(c => c.id.toString() === couponId);
+                                    onSelectCoupon(selectedCoupon);
+                                }
+                            }}
+                            className="text-sm border border-gray-300 rounded-md p-1 pr-8 w-full product-description"
+                        >
+                            <option value="">쿠폰 선택</option>
+                            {availableCoupons.map(coupon => (
+                                <option key={coupon.id} value={coupon.id}>
+                                    {coupon.name} ({coupon.discountRate}%)
+                                </option>
+                            ))}
+                        </select>
+                        {couponDiscount > 0 && (
+                            <p className="text-sm text-red-500 mt-1 product-description">쿠폰 할인: -{couponDiscount.toLocaleString()}원</p>
+                        )}
                     </div>
                 )}
             </div>
 
-            <div className="flex flex-col items-end gap-2">
-                {!editable && (
-                    <button
-                        onClick={onDelete}
-                        className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-all duration-200"
-                        aria-label="삭제"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-5 h-5"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            fill="none"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                    </button>
-                )}
-
-                {/* 총 가격 표시 (수량 * 할인가) */}
-                <div className="text-right mt-auto">
-                    <p className="text-sm text-gray-500">총 상품 금액</p>
-                    <p className="font-bold text-lg text-emerald-600">
-                        {(discountedPrice * product.quantity).toLocaleString()}원
-                    </p>
-                </div>
-            </div>
+            {/* 삭제 버튼 (장바구니 페이지에서만 표시) */}
+            {!isOrderPage && editable && (
+                <button
+                    onClick={() => onDelete(product.id)}
+                    className="px-2 py-2 text-gray-500 hover:text-red-500 transition-colors"
+                    aria-label="상품 삭제"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            )}
         </div>
     );
 }

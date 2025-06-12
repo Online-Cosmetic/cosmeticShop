@@ -71,17 +71,17 @@ function QnAList() {
     };
     return (
         <>
-            <div className="w-full min-h-screen bg-white p-10">
-                <h2 className="text-2xl font-bold mb-6">Q&A</h2>
+            <div className="w-full min-h-screen bg-white p-10 rounded-lg shadow-sm">
+                <h2 className="text-3xl font-bold mb-6 text-gray-800 border-b pb-4">고객 문의 게시판</h2>
 
                 {/* Search */}
                 <div className="relative mb-6 w-[400px]">
-                    <div className="flex items-center border rounded overflow-hidden">
-                        <button className="bg-gray-100 px-4 py-2 text-gray-500 border-r">Condition</button>
+                    <div className="flex items-center border rounded-lg overflow-hidden shadow-sm hover:shadow transition-shadow duration-200">
+                        <button className="bg-gray-100 px-4 py-2 text-gray-600 border-r font-medium">제목</button>
                         <input
                             type="text"
-                            placeholder="Search"
-                            className="px-4 py-2 flex-1 outline-none pr-12"
+                            placeholder="검색어를 입력하세요"
+                            className="px-4 py-2 flex-1 outline-none pr-12 focus:ring-1 focus:ring-emerald-500 transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -89,6 +89,7 @@ function QnAList() {
                             id="searchBtn"
                             onClick={handleSearch}
                             className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                            aria-label="검색"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -107,45 +108,85 @@ function QnAList() {
                         </button>
                     </div>
                 </div>
-                <table className="w-full border-t border-b text-left mb-6">
-                    <thead>
+                <table className="w-full border-t border-b text-left mb-6 bg-white shadow-sm rounded-lg overflow-hidden">
+                    <thead className="bg-gray-50">
                         <tr>
-                            <th className="py-2 px-4">#</th>
-                            <th className="py-2 px-4">State</th>
-                            <th className="py-2 px-4">Title</th>
-                            <th className="py-2 px-4">Author</th>
-                            <th className="py-2 px-4">Date</th>
+                            <th className="py-3 px-4 font-medium text-gray-700">#</th>
+                            <th className="py-3 px-4 font-medium text-gray-700">상태</th>
+                            <th className="py-3 px-4 font-medium text-gray-700">제목</th>
+                            <th className="py-3 px-4 font-medium text-gray-700">작성자</th>
+                            <th className="py-3 px-4 font-medium text-gray-700">작성일</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.map((item, index) => (
-                            <tr key={`${item.id}-${startIndex + index}`} className="border-t">
-                                <td className="py-2 px-4">{startIndex + index + 1}</td>
-                                <td className="py-2 px-4">{item.answered ? 'Answered' : 'Pending'}</td>
-                                <td className="py-2 px-4 hover:text-blue-800">
-                                    <Link to={`/QnADetail${item.id}`}>{item.questionTitle}</Link>
-                                </td>
-                                <td className="py-2 px-4">{item.nickname}</td>
-                                <td className="py-2 px-4">{formatDate(item.questionedAt)}</td>
+                        {currentData.length === 0 ? (
+                            <tr>
+                                <td colSpan="5" className="py-8 text-center text-gray-500">등록된 문의가 없습니다.</td>
                             </tr>
-                        ))}
+                        ) : (
+                            currentData.map((item, index) => (
+                                <tr key={`${item.id}-${startIndex + index}`} className="border-t hover:bg-gray-50 transition-colors">
+                                    <td className="py-3 px-4 text-gray-600">{startIndex + index + 1}</td>
+                                    <td className="py-3 px-4">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                            item.answered 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : 'bg-yellow-100 text-yellow-800'
+                                        }`}>
+                                            {item.answered ? '답변완료' : '대기중'}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <Link 
+                                            to={`/QnADetail/${item.id}`} 
+                                            className="text-gray-800 hover:text-emerald-600 hover:underline transition-colors font-medium"
+                                        >
+                                            {item.questionTitle}
+                                        </Link>
+                                    </td>
+                                    <td className="py-3 px-4 text-gray-600">{item.nickname}</td>
+                                    <td className="py-3 px-4 text-gray-600">{formatDate(item.questionedAt)}</td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
 
-                {/* page */}
+                {/* 페이지네이션 */}
                 <div className="flex justify-center items-center gap-4 mb-6">
-                    <button onClick={handlePrev} disabled={currentPage === 1} className="text-xl disabled:text-gray-300">◀</button>
-                    <span>{currentPage}</span>
-                    <button onClick={handleNext} disabled={currentPage === totalPages} className="text-xl disabled:text-gray-300">▶</button>
+                    <button 
+                        onClick={handlePrev} 
+                        disabled={currentPage === 1} 
+                        className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors disabled:text-gray-300 disabled:hover:bg-transparent"
+                        aria-label="이전 페이지"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                    <span className="text-lg font-medium px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700">{currentPage}</span>
+                    <button 
+                        onClick={handleNext} 
+                        disabled={currentPage === totalPages || totalPages === 0} 
+                        className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors disabled:text-gray-300 disabled:hover:bg-transparent"
+                        aria-label="다음 페이지"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div className="flex justify-end">
                     <Link
                         to="/QnAWrite"
                         onClick={handleLinkClick}
-                        className="border px-4 py-2"
+                        className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm font-medium flex items-center"
                     >
-                        글쓰기
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                        </svg>
+                        문의 작성하기
                     </Link>
                 </div>
             </div>

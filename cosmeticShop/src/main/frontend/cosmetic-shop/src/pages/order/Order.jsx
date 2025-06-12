@@ -21,6 +21,12 @@ function Order() {
     const [orderId, setOrderId] = useState(null);
     const [errorMsg, setErrorMsg] = useState("");
     const [orderPrice, setOrderPrice] = useState(0);
+
+    // 쿠폰 관련 상태 추가
+    const [availableCoupons, setAvailableCoupons] = useState({});  // 각 상품별 사용 가능한 쿠폰 목록
+    const [selectedCoupons, setSelectedCoupons] = useState({});    // 각 상품별 선택된 쿠폰
+    const [loadingCoupons, setLoadingCoupons] = useState(false);   // 쿠폰 로딩 상태
+    const [couponDiscounts, setCouponDiscounts] = useState({});    // 각 상품별 쿠폰 할인 금액
     const [selectedAddress, setSelectedAddress] = useState(null);
 
     // 주소 로딩 상태 참조 - useRef 사용하여 불필요한 리렌더링 방지
@@ -206,6 +212,63 @@ function Order() {
         }
     }, [selectedAddress]);
 
+    // 쿠폰 관련 함수
+    const fetchAvailableCoupons = useCallback(async (productId, companyId) => {
+        try {
+            setLoadingCoupons(true);
+
+            // 1. 내가 가진 쿠폰 목록 가져오기
+            const myCouponsResponse = await userAPI.coupon.getMyCoupons();
+            const myCoupons = myCouponsResponse.data || [];
+
+            // 2. 사용 가능한 쿠폰만 필터링 (사용되지 않은 쿠폰)
+            const validCoupons = myCoupons.filter(coupon => 
+                !coupon.isUsed && 
+                new Date(coupon.expirationDate) > new Date() && 
+                coupon.companyName === companyId // 해당 회사의 쿠폰만 필터링
+            );
+
+            // 3. 상품별 사용 가능한 쿠폰 목록 업데이트
+            setAvailableCoupons(prev => ({
+                ...prev,
+                [productId]: validCoupons
+            }));
+
+        } catch (error) {
+            console.error(`상품 ${productId}의 쿠폰 정보를 불러오는 중 오류 발생:`, error);
+        } finally {
+            setLoadingCoupons(false);
+        }
+    }, []);
+
+    // 쿠폰 선택 처리 함수
+    const handleSelectCoupon = useCallback((productId, coupon) => {
+        // 선택된 쿠폰 업데이트
+        setSelectedCoupons(prev => ({
+            ...prev,
+            [productId]: coupon
+        }));
+
+        // 해당 상품의 할인된 가격 계산
+        const product = cartItems.find(item => item.productId === productId);
+        if (product) {
+            // 상품의 할인율 적용된 가격 계산
+            const discountRate = product.discountRate || 0;
+            const discountedPrice = Math.floor(product.price * (1 - discountRate / 100));
+
+            // 쿠폰 할인 금액 계산 (할인된 가격에 쿠폰 할인율 적용)
+            const couponDiscountAmount = coupon 
+                ? Math.floor(discountedPrice * (coupon.discountRate / 100)) 
+                : 0;
+
+            // 쿠폰 할인 금액 업데이트
+            setCouponDiscounts(prev => ({
+                ...prev,
+                [productId]: couponDiscountAmount
+            }));
+        }
+    }, [cartItems]);
+
     // 데이터 로드 useEffect - 한 번만 실행되도록 빈 의존성 배열 사용
     useEffect(() => {
         // 이미 로드된 경우 중복 실행 방지를 위한 플래그
@@ -223,6 +286,15 @@ function Order() {
                 // 상품 정보 로드
                 const productsLoaded = await loadProductItems();
                 if (!isMounted) return;
+
+                // 상품 정보가 로드되면 각 상품별 쿠폰 정보 로드
+                if (productsLoaded && cartItems.length > 0) {
+                    for (const item of cartItems) {
+                        if (item.productId && item.companyId) {
+                            await fetchAvailableCoupons(item.productId, item.companyId);
+                        }
+                    }
+                }
 
                 if (!productsLoaded || !addressesLoaded) {
                     alert('주문 정보를 불러오지 못했습니다.');

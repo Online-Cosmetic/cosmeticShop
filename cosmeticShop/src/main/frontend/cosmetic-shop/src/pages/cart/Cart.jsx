@@ -134,7 +134,7 @@ function Cart() {
                     </div>
 
                     {/* (좌)상품 목록 + (우)주문 요약 */}
-                    <div className="flex flex-col md:flex-row gap-8 md:gap-16 border rounded-lg p-6 shadow">
+                    <div className="flex flex-col md:flex-row gap-8 md:gap-16 border rounded-lg p-6 shadow bg-white">
                         {/* 상품 목록 */}
                         <div className="flex flex-1 flex-col">
                             {loading ? (
@@ -166,7 +166,7 @@ function Cart() {
 
                         {/* 주문 요약 + 버튼 */}
                         <div className="w-full md:w-96 flex-shrink-0 space-y-6">
-                            <div className="border rounded-lg p-6 shadow">
+                            <div className="border rounded-lg p-6 shadow bg-white">
                                 <h3 className="text-2xl font-semibold mb-4">주문 요약</h3>
                                 <div className="flex flex-col gap-6">
                                     <CartSummary

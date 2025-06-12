@@ -77,3 +77,24 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* 기존 스타일 유지하고 아래 내용 추가 */
+
+/* 제품 이름용 우아한 폰트 */
+.product-name {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.02em;
+}
+
+/* 제품 설명용 가벼운 폰트 */
+.product-description {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+}
+
+/* 가격 정보용 세련된 폰트 */
+.product-price {
+  font-family: 'Cormorant Garamond', serif;
+  letter-spacing: 0.05em;
+}

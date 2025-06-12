@@ -184,6 +184,11 @@ public class SecurityConfig {
                 "/api/company/**"
             ).hasAnyRole("COMPANY", "ADMIN")
 
+            // 쿠폰 관련
+            .requestMatchers(
+                "/api/coupons/**"
+            ).hasAnyRole("ADMIN", "USER", "COMPANY")
+
             // HTML 페이지
             .requestMatchers(
                 "/",

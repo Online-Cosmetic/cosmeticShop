@@ -34,6 +34,12 @@ function Detail({title}) {
     const [hasReviewed, setHasReviewed] = useState(false);
     const [sortBy, setSortBy] = useState('popular'); // 'popular' 또는 'latest'
 
+    // 쿠폰 관련 상태 추가
+    const [coupons, setCoupons] = useState([]);
+    const [myCoupons, setMyCoupons] = useState([]);
+    const [loadingCoupons, setLoadingCoupons] = useState(false);
+    const [showCouponModal, setShowCouponModal] = useState(false);
+
     // 카테고리 ID를 카테고리 이름으로 변환하는 함수
     const getCategoryNameById = (categoryId) => {
         const categoryMap = {
@@ -339,6 +345,12 @@ function Detail({title}) {
             return;
         }
 
+        // 재고 확인
+        if (product.stock < quantity) {
+            toast.error(`재고가 부족합니다. 현재 재고: ${product.stock}개`);
+            return;
+        }
+
         // 할인가격 미리 계산
         const discountedPrice = calculateDiscountedPrice(product.price, product.discountRate || 0);
 
@@ -364,7 +376,8 @@ function Detail({title}) {
             // mainImageUrl: currentImageUrl, // 둘 다 설정하여 어떤 필드를 사용하든 이미지가 나오도록 함
             thumbnailImageUrl: thumbnailImage,
             mainImageUrl: thumbnailImage, // 둘 다 설정하여 어떤 필드를 사용하든 이미지가 나오도록 함
-            discountedPrice: discountedPrice
+            discountedPrice: discountedPrice,
+            stock: product.stock // 재고 정보 추가
         };
 
         // 배송비 포함 총 가격 계산
@@ -394,10 +407,61 @@ function Detail({title}) {
         return date.toLocaleDateString('ko-KR', {year: 'numeric', month: 'long', day: 'numeric'});
     };
 
-
     // 할인된 가격 계산
     const calculateDiscountedPrice = (price, discountRate) => {
         return Math.floor(price * (1 - discountRate / 100));
+    };
+
+    // 쿠폰 관련 함수
+    const fetchCoupons = async () => {
+        if (!isAuthenticated) {
+            toast.error("로그인이 필요한 서비스입니다.");
+            navigate("/login", {state: {from: `/detail/${id}`}});
+            return;
+        }
+
+        setLoadingCoupons(true);
+        try {
+            // 1. 내가 이미 받은 쿠폰 목록 가져오기
+            const myCouponsResponse = await userAPI.coupon.getMyCoupons();
+            setMyCoupons(myCouponsResponse.data);
+
+            // 2. 해당 회사의 사용 가능한 쿠폰 목록 가져오기
+            const availableCouponsResponse = await userAPI.coupon.getAvailableCouponsByCompany(product.companyId);
+
+            // 3. 이미 받은 쿠폰 제외하기
+            const receivedCouponIds = myCouponsResponse.data.map(coupon => coupon.couponId);
+            const filteredCoupons = availableCouponsResponse.data.filter(
+                coupon => !receivedCouponIds.includes(coupon.couponId)
+            );
+
+            setCoupons(filteredCoupons);
+            setShowCouponModal(true);
+        } catch (error) {
+            console.error("쿠폰 정보를 불러오는 중 오류 발생:", error);
+            toast.error("쿠폰 정보를 불러오는데 실패했습니다.");
+        } finally {
+            setLoadingCoupons(false);
+        }
+    };
+
+    const handleReceiveCoupon = async (couponId) => {
+        if (!isAuthenticated) {
+            toast.error("로그인이 필요한 서비스입니다.");
+            navigate("/login", {state: {from: `/detail/${id}`}});
+            return;
+        }
+
+        try {
+            await userAPI.coupon.receiveCoupon(couponId);
+            toast.success("쿠폰이 발급되었습니다.");
+
+            // 쿠폰 목록에서 제거
+            setCoupons(prevCoupons => prevCoupons.filter(coupon => coupon.couponId !== couponId));
+        } catch (error) {
+            console.error("쿠폰 발급 중 오류 발생:", error);
+            toast.error("쿠폰 발급에 실패했습니다.");
+        }
     };
 
     if (loading) return <div className="text-center py-10">상품 정보를 불러오는 중입니다...</div>;
@@ -493,7 +557,9 @@ function Detail({title}) {
                     <div className="md:w-1/2 w-full flex flex-col justify-between">
                         <div className="space-y-6">
                             <div className="flex justify-between items-center border-b border-gray-100 pb-4">
-                                <h1 className="text-3xl font-bold text-gray-900 leading-tight">{product.productName}</h1>
+                                <h1 className="text-3xl font-bold text-gray-900 mb-2 product-name">
+                                    {product.productName}
+                                </h1>
                                 {/* 하트 아이콘(찜) */}
                                 <button
                                     onClick={() => handleToggleLike(product.productId)}
@@ -547,26 +613,10 @@ function Detail({title}) {
                                 )}
                             </div>
 
-                            {/* 기존 내용 유지 */}
-                            <p className="text-gray-700">{product.description}</p>
-
-                            {/* 가격 정보 영역 - 할인율 적용 */}
-                            <div className="bg-white p-5 rounded-lg border border-gray-100">
-                                {discountRate > 0 ? (
-                                    <div className="flex items-center mb-2">
-                                        <span
-                                            className="bg-red-100 text-red-600 px-2 py-1 rounded-md font-semibold text-sm mr-2">{discountRate}% 할인</span>
-                                        <span
-                                            className="line-through text-gray-400">{product.price.toLocaleString()}원</span>
-                                    </div>
-                                ) : (
-                                    <div className="mb-2">
-                                        <span className="text-gray-500">정상가</span>
-                                    </div>
-                                )}
-                                <p className="font-bold text-3xl text-gray-900">
-                                    {discountedPrice.toLocaleString()}<span className="text-xl ml-1">원</span>
-                                </p>
+                            {/* 상품 설명 - 확장된 영역 */}
+                            <div className="bg-white p-5 rounded-lg border border-gray-100 mb-4">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-3">상품 설명</h3>
+                                <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
                             </div>
 
                             {/* 재고 및 수량 선택 */}
@@ -669,14 +719,31 @@ function Detail({title}) {
                                 </div>
 
                                 <button
+                                    onClick={fetchCoupons}
+                                    disabled={loadingCoupons}
                                     className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition-all duration-300 flex items-center justify-center font-medium"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                              d="M12 8v13m0-13V6a4 4 0 00-4-4H8.8a4 4 0 00-3.6 2.3L3 8m9 0h9"/>
-                                    </svg>
-                                    쿠폰받기
+                                    {loadingCoupons ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-gray-700"
+                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                        strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor"
+                                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            쿠폰 불러오는 중...
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none"
+                                                 viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                      d="M12 8v13m0-13V6a4 4 0 00-4-4H8.8a4 4 0 00-3.6 2.3L3 8m9 0h9"/>
+                                            </svg>
+                                            쿠폰받기
+                                        </>
+                                    )}
                                 </button>
                             </div>
 
@@ -913,6 +980,58 @@ function Detail({title}) {
 
                 </div>
             </main>
+
+            {/* 쿠폰 모달 */}
+            {showCouponModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold">사용 가능한 쿠폰</h3>
+                            <button 
+                                onClick={() => setShowCouponModal(false)}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {coupons.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                                현재 받을 수 있는 쿠폰이 없습니다.
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {coupons.map(coupon => (
+                                    <div key={coupon.couponId} className="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
+                                        <div>
+                                            <p className="font-bold text-lg">{coupon.discountRate}% 할인</p>
+                                            <p className="text-sm text-gray-600">{coupon.couponName}</p>
+                                            <p className="text-xs text-gray-500">{coupon.companyName}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => handleReceiveCoupon(coupon.couponId)}
+                                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                                        >
+                                            받기
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                onClick={() => setShowCouponModal(false)}
+                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                            >
+                                닫기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

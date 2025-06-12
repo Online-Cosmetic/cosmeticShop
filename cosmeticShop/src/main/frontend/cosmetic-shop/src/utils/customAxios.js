@@ -265,7 +265,16 @@ export const userAPI = {
     },
 
     coupon: {
+        // 사용자의 모든 쿠폰 조회
+        getMyCoupons: () => customAxios.get('/api/coupons/mapping'),
 
+        // 쿠폰 받기 (쿠폰 매핑 생성)
+        receiveCoupon: (couponId) => customAxios.post('/api/coupons/mapping', null, {
+            params: { couponId }
+        }),
+
+        // 회사별 사용 가능한 쿠폰 조회 (회사 ID로)
+        getAvailableCouponsByCompany: (companyId) => customAxios.get(`/api/coupons/available/company/${companyId}`)
     }
 };
 
