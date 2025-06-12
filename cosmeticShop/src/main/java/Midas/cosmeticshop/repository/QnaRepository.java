@@ -2,6 +2,7 @@ package Midas.cosmeticshop.repository;
 
 import Midas.cosmeticshop.entity.Qna;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,16 @@ public interface QnaRepository extends JpaRepository<Qna, Long> {
     List<Qna> findByUserNickNameContaining (String nickName);
     List<Qna> findByQuestionTitleContaining (String questionTitle);
     List<Qna> findByQuestionTitleContainingAndUser_UserId(String title, String userId);
+
+    // Find QnAs with answers (answered QnAs)
+    List<Qna> findByAnswerIsNotNull();
+
+    // Find QnAs without answers (unanswered QnAs)
+    List<Qna> findByAnswerIsNull();
+
+    // Find QnAs with answers and title containing the given string
+    List<Qna> findByAnswerIsNotNullAndQuestionTitleContaining(String questionTitle);
+
+    // Find QnAs without answers and title containing the given string
+    List<Qna> findByAnswerIsNullAndQuestionTitleContaining(String questionTitle);
 }

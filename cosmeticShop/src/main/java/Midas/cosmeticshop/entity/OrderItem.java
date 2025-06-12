@@ -63,13 +63,15 @@ public class OrderItem {
 
     /* 엔티티 -> DTO 매핑 */
     public OrderItemDTO toDTO() {
-        return new OrderItemDTO(
-            this.product.getId(),
-            this.quantity,
-            this.orderPrice,
-            this.product.getProductName(),
-            this.deliveryStatus != null ? this.deliveryStatus.name() : "READY",
-            product.getThumbnailImage().getImageUrl()
-        );
+        return OrderItemDTO.builder()
+            .orderItemId(this.id) // ID 추가
+            .productId(this.product.getId())
+            .productName(this.product.getProductName())
+            .quantity(this.quantity)
+            .price(this.orderPrice)
+            .deliveryStatus(this.deliveryStatus.name())
+            .mainImageUrl(this.product.getThumbnailImage() != null ?
+                this.product.getThumbnailImage().getImageUrl() : null)
+            .build();
     }
 }

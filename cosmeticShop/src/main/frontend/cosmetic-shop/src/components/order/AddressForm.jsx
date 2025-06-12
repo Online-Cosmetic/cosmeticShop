@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { userAPI } from "../../utils/customAxios";
 
-function AddressForm({ onNewAddress }) {
+function AddressForm({ onNewAddress, onAddressSelect }) {
     const [form, setForm] = useState({ city: "", street: "", detail: "" });
     const [showDropdown, setShowDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -20,11 +20,16 @@ function AddressForm({ onNewAddress }) {
             setLoadingAddresses(true);
             const { data } = await userAPI.addresses.getAll();
             setSavedAddresses(data);
-            
+
             // 주소 목록을 가져온 후, 첫 번째 주소(기본 배송지)가 있으면 폼에 설정
             if (data && data.length > 0) {
                 // 배송지 목록의 첫 번째 항목을 기본 배송지로 간주
                 setForm(data[0]);
+
+                // Notify parent component about the initial address
+                if (onAddressSelect) {
+                    onAddressSelect(data[0]);
+                }
             }
         } catch (e) {
             console.error("주소 목록을 불러오는데 실패했습니다.", e);
@@ -37,6 +42,11 @@ function AddressForm({ onNewAddress }) {
     const handleSelect = (address) => {
         setForm(address);
         setShowDropdown(false);
+
+        // Notify parent component about the selected address
+        if (onAddressSelect) {
+            onAddressSelect(address);
+        }
     };
 
     // 로그인된 사용자가 "Save this Address" 버튼을 눌렀을 때 호출
@@ -51,17 +61,22 @@ function AddressForm({ onNewAddress }) {
         try {
             setLoading(true);
             const { data } = await userAPI.addresses.add(form);
-            
+
             // 새 주소를 기본 배송지로 설정
             await userAPI.addresses.setDefault(data.id);
-            
+
             if (onNewAddress) {
                 onNewAddress(data);
             }
-            
+
+            // Notify parent component about the new address
+            if (onAddressSelect) {
+                onAddressSelect(data);
+            }
+
             // 저장 후 주소 목록 다시 불러오기
             await fetchAddresses();
-            
+
             // 저장 후 폼 초기화
             setForm({ city: "", street: "", detail: "" });
             alert("주소가 저장되었습니다.");
@@ -126,14 +141,28 @@ function AddressForm({ onNewAddress }) {
                     type="text"
                     placeholder="City"
                     value={form.city}
-                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                    onChange={(e) => {
+                        const updatedForm = { ...form, city: e.target.value };
+                        setForm(updatedForm);
+                        // Notify parent component about the form change
+                        if (onAddressSelect) {
+                            onAddressSelect(updatedForm);
+                        }
+                    }}
                     className="w-full border px-4 py-2 rounded basis-1/2"
                 />
                 <input
                     type="text"
                     placeholder="Street"
                     value={form.street}
-                    onChange={(e) => setForm({ ...form, street: e.target.value })}
+                    onChange={(e) => {
+                        const updatedForm = { ...form, street: e.target.value };
+                        setForm(updatedForm);
+                        // Notify parent component about the form change
+                        if (onAddressSelect) {
+                            onAddressSelect(updatedForm);
+                        }
+                    }}
                     className="w-full border px-4 py-2 rounded basis-1/2"
                 />
             </div>
@@ -141,7 +170,14 @@ function AddressForm({ onNewAddress }) {
                 type="text"
                 placeholder="Detail"
                 value={form.detail}
-                onChange={(e) => setForm({ ...form, detail: e.target.value })}
+                onChange={(e) => {
+                    const updatedForm = { ...form, detail: e.target.value };
+                    setForm(updatedForm);
+                    // Notify parent component about the form change
+                    if (onAddressSelect) {
+                        onAddressSelect(updatedForm);
+                    }
+                }}
                 className="w-full border px-4 py-2 rounded"
             />
 
@@ -154,9 +190,9 @@ function AddressForm({ onNewAddress }) {
                     disabled={loading}
                     className={`py-2 px-4 text-neutral-600 font-semibold border border-neutral-400 rounded-xl
                     ${loading
-                            ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                            : "bg-neutral-600 text-white hover:bg-neutral-400"
-                        }`}
+                        ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                        : "bg-neutral-600 text-white hover:bg-neutral-400"
+                    }`}
                 >
                     <span className="flex justify-center w-full">
                         {loading ? "Saving..." : "Save this Address"}

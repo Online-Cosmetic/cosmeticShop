@@ -4,6 +4,7 @@ import Midas.cosmeticshop.dto.signup.CompanySignUpDTO;
 import Midas.cosmeticshop.dto.signup.UserSignUpDTO;
 import Midas.cosmeticshop.entity.user.Company;
 import Midas.cosmeticshop.entity.user.User;
+import Midas.cosmeticshop.repository.user.BaseUserRepository;
 import Midas.cosmeticshop.repository.user.CompanyRepository;
 import Midas.cosmeticshop.repository.user.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,11 +14,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class JoinService {
 
+    private final BaseUserRepository baseUserRepository;
     private final UserRepository userRepository ;
     private final CompanyRepository companyRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder; /* PW 암호화를 위한 인코더 */
 
-    public JoinService(UserRepository userRepository, CompanyRepository companyRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public JoinService(BaseUserRepository baseUserRepository, UserRepository userRepository, CompanyRepository companyRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.baseUserRepository = baseUserRepository;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
@@ -41,7 +44,7 @@ public class JoinService {
 
     /* 일반 회원 가입 시 정보 검증 */
     private void validateUserSignUpinfo(UserSignUpDTO dto) {
-        Boolean idExist = userRepository.existsByUserId(dto.getUserId());
+        Boolean idExist = baseUserRepository.existsByUserId(dto.getUserId());
         Boolean nickNameExist = userRepository.existsByNickName(dto.getNickName());
         /* 일반/기업회원 이메일 모두 체크 */
         Boolean emailExist =
@@ -58,7 +61,8 @@ public class JoinService {
 
     /* 기업 회원 가입 시 정보 검증 */
     private void validateCompanySignUpinfo(CompanySignUpDTO dto) {
-        Boolean idExist = companyRepository.existsByCompanyName(dto.getCompanyName());
+        Boolean idExist = baseUserRepository.existsByUserId(dto.getUserId());
+        Boolean companyNameExist = companyRepository.existsByCompanyName(dto.getCompanyName());
         /* 일반/기업회원 이메일 모두 체크 */
         Boolean emailExist =
             companyRepository.existsByEmailAddress(dto.getEmail()) || userRepository.existsByEmailAddress(dto.getEmail());
@@ -66,6 +70,8 @@ public class JoinService {
 
         if(idExist) {
             throw new IllegalStateException("이미 사용 중인 아이디 입니다!");
+        } else if(companyNameExist) {
+            throw new IllegalStateException("이미 사용 중인 회사명 입니다!");
         } else if(emailExist) {
             throw new IllegalStateException("이미 사용 중인 이메일 입니다!");
         } else if(phoneNumber) {

@@ -1,10 +1,12 @@
 package Midas.cosmeticshop.repository;
 
 import Midas.cosmeticshop.dto.DailyOrderStatsBatchDTO;
+import Midas.cosmeticshop.dto.HourlyProductOrderStatsBatchDTO;
 import Midas.cosmeticshop.entity.Order;
 import Midas.cosmeticshop.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +21,32 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         )
     """)
     DailyOrderStatsBatchDTO findOrderStatsBetween(LocalDateTime start, LocalDateTime end);
+
+    @Query("""
+    SELECT new Midas.cosmeticshop.dto.HourlyProductOrderStatsBatchDTO(
+        p,
+        CONCAT(FUNCTION('YEAR', o.createdAt), '-', 
+               FUNCTION('MONTH', o.createdAt), '-',
+               FUNCTION('DAY', o.createdAt), ' ',
+               FUNCTION('HOUR', o.createdAt), ':00:00'),
+        SUM(oi.quantity)
+    )
+    FROM OrderItem oi
+    JOIN oi.order o
+    JOIN oi.product p
+    WHERE o.createdAt BETWEEN :start AND :end
+    GROUP BY p, FUNCTION('YEAR', o.createdAt), 
+             FUNCTION('MONTH', o.createdAt),
+             FUNCTION('DAY', o.createdAt),
+             FUNCTION('HOUR', o.createdAt)
+    ORDER BY FUNCTION('YEAR', o.createdAt), 
+             FUNCTION('MONTH', o.createdAt),
+             FUNCTION('DAY', o.createdAt),
+             FUNCTION('HOUR', o.createdAt), p.id
+    """)
+List<HourlyProductOrderStatsBatchDTO> findProductOrderStatsBetween(
+    @Param("start") LocalDateTime start, 
+    @Param("end") LocalDateTime end);
 
     Optional<List<Order>> findAllByUser(User user);
 }

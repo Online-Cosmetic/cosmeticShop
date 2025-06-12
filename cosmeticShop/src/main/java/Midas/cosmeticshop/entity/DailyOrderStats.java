@@ -25,7 +25,7 @@ public class DailyOrderStats {
     @Column(name = "order_count", nullable = false)
     private Long orderCount;
 
-    @Column(name = "quantity", nullable = false)
+    @Column(name = "total_quantity", nullable = false)
     private Long totalQuantity;
 
 }

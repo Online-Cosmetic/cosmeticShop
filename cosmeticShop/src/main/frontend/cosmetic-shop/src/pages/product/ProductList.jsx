@@ -1,20 +1,57 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getImageUrl } from "../../utils/imageUtils";
 import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
+import { userAPI } from "../../utils/customAxios";
+import { useAuth } from "../../contexts/AuthContext";
 
-function ProductList({ products, title }) {
+function ProductList({ products, title, sortOption, onSortChange }) {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
     // 좋아요 상태 관리
     const [likedProducts, setLikedProducts] = useState({}); // 개별 상품 상태 저장
+    const [isLoading, setIsLoading] = useState(false);
 
-    const toggleLike = (productId) => {
-        setLikedProducts((prev) => ({
-            ...prev,
-            [productId]: !prev[productId], // 해당 상품 id만 토글
-        }));
+    // 로그인한 사용자의 좋아요 상품 목록 가져오기
+    useEffect(() => {
+        if (isAuthenticated) {
+            const fetchLikedProducts = async () => {
+                try {
+                    const response = await userAPI.product.likes.getLikedProducts();
+                    const likedMap = {};
+                    response.data.forEach(item => {
+                        likedMap[item.productId] = true;
+                    });
+                    setLikedProducts(likedMap);
+                } catch (error) {
+                    console.error("좋아요 목록을 가져오는데 실패했습니다:", error);
+                }
+            };
+            fetchLikedProducts();
+        }
+    }, [isAuthenticated]);
+
+    const toggleLike = async (productId) => {
+        if (!isAuthenticated) {
+            alert("로그인이 필요한 서비스입니다.");
+            navigate("/login");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await userAPI.product.likes.toggleLike(productId);
+            const isLiked = response.data; // 토글 후 좋아요 상태 (true/false)
+
+            setLikedProducts(prev => ({
+                ...prev,
+                [productId]: isLiked
+            }));
+        } catch (error) {
+            console.error("좋아요 토글에 실패했습니다:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // 할인된 가격 계산 함수
@@ -24,16 +61,35 @@ function ProductList({ products, title }) {
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-8 capitalize">{title}</h2>
+            <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-bold capitalize">{title}</h2>
+
+                {/* 정렬 옵션 선택 */}
+                <div className="flex items-center space-x-2">
+                    <label htmlFor="sort" className="text-sm font-medium text-gray-700">정렬:</label>
+                    <select
+                        id="sort"
+                        value={sortOption || 'latest'}
+                        onChange={(e) => onSortChange && onSortChange(e.target.value)}
+                        className="border border-gray-300 rounded-md py-1 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                        <option value="latest">최신순</option>
+                        <option value="popular">인기순</option>
+                        <option value="priceAsc">가격 낮은순</option>
+                        <option value="priceDesc">가격 높은순</option>
+                    </select>
+                </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {products.length === 0 ? (
                     <p className="col-span-3 text-center text-gray-500">해당 카테고리에 상품이 없습니다.</p>
                 ) : (
                     products.map((product) => {
-                        // 할인된 가격 계산
+                        // 할인된 가격 계산 - 백엔드에서 받은 discountRate 사용
                         const discountRate = product.discountRate || 0;
                         const discountedPrice = calculateDiscountedPrice(product.price, discountRate);
                         const isLiked = likedProducts[product.id] || false;
+
 
                         return (
                             <div
@@ -78,41 +134,34 @@ function ProductList({ products, title }) {
 
                                 <div className="p-5 space-y-2">
                                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors duration-200">
-                                        {product.title}
+                                        {product.title || product.productName}
                                     </h3>
 
                                     <p className="text-sm text-gray-500 line-clamp-2">
-                                        {product.content}
+                                        {product.content || product.description}
                                     </p>
 
-                                    <div className="space-y-1">
-                                        {discountRate > 0 && (
-                                            <div className="flex items-center">
-                <span className="text-gray-500 text-sm line-through mr-2">
-                    {product.price.toLocaleString()}원
-                </span>
-                                                <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded">
-                    {discountRate}% 할인
-                </span>
-                                            </div>
+                                    <div className="space-y-1 mt-2">
+                                        {discountRate > 0 ? (
+                                            <>
+                                                <div className="flex items-center">
+                                                    <span className="text-gray-500 text-sm line-through mr-2">
+                                                        {product.price.toLocaleString()}원
+                                                    </span>
+                                                    <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded font-medium">
+                                                        {discountRate}% 할인
+                                                    </span>
+                                                </div>
+                                                <p className="font-bold text-lg text-red-600">
+                                                    {discountedPrice.toLocaleString()}원
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <p className="font-bold text-lg text-gray-900">
+                                                {product.price.toLocaleString()}원
+                                            </p>
                                         )}
-                                        <p className="font-bold text-lg text-gray-900">
-                                            {discountedPrice.toLocaleString()}원
-                                        </p>
                                     </div>
-
-                                    {/*/!* 빠른 보기 버튼 (호버 시 표시) *!/*/}
-                                    {/*<div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">*/}
-                                    {/*    <button*/}
-                                    {/*        className="w-full bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg py-2 text-sm font-medium hover:bg-emerald-100 transition-colors duration-200"*/}
-                                    {/*        onClick={(e) => {*/}
-                                    {/*            e.stopPropagation();*/}
-                                    {/*            navigate(`/detail/${product.id}`, { state: { mainImageUrl: product.imageUrl } });*/}
-                                    {/*        }}*/}
-                                    {/*    >*/}
-                                    {/*        빠른 보기*/}
-                                    {/*    </button>*/}
-                                    {/*</div>*/}
                                 </div>
                             </div>
                         );

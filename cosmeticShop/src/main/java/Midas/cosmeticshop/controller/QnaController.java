@@ -65,19 +65,19 @@ public class QnaController {
 
     //Qna 제목/내용 수정
     @PutMapping("/{qnaId}")
-    public ResponseEntity<Void> putQna(@PathVariable Long id,
+    public ResponseEntity<Void> putQna(@PathVariable Long qnaId,
                                        @RequestBody QnaPostDTO qnaPostDTO,
                                        Authentication authentication) {
-        qnaService.putQna(id, qnaPostDTO, authentication.getName());
+        qnaService.putQna(qnaId, qnaPostDTO, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
     //Qna 답변 작성
     @PutMapping("/{qnaId}/answers")
-    public ResponseEntity<Void> putQnaAnswer(@PathVariable Long id,
+    public ResponseEntity<Void> putQnaAnswer(@PathVariable("qnaId") Long qnaId,
                                              @RequestParam("answer") String answer,
                                              Authentication authentication) {
-        qnaService.putQnaAnswer(id, answer, authentication.getName());
+        qnaService.putQnaAnswer(qnaId, answer, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
@@ -89,4 +89,35 @@ public class QnaController {
         return ResponseEntity.ok().build();
     }
 
+
+    // Get all answered QnAs
+    @GetMapping("/answered")
+    public ResponseEntity<List<QnaListDTO>> getAnsweredQnas() {
+        return ResponseEntity.ok().body(qnaService.getAnsweredQnas());
+    }
+
+    // Get all unanswered QnAs
+    @GetMapping("/unanswered")
+    public ResponseEntity<List<QnaListDTO>> getUnansweredQnas() {
+        return ResponseEntity.ok().body(qnaService.getUnansweredQnas());
+    }
+
+    // Search answered QnAs by title
+    @GetMapping("/answered/search")
+    public ResponseEntity<List<QnaListDTO>> searchAnsweredQnasByTitle(@RequestParam("title") String title) {
+        return ResponseEntity.ok().body(qnaService.getAnsweredQnasByTitle(title));
+    }
+
+    // Search unanswered QnAs by title
+    @GetMapping("/unanswered/search")
+    public ResponseEntity<List<QnaListDTO>> searchUnansweredQnasByTitle(@RequestParam("title") String title) {
+        return ResponseEntity.ok().body(qnaService.getUnansweredQnasByTitle(title));
+    }
+
+    // Admin delete QnA
+    @DeleteMapping("/admin/{qnaId}")
+    public ResponseEntity<Void> adminDeleteQna(@PathVariable Long qnaId, Authentication authentication) {
+        qnaService.adminDeleteQna(qnaId, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
 }

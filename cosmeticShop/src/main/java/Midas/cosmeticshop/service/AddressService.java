@@ -78,4 +78,30 @@ public class AddressService {
         dto.setDetail(address.getDetail());
         return dto;
     }
+
+    /* 기본 배송지 변경 메소드 */
+    @Transactional
+    public void setAsDefaultAddress(BaseUserDetails baseUserDetails, Long addressId) {
+        String userId = baseUserDetails.getUsername();
+        User user = userRepository.findByUserId(userId)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        
+        // 선택한 주소가 실제로 해당 사용자의 주소인지 확인
+        Address selectedAddress = addressRepository.findByIdAndUserUserId(addressId, userId)
+            .orElseThrow(() -> new IllegalArgumentException("주소를 찾을 수 없습니다."));
+        
+        // 사용자의 모든 주소 목록 가져오기
+        List<Address> addresses = user.getAddresses();
+        
+        // 이미 첫 번째 위치에 있는 경우는 변경할 필요 없음
+        if (!addresses.isEmpty() && addresses.get(0).getId().equals(addressId)) {
+            return;
+        }
+        
+        // 선택한 주소를 리스트에서 제거하고 첫 번째 위치로 이동
+        addresses.remove(selectedAddress);
+        addresses.add(0, selectedAddress);
+        
+        // 변경된 목록 저장 (양방향 관계 설정으로 인해 추가 저장 작업 필요 없음)
+    }
 }

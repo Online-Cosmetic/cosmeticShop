@@ -28,8 +28,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.*;
 
 @Service
 @RequiredArgsConstructor
@@ -61,6 +65,7 @@ public class OrderService {
             int discountedPrice = orderItemDTO.getPrice() * (100 - discountRate) / 100;
 
             OrderItemDTO calculatedOrderItemDTO = OrderItemDTO.builder()
+                // orderItemId는 아직 생성되지 않았으므로 넣지 않음
                 .productId(product.getId())
                 .productName(product.getProductName())
                 .quantity(orderItemDTO.getQuantity())
@@ -150,12 +155,26 @@ public class OrderService {
             .orElseThrow(() -> new RuntimeException("주문 정보가 없습니다 !!!"));
 
         List<PurchasedOrderItemResponse> purchasedOrderItemResponses = new ArrayList<>();
+
         for(Order order : allByUser) {
+            OrderAddress orderAddress = order.getOrderAddress();
+            // 주소를 하나의 문자열로 조합
+            String fullAddress = orderAddress.getCity() + " " +
+                                 orderAddress.getStreet() + " " +
+                                 orderAddress.getDetail();
+
             Long orderId = order.getId();
             for(OrderItem item : order.getOrderItems()) {
                 if(item.getDeliveryStatus().equals(status)) {
-                    purchasedOrderItemResponses
-                        .add(new PurchasedOrderItemResponse(item.toDTO(), orderId));
+                    purchasedOrderItemResponses.add(
+                        PurchasedOrderItemResponse.builder()
+                            .orderItemDTO(item.toDTO())
+                            .orderId(orderId)
+                            .address(fullAddress)
+                            .orderDate(order.getCreatedAt())
+                            .buyerName(user.getUsername()) // 사용자 이름 사용
+                            .build()
+                    );
                 }
             }
         }
@@ -228,19 +247,33 @@ public class OrderService {
         }
     }
 
-    /* 해당 기업의 상품을 주문상품 내역을 모두 반환 */
+    /* 해당 기업의 상품에 대해 모든 주문상품 내역을 반환 */
     @Transactional(readOnly = true)
     public ResponseEntity<List<PurchasedOrderItemResponse>> getAllOrderItemsByCompany(String companyName) {
         List<OrderItem> orderItems = orderItemRepository.findAllByCompanyName(companyName);
-        List<OrderItemDTO> orderItemDTOs = orderItems.stream()
-            .map(OrderItem::toDTO)
-            .toList();
-
-        Long orderId = orderItems.get(0).getOrder().getId();
         List<PurchasedOrderItemResponse> purchasedOrderItemResponses = new ArrayList<>();
-        for(OrderItemDTO dto : orderItemDTOs) {
-            purchasedOrderItemResponses
-                .add(new PurchasedOrderItemResponse(dto, orderId));
+
+        for(OrderItem item : orderItems) {
+            OrderItemDTO dto = item.toDTO();
+            Order order = item.getOrder();
+            Long orderId = order.getId();
+            User buyer = order.getUser();
+            OrderAddress orderAddress = order.getOrderAddress();
+
+            // 주소를 하나의 문자열로 조합
+            String fullAddress = orderAddress.getCity() + " " +
+                                 orderAddress.getStreet() + " " +
+                                 orderAddress.getDetail();
+
+            PurchasedOrderItemResponse response = PurchasedOrderItemResponse.builder()
+                .orderItemDTO(dto)
+                .orderId(orderId)
+                .address(fullAddress)
+                .orderDate(order.getCreatedAt())
+                .buyerName(buyer.getUsername()) // 사용자 이름 사용
+                .build();
+
+            purchasedOrderItemResponses.add(response);
         }
 
         return ResponseEntity.ok(purchasedOrderItemResponses);
@@ -249,27 +282,39 @@ public class OrderService {
     /* 기업의 주문상품 배송상태 변경 메소드 */
     @Transactional
     public ResponseEntity<Void> changeItemDeliveryStatus(
-        BaseUserDetails baseUserDetails, @Valid DeliveryStatusDTO deliveryStatusDTO) {
+        BaseUserDetails baseUserDetails, Long orderItemId, @Valid DeliveryStatusDTO deliveryStatusDTO) {
 
         Company company = companyRepository.findByUserId(baseUserDetails.getUsername());
         if(company == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        Long orderItemId = deliveryStatusDTO.getOrderItemId();
         DeliveryStatus deliveryStatus = DeliveryStatus.valueOf(deliveryStatusDTO.getDeliveryStatus());
 
-        return orderItemRepository.updateDeliveryStatus(orderItemId, deliveryStatus);
+        try {
+            orderItemRepository.updateDeliveryStatus(orderItemId, deliveryStatus);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @Transactional
-    public ResponseEntity<String> changeItemDeliveryStatus(Long orderItemId, String deliveryStatus) {
-        DeliveryStatus status = DeliveryStatus.valueOf(deliveryStatus);
-        try {
-            orderItemRepository.updateDeliveryStatus(orderItemId, status);
-            return ResponseEntity.ok("배송 상태가 성공적으로 변경되었습니다.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("배송 상태 변경에 실패했습니다.");
-        }
+    /**
+     * 사용자가 특정 상품을 구매했는지 확인하는 메소드
+     * @param userId 사용자 ID
+     * @param productId 상품 ID
+     * @return 구매 여부 (true: 구매함, false: 구매하지 않음)
+     */
+    @Transactional(readOnly = true)
+    public boolean hasUserPurchasedProduct(String userId, Long productId) {
+        User user = userRepository.findByUserId(userId)
+            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        // 사용자가 주문한 모든 주문 아이템 중에서 특정 상품이 포함되어 있는지 확인
+        return orderItemRepository.existsByOrderUserAndProductIdAndDeliveryStatusIn(
+            user, 
+            productId, 
+            List.of(DeliveryStatus.COMP, DeliveryStatus.PROG)  // 배송 완료 또는 진행 중인 주문만 포함
+        );
     }
 }

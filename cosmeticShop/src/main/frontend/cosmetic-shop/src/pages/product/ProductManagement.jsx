@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import { companyAPI } from "../../utils/customAxios.js";
+import { getImageUrl } from "../../utils/imageUtils.js";
 
 // 카테고리 매핑 (categoryId -> 카테고리명)
 const CATEGORY_MAP = {
-  1: "Makeup",
-  2: "Skincare",
-  3: "Hair",
-  4: "Body"
+    1: "Makeup",
+    2: "Skincare",
+    3: "Hair",
+    4: "Body"
 };
 
 function ProductManagement() {
@@ -16,18 +17,40 @@ function ProductManagement() {
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [page, setPage] = useState(0);
-    
+
     // 수정 관련 상태
     const [editingProductId, setEditingProductId] = useState(null);
     const [editValues, setEditValues] = useState({});
     const [showDescription, setShowDescription] = useState(null);
     const [editDescription, setEditDescription] = useState("");
-    
+
     // 이미지 업로드 관련 상태
     const [mainImage, setMainImage] = useState(null);
     const [additionalImages, setAdditionalImages] = useState([]);
     const [imagesDeleted, setImagesDeleted] = useState(false);
-    
+
+    // 이미지 URL 메모이제이션 (불필요한 재생성 방지)
+    const mainImageUrl = useMemo(() => {
+        return mainImage ? URL.createObjectURL(mainImage) : null;
+    }, [mainImage]);
+
+    const additionalImageUrls = useMemo(() => {
+        return additionalImages.map(image => URL.createObjectURL(image));
+    }, [additionalImages]);
+
+    // 이미지 URL 정리 (메모리 누수 방지)
+    useEffect(() => {
+        return () => {
+            // 컴포넌트 언마운트 시 URL 객체 해제
+            if (mainImageUrl) {
+                URL.revokeObjectURL(mainImageUrl);
+            }
+            additionalImageUrls.forEach(url => {
+                URL.revokeObjectURL(url);
+            });
+        };
+    }, [mainImageUrl, additionalImageUrls]);
+
     // 무한 스크롤을 위한 참조
     const observer = useRef();
     const lastProductRef = useCallback(node => {
@@ -51,8 +74,17 @@ function ProductManagement() {
             const response = await companyAPI.product.getProducts(page, 10);
             const newProducts = response.data.content;
 
+            // 응답 데이터 구조 확인을 위한 로깅
+            console.log("API 응답 데이터:", response.data);
+            console.log("상품 목록 데이터:", newProducts);
+
+            if (newProducts && newProducts.length > 0) {
+                console.log("첫 번째 상품 데이터:", newProducts[0]);
+                console.log("이미지 URL:", newProducts[0].mainImageUrl);
+            }
+
             // 가져온 상품이 없으면 더 이상 불러올 상품이 없는 것으로 간주
-            if (newProducts.length === 0) {
+            if (!newProducts || newProducts.length === 0) {
                 setHasMore(false);
                 setLoading(false);
                 return;
@@ -75,19 +107,19 @@ function ProductManagement() {
             setLoading(false);
         }
     }, [page]);
-    
+
     // 페이지 변경 시 상품 목록 불러오기
     useEffect(() => {
         fetchProducts();
     }, [fetchProducts]);
-    
+
     // 편집 모드 시작
     const handleEdit = (product) => {
         // 이미 편집 중인 상품이 있으면 취소
         if (editingProductId) {
             handleCancel();
         }
-        
+
         setEditingProductId(product.id);
         setEditValues({
             productName: product.productName,
@@ -96,60 +128,136 @@ function ProductManagement() {
             stock: product.stock,
             discountRate: product.discountRate
         });
-        
+
         // 상세 설명 표시
         setShowDescription(product.id);
         setEditDescription(product.description || "");
     };
-    
-    const handleSave = async (productId) => {
-    try {
-        // 1. 상품 정보 업데이트 (JSON으로 전송)
-        await companyAPI.product.updateProduct(productId, {
-            productName: editValues.productName,
-            categoryId: editValues.categoryId,
-            price: editValues.price,
-            stock: editValues.stock,
-            discountRate: editValues.discountRate,
-            description: editDescription
-        });
-        
-        // 2. 이미지가 변경되었다면 이미지도 업데이트 (FormData로 전송)
-        if (imagesDeleted || mainImage) {
+
+    // 상품 설명만 저장하는 함수
+    const handleSaveDescription = async (productId) => {
+        try {
+            await companyAPI.product.updateProductDescription(productId, editDescription);
+            toast.success("상품 설명이 성공적으로 수정되었습니다.");
+
+            // 상태 업데이트 (전체 리로드 없이)
+            setProducts(prev => prev.map(p => {
+                if (p.id === productId) {
+                    return {...p, description: editDescription};
+                }
+                return p;
+            }));
+
+            // 편집 모드 유지 (전체 취소 없이)
+            setShowDescription(null);
+        } catch (error) {
+            console.error("상품 설명 수정 실패:", error);
+            toast.error("상품 설명 수정에 실패했습니다.");
+        }
+    };
+
+    // 상품 정보만 저장하는 함수
+    const handleSaveInfo = async (productId) => {
+        try {
+            await companyAPI.product.updateProduct(productId, {
+                productName: editValues.productName,
+                categoryId: editValues.categoryId,
+                price: editValues.price,
+                stock: editValues.stock,
+                discountRate: editValues.discountRate
+            });
+
+            toast.success("상품 정보가 성공적으로 수정되었습니다.");
+
+            // 상태 업데이트 (전체 리로드 없이)
+            setProducts(prev => prev.map(p => {
+                if (p.id === productId) {
+                    return {...p, ...editValues};
+                }
+                return p;
+            }));
+        } catch (error) {
+            console.error("상품 정보 수정 실패:", error);
+            toast.error("상품 정보 수정에 실패했습니다.");
+        }
+    };
+
+    // 이미지만 업데이트하는 함수
+    const handleSaveImages = async (productId) => {
+        try {
             const formData = new FormData();
+
+            // 이미지 삭제 여부 플래그 추가 - 항상 명시적으로 설정
+            formData.append('deleteMainImage', imagesDeleted ? 'true' : 'false');
+            formData.append('deleteAdditionalImages', imagesDeleted ? 'true' : 'false');
+
+            // 메인 이미지가 있으면 추가
             if (mainImage) {
                 formData.append('mainImage', mainImage);
             }
-            
+
+            // 추가 이미지가 있으면 추가
             if (additionalImages.length > 0) {
                 additionalImages.forEach(image => {
                     formData.append('additionalImages', image);
                 });
             }
-            
-            await companyAPI.product.updateProductImages(productId, formData);
+
+            // 이미지 업데이트 API 호출
+            const response = await companyAPI.product.updateProductImages(productId, formData);
+
+            if (response.status === 204) { // No Content 성공 응답
+                toast.success("상품 이미지가 성공적으로 수정되었습니다.");
+
+                // 이미지 정보는 서버에서 새로 가져와야 함
+                fetchProducts();
+
+                // 이미지 상태 초기화
+                setMainImage(null);
+                setAdditionalImages([]);
+                setImagesDeleted(false);
+            }
+        } catch (error) {
+            console.error("상품 이미지 수정 실패:", error);
+            toast.error(`상품 이미지 수정에 실패했습니다. 오류: ${error.response?.status || error.message}`);
         }
-        
-        toast.success("상품이 성공적으로 수정되었습니다.");
-        setPage(0);
-        fetchProducts();
-        resetEditState();
-    } catch (error) {
-        console.error("상품 수정 실패:", error);
-        toast.error("상품 수정에 실패했습니다.");
-    }
-};
-    
+    };
+
+    // 기존 handleSave 함수는 모든 작업을 하나로 묶는 함수로 수정
+    const handleSave = async (productId) => {
+        try {
+            // 1. 상품 정보 업데이트
+            await handleSaveInfo(productId);
+
+            // 2. 설명 업데이트
+            await handleSaveDescription(productId);
+
+            // 3. 이미지가 변경되었다면 이미지도 업데이트
+            if (imagesDeleted || mainImage || additionalImages.length > 0) {
+                await handleSaveImages(productId);
+            }
+            
+            // 페이지 자동 새로고침 (또는 데이터 다시 불러오기)
+            window.location.reload(); // 전체 페이지 새로고침 방식
+
+            // 모든 작업이 완료되면 편집 상태 초기화
+            resetEditState();
+        } catch (error) {
+            console.error("상품 수정 실패:", error);
+            toast.error("상품 수정에 실패했습니다.");
+        }
+    };
+
     // 삭제 처리
     const handleDelete = async (productId) => {
         if (!window.confirm("정말로 이 상품을 삭제하시겠습니까?")) {
             return;
         }
-        
+
         try {
             await companyAPI.product.deleteProduct(productId);
             toast.success("상품이 성공적으로 삭제되었습니다.");
-            
+
             // 상품 목록에서 제거
             setProducts(prev => prev.filter(p => p.id !== productId));
         } catch (error) {
@@ -157,12 +265,12 @@ function ProductManagement() {
             toast.error("상품 삭제에 실패했습니다.");
         }
     };
-    
+
     // 취소 처리
     const handleCancel = () => {
         resetEditState();
     };
-    
+
     // 편집 상태 초기화
     const resetEditState = () => {
         setEditingProductId(null);
@@ -173,19 +281,19 @@ function ProductManagement() {
         setAdditionalImages([]);
         setImagesDeleted(false);
     };
-    
+
     // 이미지 삭제 처리
     const handleDeleteImage = () => {
         setImagesDeleted(true);
     };
-    
+
     // 메인 이미지 선택 처리
     const handleMainImageUpload = (e) => {
         if (e.target.files && e.target.files[0]) {
             setMainImage(e.target.files[0]);
         }
     };
-    
+
     // 추가 이미지 선택 처리
     const handleAdditionalImagesUpload = (e) => {
         if (e.target.files) {
@@ -194,7 +302,7 @@ function ProductManagement() {
             setAdditionalImages(selectedFiles);
         }
     };
-    
+
     // 필드 값 변경 처리
     const handleFieldChange = (productId, field, value) => {
         setEditValues(prev => ({
@@ -202,7 +310,7 @@ function ProductManagement() {
             [field]: value
         }));
     };
-    
+
     // 설명 변경 처리
     const handleDescriptionChange = (e) => {
         setEditDescription(e.target.value);
@@ -235,7 +343,7 @@ function ProductManagement() {
                 {products.map((product, index) => {
                     const isEditing = editingProductId === product.id;
                     const isLast = index === products.length - 1;
-                    
+
                     return (
                         <React.Fragment key={product.id}>
                             <div
@@ -247,7 +355,7 @@ function ProductManagement() {
                                     {isEditing && (
                                         <>
                                             {!imagesDeleted && !mainImage && (
-                                                <button 
+                                                <button
                                                     onClick={handleDeleteImage}
                                                     className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center z-10"
                                                 >
@@ -256,9 +364,9 @@ function ProductManagement() {
                                             )}
                                             {(imagesDeleted || mainImage) && (
                                                 <label className="cursor-pointer flex items-center justify-center w-full h-full border-2 border-dashed border-gray-300 rounded">
-                                                    <input 
-                                                        type="file" 
-                                                        className="hidden" 
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
                                                         onChange={handleMainImageUpload}
                                                         accept="image/*"
                                                     />
@@ -268,26 +376,32 @@ function ProductManagement() {
                                         </>
                                     )}
                                     {(!isEditing || (!imagesDeleted && !mainImage)) && (
-                                        <img 
-                                            src={product.mainImageUrl || "https://placehold.co/64x64"} 
-                                            alt={product.productName} 
+                                        <img
+                                            src={product.mainImageUrl 
+                                                ? getImageUrl(product.mainImageUrl) 
+                                                : "https://placehold.co/64x64"}
+                                            alt={product.productName || "상품 이미지"}
                                             className="rounded w-16 h-16 object-cover"
+                                            onError={(e) => {
+                                                console.error("이미지 로드 실패:", product.mainImageUrl);
+                                                e.target.src = "https://placehold.co/64x64";
+                                            }}
                                         />
                                     )}
-                                    {isEditing && mainImage && (
-                                        <img 
-                                            src={URL.createObjectURL(mainImage)} 
-                                            alt="미리보기" 
+                                    {isEditing && mainImageUrl && (
+                                        <img
+                                            src={mainImageUrl}
+                                            alt="미리보기"
                                             className="rounded w-16 h-16 object-cover"
                                         />
                                     )}
                                 </div>
-                                
+
                                 {/* 상품명 (수정 불가) */}
                                 <div className="font-medium text-gray-800">
                                     {product.productName}
                                 </div>
-                                
+
                                 {/* 카테고리 */}
                                 <div className="text-gray-500">
                                     {isEditing ? (
@@ -305,7 +419,7 @@ function ProductManagement() {
                                         CATEGORY_MAP[product.categoryId] || "기타"
                                     )}
                                 </div>
-                                
+
                                 {/* 가격 */}
                                 <div className="text-gray-800 font-semibold">
                                     {isEditing ? (
@@ -320,7 +434,7 @@ function ProductManagement() {
                                         `₩${product.price.toLocaleString()}`
                                     )}
                                 </div>
-                                
+
                                 {/* 재고 */}
                                 <div className="text-gray-600">
                                     {isEditing ? (
@@ -335,7 +449,7 @@ function ProductManagement() {
                                         product.stock
                                     )}
                                 </div>
-                                
+
                                 {/* 할인율 */}
                                 <div className="text-gray-600">
                                     {isEditing ? (
@@ -351,18 +465,18 @@ function ProductManagement() {
                                         `${product.discountRate}%`
                                     )}
                                 </div>
-                                
+
                                 {/* 작업 버튼 */}
                                 <div className="flex gap-2">
                                     {isEditing ? (
                                         <>
-                                            <button 
+                                            <button
                                                 onClick={() => handleSave(product.id)}
                                                 className="text-green-600 hover:underline"
                                             >
                                                 저장
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={handleCancel}
                                                 className="text-gray-600 hover:underline"
                                             >
@@ -371,13 +485,13 @@ function ProductManagement() {
                                         </>
                                     ) : (
                                         <>
-                                            <button 
+                                            <button
                                                 onClick={() => handleEdit(product)}
                                                 className="text-blue-600 hover:underline"
                                             >
                                                 수정
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => handleDelete(product.id)}
                                                 className="text-red-600 hover:underline"
                                             >
@@ -387,23 +501,23 @@ function ProductManagement() {
                                     )}
                                 </div>
                             </div>
-                            
+
                             {/* 상세 설명 (수정 버튼 클릭 시 표시) */}
                             {showDescription === product.id && (
                                 <div className="col-span-7 bg-gray-50 p-4 rounded-md mt-2 mb-4">
                                     <div className="flex justify-between mb-2">
                                         <h3 className="font-semibold">상품 설명</h3>
                                         <div className="flex gap-2">
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     // 설명만 업데이트
-                                                    handleSave(product.id);
+                                                    handleSaveDescription(product.id);
                                                 }}
                                                 className="px-3 py-1 bg-green-500 text-white rounded text-sm"
                                             >
                                                 저장
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     setShowDescription(null);
                                                     setEditDescription("");
@@ -422,32 +536,32 @@ function ProductManagement() {
                                     />
                                 </div>
                             )}
-                            
+
                             {/* 추가 이미지 업로드 영역 (메인 이미지가 있을 때만 표시) */}
                             {isEditing && mainImage && (
                                 <div className="col-span-7 bg-gray-50 p-4 rounded-md mt-2 mb-4">
                                     <h3 className="font-semibold mb-2">추가 이미지 (최대 5개)</h3>
                                     <div className="flex items-center gap-4">
                                         <label className="cursor-pointer flex items-center justify-center w-20 h-20 border-2 border-dashed border-gray-300 rounded">
-                                            <input 
-                                                type="file" 
-                                                className="hidden" 
-                                                onChange={handleAdditionalImagesUpload} 
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                onChange={handleAdditionalImagesUpload}
                                                 multiple
                                                 accept="image/*"
                                             />
                                             <span className="text-4xl text-gray-400">+</span>
                                         </label>
-                                        
+
                                         {/* 선택된 추가 이미지 미리보기 */}
                                         {additionalImages.map((image, idx) => (
                                             <div key={idx} className="relative">
-                                                <img 
-                                                    src={URL.createObjectURL(image)} 
-                                                    alt={`추가 이미지 ${idx + 1}`} 
+                                                <img
+                                                    src={additionalImageUrls[idx]}
+                                                    alt={`추가 이미지 ${idx + 1}`}
                                                     className="w-20 h-20 object-cover rounded"
                                                 />
-                                                <button 
+                                                <button
                                                     onClick={() => {
                                                         const newImages = [...additionalImages];
                                                         newImages.splice(idx, 1);
@@ -473,7 +587,7 @@ function ProductManagement() {
                         <p className="mt-2 text-gray-500">상품을 불러오는 중...</p>
                     </div>
                 )}
-                
+
                 {/* 데이터 없음 표시 */}
                 {!loading && products.length === 0 && (
                     <div className="col-span-7 text-center py-8">

@@ -19,14 +19,22 @@ public class JoinController {
 
     @PostMapping("/signup/user")
     public ResponseEntity<String> signupUser(@RequestBody @Valid UserSignUpDTO dto) {
-        joinService.joinUser(dto);
-        return ResponseEntity.ok("USER 가입 성공");
+        try {
+            joinService.joinUser(dto);
+            return ResponseEntity.ok("USER 가입 성공");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/signup/company")
     public ResponseEntity<String> signupCompany(@RequestBody @Valid CompanySignUpDTO dto) {
-        joinService.joinCompany(dto);
-        return ResponseEntity.ok("COMPANY 가입 성공");
+        try {
+            joinService.joinCompany(dto);
+            return ResponseEntity.ok("COMPANY 가입 성공");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
 }

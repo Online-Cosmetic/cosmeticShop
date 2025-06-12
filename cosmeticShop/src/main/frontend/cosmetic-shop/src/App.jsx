@@ -18,22 +18,22 @@ import ProductPage from "./pages/product/ProductPage.jsx";
 import ProductDetail from "./pages/product/ProductDetail.jsx";
 import Cart from "./pages/cart/Cart.jsx";
 import MyPage from "./pages/user/MyPage.jsx";
-
 import QnA from "./pages/qna/QnAList.jsx";
 import QnADetail from "./pages/qna/QnADetail.jsx";
 import QnAWrite from "./pages/qna/QnAWrite.jsx";
-
 import Order from "./pages/order/Order.jsx";
 import OrderComplete from "./pages/order/OrderComplete";
-
 import Checkout from "./pages/payment/Checkout.jsx";
-
 import UserLogin from "./pages/auth/UserLogin.jsx";
 import SignUp from "./pages/auth/SignUp.jsx";
 import OrderHistory from "./pages/user/MyComponents/OrderHistory.jsx";
-
 import AddressBook from "./pages/user/MyComponents/AddressBook.jsx";
 import AddressForm from "./components/order/AddressForm.jsx";
+import ThanksForSignUp from './pages/user/MyComponents/ThanksForSignUp';
+
+// 리뷰 관련 페이지
+import ReviewWrite from "./pages/user/MyComponents/ReviewWrite.jsx";
+import ThanksForReview from "./pages/review/ThanksForReview.jsx";
 
 // 기업 페이지
 import EnterpriseHeader from "./components/enterprise/EnterpriseHeader.jsx";
@@ -44,11 +44,17 @@ import EnterpriseLogin from "./pages/auth/EnterpriseLogin.jsx";
 import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
 import ProductManagement from "./pages/product/ProductManagement.jsx";
 import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
+import ThanksForEnterpriseSignUp from './pages/enterprise/ThanksForEnterpriseSignUp';
 
 // 관리자 페이지
+import AdminLogin from "./pages/admin/AdminLogin.jsx";
+import AdminMain from "./pages/admin/AdminMain.jsx";
 import AdminQnAManagement from "./pages/admin/AdminQnAManagement.jsx";
 import AdminQnAResponse from "./pages/admin/AdminQnAResponse.jsx";
-
+import AdminCouponIssuance from "./pages/admin/AdminCouponIssuance.jsx";
+import AdminBadKeywordManagement from "./pages/admin/AdminBadKeywordManagement.jsx";
+import AdminSidebar from "./components/admin/AdminSidebar.jsx";
+import AdminHeader from "./components/admin/AdminHeader.jsx";
 
 // 인증 관련 페이지
 import Logout from "./pages/auth/Logout.jsx";
@@ -57,9 +63,6 @@ import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 
 // 데이터
 import data from "./utils/data.js";
-
-import AdminSidebar from "./components/admin/AdminSidebar.jsx";
-import AdminHeader from "./components/admin/AdminHeader.jsx";
 
 // User용 Layout 컴포넌트
 const PublicLayout = ({children}) => (
@@ -230,6 +233,9 @@ const App = () => {
                     }
                 />
 
+                <Route path="/thanks-for-signup" element={<ThanksForSignUp />}/>
+                <Route path="/thanks-for-enterprise-signup" element={<ThanksForEnterpriseSignUp />} />
+
                 <Route
                     path={"/forgotPassword"}
                     element={
@@ -241,6 +247,9 @@ const App = () => {
 
                 {/* 로그아웃 */}
                 <Route path="/logout" element={<Logout/>}/>
+
+                {/* 새로 추가하는 관리자 라우트 */}
+                <Route path="/admin/login" element={<AdminLogin />} />
 
                 {/* 일반 회원 전용 페이지 */}
                 <Route
@@ -259,6 +268,11 @@ const App = () => {
                                     <Route path="addresses" element={<AddressBook />} />
                                     <Route path="addresses/new" element={<AddressForm />} />
                                     <Route path="addresses/edit/:id" element={<AddressForm />} />
+
+                                    {/* 리뷰 관련 라우트 */}
+                                    <Route path="review/write/:productId" element={<ReviewWrite />} />
+                                    <Route path="review/edit/:reviewId" element={<ReviewWrite />} />
+                                    <Route path="review/thanks" element={<ThanksForReview />} />
                                 </Routes>
                             </PublicLayout>
                         </ProtectedRoute>
@@ -292,12 +306,23 @@ const App = () => {
                 <Route
                     path="/admin/*"
                     element={
-                        <AdminLayout>
-                            <Routes>
-                                <Route path="/qna" element={<AdminQnAManagement />} />
-                                <Route path="/qna/:id/response" element={<AdminQnAResponse />} />
-                            </Routes>
-                        </AdminLayout>
+                        <ProtectedRoute requiredRole="ROLE_ADMIN">
+                            <AdminLayout>
+                                <Routes>
+                                    {/*<Route path="/" element={<AdminMain />} />*/}
+                                    <Route path="main" element={<AdminMain />} />
+                                    <Route path="statistics" element={
+                                        <div className="w-full max-w-[1262px] mx-auto p-4 flex justify-center items-center min-h-[400px]">
+                                            <div className="text-xl text-gray-500">Statistics page will be implemented later.</div>
+                                        </div>
+                                    } />
+                                    <Route path="qna" element={<AdminQnAManagement />} />
+                                    <Route path="qna/:id/response" element={<AdminQnAResponse />} />
+                                    <Route path="coupon" element={<AdminCouponIssuance />} />
+                                    <Route path="badkeyword" element={<AdminBadKeywordManagement />} />
+                                </Routes>
+                            </AdminLayout>
+                        </ProtectedRoute>
                     }
                 />
 

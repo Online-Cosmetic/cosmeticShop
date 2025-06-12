@@ -1,5 +1,6 @@
 package Midas.cosmeticshop.controller;
 
+import Midas.cosmeticshop.dto.CouponDTO;
 import Midas.cosmeticshop.dto.CouponMappingGetDTO;
 import Midas.cosmeticshop.service.CouponMappingService;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +31,21 @@ public class CouponMappingController {
         return ResponseEntity.ok().build();
     }
 
-
+    /**
+     * 특정 회사에서 발행한 사용 가능한 쿠폰 목록을 조회합니다.
+     * 로그인한 사용자가 아직 받지 않은 쿠폰만 반환됩니다.
+     *
+     * @param companyId 쿠폰을 발행한 회사의 ID
+     * @param authentication 현재 인증된 사용자 정보
+     * @return 사용 가능한 쿠폰 목록
+     */
+    @GetMapping("/available/company/{companyId}")
+    public ResponseEntity<List<CouponDTO>> getAvailableCouponsByCompany(
+        @PathVariable Long companyId,
+        Authentication authentication) {
+        // 인증된 사용자가 있는 경우 사용자 ID를 전달, 없으면 null 전달
+        String userId = authentication != null ? authentication.getName() : null;
+        List<CouponDTO> availableCoupons = couponMappingService.getAvailableCouponsByCompany(companyId, userId);
+        return ResponseEntity.ok().body(availableCoupons);
+    }
 }

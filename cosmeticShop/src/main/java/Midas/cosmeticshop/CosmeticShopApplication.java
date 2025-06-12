@@ -9,7 +9,7 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
 
 @SpringBootApplication
 @EnableScheduling
-@EntityScan(basePackages = {"Midas.cosmeticShop.entity"})
+@EntityScan(basePackages = {"Midas.cosmeticshop.entity"})
 @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 public class CosmeticShopApplication {
 

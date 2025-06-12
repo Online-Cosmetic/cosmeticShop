@@ -47,4 +47,13 @@ public class AddressController {
         addressService.deleteAddress(userDetails, addressId);
         return ResponseEntity.ok().build();
     }
+
+    /* 기본 배송지 설정 메소드 */
+    @PutMapping("/{addressId}/default")
+    public ResponseEntity<Void> setAsDefaultAddress(
+        @AuthenticationPrincipal BaseUserDetails userDetails,
+        @PathVariable Long addressId) {
+        addressService.setAsDefaultAddress(userDetails, addressId);
+        return ResponseEntity.ok().build();
+    }
 }

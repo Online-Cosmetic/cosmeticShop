@@ -36,6 +36,7 @@ public class Product {
             .thumbnailImage(null)
             .productImages( new ArrayList<>())             // 리스트 초기화 안하면 NullPointerException 발생
             .reviews( new ArrayList<>())                         // 리스트 초기화 안하면 NullPointerException 발생
+            .active(true)        // 생성 시 활성 상태
             .build();
     }
 
@@ -81,6 +82,9 @@ public class Product {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean active = true;
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private ThumbnailImage thumbnailImage;

@@ -5,7 +5,6 @@ import { useAuth } from '../../../contexts/AuthContext';
 export default function EditInfo() {
   const { user } = useAuth();
 
-  // 如果未登录，提示并提供跳转链接
   if (!user) {
     return (
       <div className="max-w-md mx-auto mt-16 p-6 border border-gray-300 rounded">

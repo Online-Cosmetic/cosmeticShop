@@ -27,32 +27,48 @@ function QnAWrite() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-8">
-      <h2 className="text-2xl font-bold mb-6">Write a Q&A</h2>
+    <div className="w-full max-w-3xl mx-auto p-8 bg-white rounded-2xl shadow-lg">
+      <h2 className="text-3xl font-bold mb-8 text-gray-800 border-b pb-4">문의 작성하기</h2>
 
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full border px-4 py-2 rounded mb-4"
-      />
+      <div className="space-y-6">
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">제목</label>
+          <input
+            id="title"
+            type="text"
+            placeholder="문의 제목을 입력하세요"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-colors"
+          />
+        </div>
 
-      <textarea
-        placeholder="Type your questions"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows={10}
-        className="w-full border px-4 py-2 rounded mb-6"
-      />
+        <div>
+          <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">내용</label>
+          <textarea
+            id="content"
+            placeholder="문의 내용을 자세히 입력해주세요"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={12}
+            className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-colors"
+          />
+        </div>
 
-      <div className="text-center">
-        <button
-          onClick={handleSubmit}
-          className="px-6 py-2 bg-black text-white rounded hover:bg-gray-800"
-        >
-          Submit
-        </button>
+        <div className="flex justify-between pt-4">
+          <button
+            onClick={() => navigate('/qna')}
+            className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-8 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm"
+          >
+            등록하기
+          </button>
+        </div>
       </div>
     </div>
   );

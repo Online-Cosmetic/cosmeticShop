@@ -21,6 +21,12 @@ function Order() {
     const [orderId, setOrderId] = useState(null);
     const [errorMsg, setErrorMsg] = useState("");
     const [orderPrice, setOrderPrice] = useState(0);
+
+    // 쿠폰 관련 상태 추가
+    const [availableCoupons, setAvailableCoupons] = useState({});  // 각 상품별 사용 가능한 쿠폰 목록
+    const [selectedCoupons, setSelectedCoupons] = useState({});    // 각 상품별 선택된 쿠폰
+    const [loadingCoupons, setLoadingCoupons] = useState(false);   // 쿠폰 로딩 상태
+    const [couponDiscounts, setCouponDiscounts] = useState({});    // 각 상품별 쿠폰 할인 금액
     const [selectedAddress, setSelectedAddress] = useState(null);
 
     // 주소 로딩 상태 참조 - useRef 사용하여 불필요한 리렌더링 방지
@@ -62,21 +68,44 @@ function Order() {
             console.error("장바구니 상품 로드 오류:", error);
             return { data: { items: [] } };
         }
-    }, [selectedCartIds, cartItems]);
+    }, [selectedCartIds]); // Removed cartItems from dependencies to prevent re-creation
 
     // 상품 데이터 로드 함수 - useEffect 밖으로 분리
     const loadProductItems = useCallback(async () => {
+        // 이미 로드된 경우 중복 호출 방지
+        if (cartItemsLoadedRef.current && cartItems.length > 0) {
+            return true;
+        }
+
         try {
             let items = [];
 
             // 직접 구매인 경우 location state에서 먼저 확인하고 없으면 로컬 스토리지에서 가져오기
             if (isDirectOrder) {
                 if (directProductData && directProductData.length > 0) {
-                    items = directProductData;
+                    items = directProductData.map(item => {
+                        // 이미지 처리
+                        const thumbnailImage = item.thumbnailImage || "";
+                        return {
+                            ...item,
+                            // 이미지 필드를 일관성 있게 설정
+                            thumbnailImage: thumbnailImage,
+                            thumbnailImageUrl: thumbnailImage
+                        };
+                    });
                 } else {
                     const directOrderItems = JSON.parse(localStorage.getItem('directOrderItems') || '[]');
                     if (directOrderItems.length > 0) {
-                        items = directOrderItems;
+                        items = directOrderItems.map(item => {
+                            // 이미지 처리
+                            const thumbnailImage = item.thumbnailImage || "";
+                            return {
+                                ...item,
+                                // 이미지 필드를 일관성 있게 설정
+                                thumbnailImage: thumbnailImage,
+                                thumbnailImageUrl: thumbnailImage
+                            };
+                        });
                     }
                 }
 
@@ -137,7 +166,22 @@ function Order() {
                 setOrderPrice(totalPrice + shippingFee);
             }
 
-            setCartItems(items);
+            // 이미지 필드를 일관되게 설정
+            const processedItems = items.map(item => {
+                // 이미지 필드 중 하나가 있으면 사용
+                const imageUrl = item.thumbnailImage || item.thumbnailImageUrl || item.mainImageUrl || "";
+
+                return {
+                    ...item,
+                    // 모든 이미지 필드에 동일한 값 설정
+                    thumbnailImage: imageUrl,
+                    thumbnailImageUrl: imageUrl,
+                    mainImageUrl: imageUrl
+                };
+            });
+
+            setCartItems(processedItems);
+            cartItemsLoadedRef.current = true;
             return true;
         } catch (e) {
             console.error('상품 정보 로딩 오류:', e);
@@ -168,39 +212,116 @@ function Order() {
         }
     }, [selectedAddress]);
 
-    // 데이터 로드 useEffect
+    // 쿠폰 관련 함수
+    const fetchAvailableCoupons = useCallback(async (productId, companyId) => {
+        try {
+            setLoadingCoupons(true);
+
+            // 1. 내가 가진 쿠폰 목록 가져오기
+            const myCouponsResponse = await userAPI.coupon.getMyCoupons();
+            const myCoupons = myCouponsResponse.data || [];
+
+            // 2. 사용 가능한 쿠폰만 필터링 (사용되지 않은 쿠폰)
+            const validCoupons = myCoupons.filter(coupon => 
+                !coupon.isUsed && 
+                new Date(coupon.expirationDate) > new Date() && 
+                coupon.companyName === companyId // 해당 회사의 쿠폰만 필터링
+            );
+
+            // 3. 상품별 사용 가능한 쿠폰 목록 업데이트
+            setAvailableCoupons(prev => ({
+                ...prev,
+                [productId]: validCoupons
+            }));
+
+        } catch (error) {
+            console.error(`상품 ${productId}의 쿠폰 정보를 불러오는 중 오류 발생:`, error);
+        } finally {
+            setLoadingCoupons(false);
+        }
+    }, []);
+
+    // 쿠폰 선택 처리 함수
+    const handleSelectCoupon = useCallback((productId, coupon) => {
+        // 선택된 쿠폰 업데이트
+        setSelectedCoupons(prev => ({
+            ...prev,
+            [productId]: coupon
+        }));
+
+        // 해당 상품의 할인된 가격 계산
+        const product = cartItems.find(item => item.productId === productId);
+        if (product) {
+            // 상품의 할인율 적용된 가격 계산
+            const discountRate = product.discountRate || 0;
+            const discountedPrice = Math.floor(product.price * (1 - discountRate / 100));
+
+            // 쿠폰 할인 금액 계산 (할인된 가격에 쿠폰 할인율 적용)
+            const couponDiscountAmount = coupon 
+                ? Math.floor(discountedPrice * (coupon.discountRate / 100)) 
+                : 0;
+
+            // 쿠폰 할인 금액 업데이트
+            setCouponDiscounts(prev => ({
+                ...prev,
+                [productId]: couponDiscountAmount
+            }));
+        }
+    }, [cartItems]);
+
+    // 데이터 로드 useEffect - 한 번만 실행되도록 빈 의존성 배열 사용
     useEffect(() => {
+        // 이미 로드된 경우 중복 실행 방지를 위한 플래그
+        let isMounted = true;
+
         async function fetchData() {
+            if (!isMounted) return;
             setLoading(true);
 
             try {
                 // 주소 정보 로드 - 가장 먼저 로드하여 UI 렌더링 준비
                 const addressesLoaded = await loadAddressData();
+                if (!isMounted) return;
 
                 // 상품 정보 로드
                 const productsLoaded = await loadProductItems();
+                if (!isMounted) return;
+
+                // 상품 정보가 로드되면 각 상품별 쿠폰 정보 로드
+                if (productsLoaded && cartItems.length > 0) {
+                    for (const item of cartItems) {
+                        if (item.productId && item.companyId) {
+                            await fetchAvailableCoupons(item.productId, item.companyId);
+                        }
+                    }
+                }
 
                 if (!productsLoaded || !addressesLoaded) {
                     alert('주문 정보를 불러오지 못했습니다.');
                 }
             } catch (e) {
                 console.error('주문 정보 로딩 오류:', e);
-                alert('주문 정보를 불러오지 못했습니다.');
+                if (isMounted) {
+                    alert('주문 정보를 불러오지 못했습니다.');
+                }
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         }
 
         fetchData();
 
-        // 컴포넌트 언마운트 시 로컬 스토리지 정리
+        // 컴포넌트 언마운트 시 로컬 스토리지 정리 및 플래그 설정
         return () => {
+            isMounted = false;
             if (isDirectOrder) {
                 localStorage.removeItem('directOrderItems');
                 localStorage.removeItem('directOrderTotalPrice');
             }
         };
-    }, [loadProductItems, loadAddressData]);
+    }, []); // 빈 의존성 배열로 컴포넌트 마운트 시 한 번만 실행
 
     // 필수 구매자 정보 검증
     const validateBuyerInfo = () => {
@@ -212,7 +333,7 @@ function Order() {
         return true;
     };
 
-    // 주문 생성 후 결제창 띄우기
+    // Order.jsx - handleProceedOrder 함수에서 할인가를 고려한 주문 생성
     const handleProceedOrder = async () => {
         setErrorMsg("");
         setShowPayment(false);
@@ -230,19 +351,37 @@ function Order() {
         }
 
         try {
-            const orderRequest = {
-                orderItemDTO: cartItems.map(item => ({
+            // 주문 상품 정보에 할인가 적용
+            const orderItems = cartItems.map(item => {
+                // 할인율 적용 가격 계산
+                const discountRate = item.discountRate || 0;
+                const discountedPrice = Math.floor(item.price * (1 - discountRate / 100));
+
+                return {
                     productId: item.productId,
                     productName: item.productName,
                     quantity: item.quantity,
-                    price: item.price
-                })),
-                addressDTO: selectedAddress,
+                    price: item.price,
+                    discountRate: discountRate,
+                    finalPrice: discountedPrice // 할인된 최종 가격 추가
+                };
+            });
+
+            const orderRequest = {
+                orderItemDTO: orderItems,
+                addressDTO: {
+                    id: selectedAddress.id,
+                    city: selectedAddress.city,
+                    street: selectedAddress.street,
+                    detail: selectedAddress.detail || ""
+                },
                 recipientName: getBuyerInfo().name,
-                totalPrice: orderPrice,
-                orderStatus: 'PENDING',  // 초기 주문 상태
-                orderDate: new Date().toISOString(),  // 주문 일시
+                totalPrice: orderPrice, // CartSummary에서 계산된 최종 가격
+                orderStatus: 'PENDING',
+                orderDate: new Date().toISOString(),
             };
+
+            console.log("주문 요청:", orderRequest);
 
             const res = await userAPI.order.createOrder(orderRequest);
             const newOrderId = res.data.orderId;
@@ -278,7 +417,10 @@ function Order() {
                         <div className="flex-1 flex flex-col space-y-6 overflow-y-auto min-h-0">
                             <AddressForm
                                 savedAddresses={addresses}
-                                onAddressSelect={(addr) => setSelectedAddress(addr)}
+                                onAddressSelect={(addr) => {
+                                    console.log("Selected address:", addr);
+                                    setSelectedAddress(addr);
+                                }}
                             />
                             <section className="flex-1 flex flex-col border rounded-lg p-5 shadow min-h-0">
                                 <h3 className="text-xl font-semibold mb-3">Order Items</h3>

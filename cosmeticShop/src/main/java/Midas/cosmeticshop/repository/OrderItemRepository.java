@@ -2,6 +2,7 @@ package Midas.cosmeticshop.repository;
 
 import Midas.cosmeticshop.entity.DeliveryStatus;
 import Midas.cosmeticshop.entity.OrderItem;
+import Midas.cosmeticshop.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,10 +18,11 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @Modifying
     @Query("UPDATE OrderItem oi SET oi.deliveryStatus = :deliveryStatus " +
         "WHERE oi.id = :orderItemId")
-    ResponseEntity<Void> updateDeliveryStatus(@Param("orderItemId") Long orderItemId, @Param("deliveryStatus") DeliveryStatus deliveryStatus);
+    void updateDeliveryStatus(@Param("orderItemId") Long orderItemId, @Param("deliveryStatus") DeliveryStatus deliveryStatus);
 
     @Query("SELECT oi FROM OrderItem oi JOIN FETCH oi.product p " +
         "WHERE p.company.companyName = :companyName")
     List<OrderItem> findAllByCompanyName(@Param("companyName") String companyName);
 
+    boolean existsByOrderUserAndProductIdAndDeliveryStatusIn(User user, Long productId, List<DeliveryStatus> statuses);
 }

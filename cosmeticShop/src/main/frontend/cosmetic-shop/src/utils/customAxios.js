@@ -14,25 +14,14 @@ const customAxios = axios.create({
     }
 });
 
-// const pendingRequests = new Map();
-
 // 요청 인터셉터에 중복 요청 방지 로직 추가
 customAxios.interceptors.request.use(
     config => {
-        // // 요청 URL과 파라미터로 고유 키 생성
-        // const requestKey = `${config.url}|${JSON.stringify(config.params || {})}`;
-        //
-        // // 이미 동일한 요청이 진행 중이면 취소
-        // if (pendingRequests.has(requestKey)) {
-        //   console.log('중복 요청 방지:', requestKey);
-        //   return Promise.reject(new Error('중복 요청이 취소되었습니다.'));
-        // }
-        //
-        // // 요청 진행 중 표시
-        // pendingRequests.set(requestKey, true);
-        //
-        // // 응답/에러 후 맵에서 제거하기 위한 cleanup 함수
-        // config.requestKey = requestKey;  // 동일 API 를 n 번 호출하는 현상 금지로직 삭제
+        // FormData 객체인 경우 Content-Type 헤더 제거 (브라우저가 자동으로 multipart/form-data 설정)
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+        }
+
         if (config.url?.includes('/api/auth/reissue')) return config;
         const token = localStorage.getItem('accessToken');
         if (token) config.headers['Authorization'] = `Bearer ${token}`;
@@ -46,18 +35,9 @@ customAxios.interceptors.request.use(
 // customAxios.js 파일의 인터셉터 부분
 customAxios.interceptors.response.use(
     response => {
-        // // 요청 완료 후 맵에서 제거
-        // if (response.config?.requestKey) {
-        //   pendingRequests.delete(response.config.requestKey);
-        // }
         return response;
     },
     async err => {
-        // // 요청 실패 시에도 맵에서 제거
-        // if (err.config?.requestKey) {
-        //   pendingRequests.delete(err.config.requestKey);
-        // }
-
         // err.config이 존재하는지 확인하는 안전 장치 추가
         if (!err.config) {
             console.error('에러 처리 중 config 객체가 없습니다:', err);
@@ -172,6 +152,8 @@ export const userAPI = {
         search: (query) => customAxios.get('/api/products/search', {params: {query}}),
         // 추가: 최신순으로 전체 상품 조회
         getLatest: () => customAxios.get('/api/products/batch/latest'),
+        // 추가: 인기순(좋아요 순)으로 전체 상품 조회
+        getPopular: () => customAxios.get('/api/products/batch/popular'),
         // 추가: 카테고리별 상품 조회
         getByCategory: (categoryName) => {
             // 카테고리 이름을 카테고리 ID로 변환
@@ -181,6 +163,13 @@ export const userAPI = {
             };
             const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
             return customAxios.get(`/api/products/batch/${categoryId}`);
+        },
+        // 상품 좋아요 관련 API
+        likes: {
+            // 좋아요한 상품 목록 조회
+            getLikedProducts: () => customAxios.get('/api/products/likes'),
+            // 상품 좋아요 토글 (좋아요 추가/삭제)
+            toggleLike: (productId) => customAxios.post(`/api/products/${productId}/likes/toggle`)
         }
     },
 
@@ -255,6 +244,37 @@ export const userAPI = {
 
         // 간편결제 (KG이니시스)
         processKGinisis: (paymentData) => customAxios.post('/api/payments/kginisis', paymentData)
+    },
+
+    review: {
+        getProductReviews: (productId, sortBy = 'popular') =>
+            customAxios.get(`/api/reviews`, {
+                params: { productId, sortBy }
+        }),
+        getMyProductReviews: (productId) =>
+            customAxios.get('/api/reviews/me', {
+            params: productId ? { productId } : {}
+        }),
+        createReview: (reviewData) => customAxios.post('/api/reviews', reviewData),
+        updateReview: (reviewId, reviewData) => customAxios.put(`/api/reviews/${reviewId}`, reviewData),
+        deleteReview: (reviewId) => customAxios.delete(`/api/reviews/${reviewId}`),
+        toggleLike: (reviewId) => customAxios.post(`/api/reviews/${reviewId}/likes/toggle`),
+        uploadImages: (formData) => customAxios.post('/api/reviews/images', formData),
+        checkPurchased: (productId) => customAxios.get(`/api/reviews/check-purchased/${productId}`),
+        checkReviewed: (productId) => customAxios.get(`/api/reviews/check-reviewed/${productId}`)
+    },
+
+    coupon: {
+        // 사용자의 모든 쿠폰 조회
+        getMyCoupons: () => customAxios.get('/api/coupons/mapping'),
+
+        // 쿠폰 받기 (쿠폰 매핑 생성)
+        receiveCoupon: (couponId) => customAxios.post('/api/coupons/mapping', null, {
+            params: { couponId }
+        }),
+
+        // 회사별 사용 가능한 쿠폰 조회 (회사 ID로)
+        getAvailableCouponsByCompany: (companyId) => customAxios.get(`/api/coupons/available/company/${companyId}`)
     }
 };
 
@@ -268,11 +288,18 @@ export const companyAPI = {
         // 회사 제품 목록 조회 (페이징)
         getProducts: (page = 0, size = 10) =>
             customAxios.get(`/api/company/products`, { params: { page, size }}),
+
         // 상품 정보 업데이트 (JSON)
         updateProduct: (productId, data) => {
             return customAxios.put(`/api/products/${productId}`, data);
         },
-        // 상품 이미지 업데이트 (FormData)
+
+        // 상품 설명만 업데이트
+        updateProductDescription: (productId, description) => {
+            return customAxios.patch(`/api/products/${productId}/description`, { description });
+        },
+
+        // 이미지만 업데이트하는 개선된 함수
         updateProductImages: (productId, formData) => {
             return customAxios.put(`/api/products/${productId}/images`, formData, {
                 headers: {
@@ -280,6 +307,7 @@ export const companyAPI = {
                 }
             });
         },
+
         // 제품 삭제
         deleteProduct: (productId) =>
             customAxios.delete(`/api/products/${productId}`),
@@ -295,6 +323,86 @@ export const companyAPI = {
     order: {
         getCompanyOrderItems: (companyName) => customAxios.get(`/api/orders/company/${companyName}`),
         updateDeliveryStatus: (orderItemId, statusData) => customAxios.patch(`/api/orders/${orderItemId}`, statusData),
+    }
+};
+
+// Admin API functions
+export const adminAPI = {
+
+    // QnA Management
+    qna: {
+        // Get all answered QnAs
+        getAnsweredQnas: () => customAxios.get('/api/qnas/answered'),
+
+        // Get all unanswered QnAs
+        getUnansweredQnas: () => customAxios.get('/api/qnas/unanswered'),
+
+        // QnA 상세 정보 조회
+        getDetail: (qnaId) => customAxios.get(`/api/qnas/detail/${qnaId}`),
+
+        // Search answered QnAs by title
+        searchAnsweredQnasByTitle: (title) => customAxios.get('/api/qnas/answered/search', {
+            params: { title }
+        }),
+
+        // Search unanswered QnAs by title
+        searchUnansweredQnasByTitle: (title) => customAxios.get('/api/qnas/unanswered/search', {
+            params: { title }
+        }),
+
+        // Admin delete QnA
+        adminDeleteQna: (qnaId) => customAxios.delete(`/api/qnas/admin/${qnaId}`),
+
+        // Answer QnA (reusing the existing updateAnswer function from userAPI.qna)
+        answerQna: (qnaId, answer) => customAxios.put(`/api/qnas/${qnaId}/answers`, null, {
+            params: { answer }
+        })
+    },
+
+    badKeyword: {
+        getAllBadKeywords: () => customAxios.get('/api/admin/bad-keywords'),
+        addBadKeyword: (keyword) => customAxios.post(`/api/admin/bad-keywords?badKeyword=${encodeURIComponent(keyword)}`),
+        deleteBadKeyword: (badKeywordId) => customAxios.delete(`/api/admin/bad-keywords/${badKeywordId}`),
+        getBadReviews: () => customAxios.get('/api/admin/reviews/bad-keywords'),
+        deleteReviewsWithBadKeywords: () => customAxios.delete('/api/admin/reviews/bad-keywords/all')
+    },
+
+    // Coupon Management
+    coupon: {
+        // Issue a new coupon
+        issueCoupon: (couponData) => customAxios.post('/api/admin/coupons', couponData),
+
+        // Get all companies for dropdown
+        getAllCompanyNames: () => customAxios.get('/api/company/names')
+    },
+
+    // Statistics Management
+    statistics: {
+        // Get daily order statistics
+        getDailyStats: (startDate, endDate) => customAxios.get('/api/admin/order_stats/day', {
+            params: { startDate, endDate }
+        }),
+
+        // Get monthly order statistics
+        getMonthlyStats: (startDate, endDate) => customAxios.get('/api/admin/order_stats/month', {
+            params: { startDate, endDate }
+        }),
+
+        // Get yearly order statistics
+        getYearlyStats: (startDate, endDate) => customAxios.get('/api/admin/order_stats/year', {
+            params: { startDate, endDate }
+        }),
+
+        // Get dashboard summary statistics (for AdminMain.jsx)
+        getDashboardStats: async () => {
+            // Get stats for the last 30 days
+            const endDate = new Date().toISOString().split('T')[0]; // Today
+            const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 30 days ago
+
+            return customAxios.get('/api/admin/order_stats/day', {
+                params: { startDate, endDate }
+            });
+        }
     }
 };
 

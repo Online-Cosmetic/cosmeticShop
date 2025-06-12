@@ -22,6 +22,7 @@ function ProductPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [sortOption, setSortOption] = useState('latest'); // 정렬 옵션 상태 추가
     const itemsPerPage = 9;
 
     useEffect(() => {
@@ -30,9 +31,15 @@ function ProductPage() {
                 setLoading(true);
                 let response;
 
-                if (selectedCategory.toLowerCase() === "all") {
+                // 정렬 옵션에 따라 API 호출 분기
+                if (sortOption === 'popular') {
+                    // 인기순(좋아요 순) 정렬
+                    response = await userAPI.product.getPopular();
+                } else if (selectedCategory.toLowerCase() === "all") {
+                    // 전체 상품 최신순 정렬
                     response = await userAPI.product.getLatest();
                 } else {
+                    // 카테고리별 상품
                     response = await userAPI.product.getByCategory(selectedCategory);
                 }
 
@@ -49,7 +56,26 @@ function ProductPage() {
                     imageUrl: product.thumbImgUrl ? getImageUrl(product.thumbImgUrl) : null
                 }));
 
-                setProducts(formattedProducts);
+                // 클라이언트 측 가격 정렬 (서버에서 처리하지 않는 경우)
+                let sortedProducts = [...formattedProducts];
+
+                if (sortOption === 'priceAsc') {
+                    // 가격 낮은순 정렬
+                    sortedProducts.sort((a, b) => {
+                        const aDiscountedPrice = a.price * (1 - a.discountRate / 100);
+                        const bDiscountedPrice = b.price * (1 - b.discountRate / 100);
+                        return aDiscountedPrice - bDiscountedPrice;
+                    });
+                } else if (sortOption === 'priceDesc') {
+                    // 가격 높은순 정렬
+                    sortedProducts.sort((a, b) => {
+                        const aDiscountedPrice = a.price * (1 - a.discountRate / 100);
+                        const bDiscountedPrice = b.price * (1 - b.discountRate / 100);
+                        return bDiscountedPrice - aDiscountedPrice;
+                    });
+                }
+
+                setProducts(sortedProducts);
                 setCurrentPage(1); // 카테고리 변경 시 첫 페이지로 리셋
             } catch (err) {
                 console.error("상품 로딩 중 오류 발생:", err);
@@ -60,7 +86,7 @@ function ProductPage() {
         };
 
         fetchProducts();
-    }, [selectedCategory]);
+    }, [selectedCategory, sortOption]);
 
     // 페이지네이션 계산
     const totalPages = Math.ceil(products.length / itemsPerPage);

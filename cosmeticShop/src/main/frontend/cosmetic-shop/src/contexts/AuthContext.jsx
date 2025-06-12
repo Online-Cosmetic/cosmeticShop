@@ -149,7 +149,12 @@ export const AuthProvider = ({children}) => {
             return response.data;
         } catch (err) {
             console.error('User registration failed:', err);
-            setError(err.response?.data?.message || '회원가입에 실패했습니다.');
+            // 백엔드에서 받은 오류 메시지를 그대로 전달
+            if (err.response && err.response.data) {
+                setError(err.response.data);
+            } else {
+                setError('회원가입에 실패했습니다.');
+            }
             throw err;
         } finally {
             setLoading(false);

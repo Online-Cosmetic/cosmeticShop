@@ -89,7 +89,7 @@ public class SecurityConfig {
             .configurationSource(request -> {
                 CorsConfiguration configuration = new CorsConfiguration();
                 configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
-                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                 configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
                 configuration.setAllowCredentials(true);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -112,6 +112,10 @@ public class SecurityConfig {
 
         // 경로별 인가 작업  = url 이 부분적으로 라도 중복되는 경우, role 검증을 하는 requestMatchers 를 먼저 호출해야한다
         http.authorizeHttpRequests(auth -> auth
+            // 정적 리소스에 대한 접근 허용 (순서 중요 - 가장 먼저 배치)
+            .requestMatchers(
+                "/css/**", "/js/**", "/images/**", "/favicon.ico")
+            .permitAll()
 
             // 로그인·회원가입 API
             .requestMatchers(
@@ -120,12 +124,23 @@ public class SecurityConfig {
                 "/api/products/**"
             ).permitAll()
 
-            // 장바구니/주문/주소 관련 (로그인 필요)
+            // 관리자 페이지 접근 경로 허용
+            .requestMatchers(
+                "/admin/login",
+                "/admin/login/**"
+            ).permitAll()
+
+            // 장바구니/주소 관련 (로그인 필요)
             .requestMatchers(
                 "/api/carts/**",
-                "/api/orders/**",
-                "/api/addresses/**"
+                "/api/addresses/**",
+                "/api/reviews/**"
             ).hasRole("USER")
+
+            // 주문 관련
+            .requestMatchers(
+                "/api/orders/**"
+            ).hasAnyRole("USER", "COMPANY")
 
             // 프로필 변경 관련
             .requestMatchers(
@@ -145,13 +160,34 @@ public class SecurityConfig {
 
             // QNA 관련
             .requestMatchers(
-                "/api/qnas/**"
+                "/api/qnas/all",
+                "/api/qnas/detail/**",
+                "/api/qnas/search/**"
             ).permitAll()
+
+            // QNA 관련 (로그인 필요)
+            .requestMatchers(
+                "/api/qnas",
+                "/api/qnas/me/**"
+            ).hasAnyRole("USER", "ADMIN")
+
+            // QNA 관련 (관리자 전용)
+            .requestMatchers(
+                "/api/qnas/admin/**",
+                "/api/qnas/answered/**",
+                "/api/qnas/unanswered/**",
+                "/api/qnas/{qnaId}/answers"
+            ).hasRole("ADMIN")
 
             .requestMatchers(
                 HttpMethod.POST, "/api/products",
                 "/api/company/**"
-            ).hasRole("COMPANY")
+            ).hasAnyRole("COMPANY", "ADMIN")
+
+            // 쿠폰 관련
+            .requestMatchers(
+                "/api/coupons/**"
+            ).hasAnyRole("ADMIN", "USER", "COMPANY")
 
             // HTML 페이지
             .requestMatchers(
@@ -159,10 +195,13 @@ public class SecurityConfig {
                 "/index.html"
             ).permitAll()
 
-            // JS/CSS/이미지
+            // 관리자 API 전용 경로
             .requestMatchers(
-                "/css/**", "/js/**", "/images/**", "/favicon.ico")
-            .permitAll()
+                "/api/admin/**",
+                "/api/qnas/admin/**",
+                "/api/qnas/answered/**",
+                "/api/qnas/unanswered/**"
+            ).hasRole("ADMIN")
 
             // 관리자 화면
             .requestMatchers("/admin/**").hasRole("ADMIN")

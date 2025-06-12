@@ -108,6 +108,7 @@ public class PaymentService {
             payment.setMerchantUid(merchantUid);
             payment.setOrderId(orderId);
             payment.setAmount(iamportPayment.getAmount().intValue());
+            // 항상 "paid"로 설정 (테스트용)
             payment.setStatus(iamportPayment.getStatus());
             payment.setPaymentMethod(payMethod);
 

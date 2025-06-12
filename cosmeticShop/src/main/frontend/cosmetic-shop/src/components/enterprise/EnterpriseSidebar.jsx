@@ -12,7 +12,6 @@ export default function EnterpriseSidebar() {
         { label: "Register Product", path: "/enterprise/product/register" },
         { label: "Manage Products", path: "/enterprise/product/manage" },
         { label: "Order & Delivery", path: "/enterprise/orders" },
-        { label: "My Page", path: "/enterprise/profile" }
     ];
 
     if (user?.role !== 'ROLE_COMPANY') return null;
