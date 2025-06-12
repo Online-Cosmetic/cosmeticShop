@@ -1,7 +1,7 @@
 import React from "react";
 
 const FilterBar = ({ filters, onChange, onReset }) => {
-    const { date, type, status } = filters;
+    const { date, status, sort } = filters;
 
     return (
         <div className="flex items-center justify-between bg-gray-50 border border-gray-300 rounded-xl px-6 py-4 w-full">
@@ -34,20 +34,6 @@ const FilterBar = ({ filters, onChange, onReset }) => {
                     />
                 </div>
 
-                {/* 주문 타입 필터 */}
-                <div className="flex items-center gap-2">
-                    <select
-                        value={type}
-                        onChange={(e) => onChange("type", e.target.value)}
-                        className="text-sm text-gray-800 border border-gray-300 rounded px-2 py-1"
-                    >
-                        <option value="">Order Type</option>
-                        <option value="card">Card</option>
-                        <option value="bank">Bank Transfer</option>
-                        <option value="simple">Simple Payment</option>
-                    </select>
-                </div>
-
                 {/* 주문 상태 필터 */}
                 <div className="flex items-center gap-2">
                     <select
@@ -60,6 +46,18 @@ const FilterBar = ({ filters, onChange, onReset }) => {
                         <option value="processing">Processing</option>
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                {/* 정렬 기준 필터 */}
+                <div className="flex items-center gap-2">
+                    <select
+                        value={sort}
+                        onChange={(e) => onChange("sort", e.target.value)}
+                        className="text-sm text-gray-800 border border-gray-300 rounded px-2 py-1"
+                    >
+                        <option value="asc">오래된순</option>
+                        <option value="desc">최신순</option>
                     </select>
                 </div>
             </div>
@@ -82,7 +80,7 @@ const FilterBar = ({ filters, onChange, onReset }) => {
                         d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1010 17.5a7.5 7.5 0 006.65-6.65z"
                     />
                 </svg>
-                <span>Search</span>
+                <span>초기화</span>
             </button>
         </div>
     );

@@ -5,7 +5,7 @@ import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
 import { userAPI } from "../../utils/customAxios";
 import { useAuth } from "../../contexts/AuthContext";
 
-function ProductList({ products, title, sortOption, onSortChange }) {
+function ProductList({ products, title }) {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
     // 좋아요 상태 관리
@@ -63,22 +63,6 @@ function ProductList({ products, title, sortOption, onSortChange }) {
         <div>
             <div className="flex justify-between items-center mb-8">
                 <h2 className="text-3xl font-bold capitalize">{title}</h2>
-
-                {/* 정렬 옵션 선택 */}
-                <div className="flex items-center space-x-2">
-                    <label htmlFor="sort" className="text-sm font-medium text-gray-700">정렬:</label>
-                    <select
-                        id="sort"
-                        value={sortOption || 'latest'}
-                        onChange={(e) => onSortChange && onSortChange(e.target.value)}
-                        className="border border-gray-300 rounded-md py-1 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    >
-                        <option value="latest">최신순</option>
-                        <option value="popular">인기순</option>
-                        <option value="priceAsc">가격 낮은순</option>
-                        <option value="priceDesc">가격 높은순</option>
-                    </select>
-                </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {products.length === 0 ? (

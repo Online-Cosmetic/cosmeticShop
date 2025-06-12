@@ -6,6 +6,7 @@ import Midas.cosmeticshop.repository.ThumbnailImageRepository;
 import Midas.cosmeticshop.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -140,7 +141,13 @@ public class OrderController {
         @PathVariable Long orderItemId,
         @Valid @RequestBody DeliveryStatusDTO deliveryStatusDTO) {
 
-        System.out.println("DeliveryStatusDTO = " + deliveryStatusDTO.toString());
-        return orderService.changeItemDeliveryStatus(baseUserDetails, orderItemId, deliveryStatusDTO);
+        try {
+            System.out.println("DeliveryStatusDTO = " + deliveryStatusDTO.toString());
+            return orderService.changeItemDeliveryStatus(baseUserDetails, orderItemId, deliveryStatusDTO);
+        } catch (Exception e) {
+            // 예외 로깅
+            // logger.error("배송 상태 변경 중 오류 발생: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

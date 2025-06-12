@@ -13,8 +13,8 @@ function OrderManagement() {
 
     const [filters, setFilters] = useState({
         date: "",
-        type: "",
-        status: ""
+        status: "",
+        sort: "asc" // 기본값은 오름차순
     });
 
     // Fetch order data
@@ -82,15 +82,12 @@ function OrderManagement() {
             result = result.filter(order => order.orderItemDTO.deliveryStatus === serverStatus);
         }
 
-        // Apply type/product filter
-        if (filters.type) {
-            result = result.filter(order =>
-                order.orderItemDTO.productName.toLowerCase().includes(filters.type.toLowerCase())
-            );
+        // Order ID 기준으로 정렬 (오름차순/내림차순)
+        if (filters.sort === "asc") {
+            result.sort((a, b) => a.orderId - b.orderId);
+        } else {
+            result.sort((a, b) => b.orderId - a.orderId);
         }
-
-        // OrderId 기준으로 오름차순 정렬
-        result.sort((a, b) => a.orderId - b.orderId);
 
         setFilteredOrders(result);
     }, [orders, filters]);
@@ -102,13 +99,20 @@ function OrderManagement() {
     };
 
     const handleReset = () => {
-        setFilters({date: "", type: "", status: ""});
+        setFilters({date: "", status: "", sort: "asc"});
         setCurrentPage(1);
     };
 
     // Handle status change
     const handleStatusChange = (orderItemId, newStatus) => {
         updateDeliveryStatus.mutate({orderItemId, status: newStatus});
+    };
+
+    // 주문 취소 처리 함수 
+    const handleCancelOrder = (orderItemId) => {
+        if (window.confirm('정말로 이 주문을 취소하시겠습니까? 취소하면 재고가 원복됩니다.')) {
+            updateDeliveryStatus.mutate({orderItemId, status: 'CANC'});
+        }
     };
 
     // Calculate pagination
@@ -235,7 +239,7 @@ function OrderManagement() {
                                                 {statusInfo.text}
                                             </span>
                                         </div>
-                                        <div>
+                                        <div className="flex gap-2">
                                             {statusInfo.nextStatus && (
                                                 <button
                                                     onClick={() => handleStatusChange(order.orderItemDTO.orderItemId, statusInfo.nextStatus)}
@@ -243,6 +247,16 @@ function OrderManagement() {
                                                     className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 disabled:bg-gray-300"
                                                 >
                                                     {statusInfo.nextText}
+                                                </button>
+                                            )}
+                                            {/* 취소 버튼 - READY 또는 PROG 상태일 때만 표시 */}
+                                            {(order.orderItemDTO.deliveryStatus === 'READY' || order.orderItemDTO.deliveryStatus === 'PROG') && (
+                                                <button
+                                                    onClick={() => handleCancelOrder(order.orderItemDTO.orderItemId)}
+                                                    disabled={updateDeliveryStatus.isLoading}
+                                                    className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:bg-gray-300"
+                                                >
+                                                    취소
                                                 </button>
                                             )}
                                         </div>

@@ -61,6 +61,15 @@ public class OrderService {
             Product product = productRepository.findById(orderItemDTO.getProductId())
                 .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다: " + orderItemDTO.getProductId()));
 
+            // 재고 확인
+            if (product.getStock() < orderItemDTO.getQuantity()) {
+                throw new RuntimeException("재고가 부족합니다. 상품: " + product.getProductName() + ", 현재 재고: " + product.getStock());
+            }
+
+            // 주문 생성 시점에 재고를 즉시 감소시킴
+            product.setStock(product.getStock() - orderItemDTO.getQuantity());
+            productRepository.save(product);
+
             int discountRate = product.getDiscountRate();
             int discountedPrice = orderItemDTO.getPrice() * (100 - discountRate) / 100;
 
@@ -197,6 +206,11 @@ public class OrderService {
             throw new RuntimeException("이미 배송이 시작된 상품입니다");
         }
 
+        // 재고 복원
+        Product product = item.getProduct();
+        product.setStock(product.getStock() + item.getQuantity());
+        productRepository.save(product);
+
         order.removeOrderItem(item);
         orderItemRepository.delete(item);
     }
@@ -214,6 +228,11 @@ public class OrderService {
             if (item.getDeliveryStatus() != DeliveryStatus.READY) {
                 throw new RuntimeException("이미 배송이 시작된 상품입니다");
             }
+
+            // 재고 복원
+            Product product = item.getProduct();
+            product.setStock(product.getStock() + item.getQuantity());
+            productRepository.save(product);
 
             order.removeOrderItem(item);
             orderItemRepository.delete(item);
@@ -234,6 +253,11 @@ public class OrderService {
             if (item.getDeliveryStatus() != DeliveryStatus.READY) {
                 throw new RuntimeException("이미 배송이 시작된 상품입니다");
             }
+
+            // 재고 복원
+            Product product = item.getProduct();
+            product.setStock(product.getStock() + item.getQuantity());
+            productRepository.save(product);
         }
 
         orderItemRepository.deleteAll(orderItems);
@@ -280,9 +304,9 @@ public class OrderService {
     }
 
     /* 기업의 주문상품 배송상태 변경 메소드 */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<Void> changeItemDeliveryStatus(
-        BaseUserDetails baseUserDetails, Long orderItemId, @Valid DeliveryStatusDTO deliveryStatusDTO) {
+        BaseUserDetails baseUserDetails, Long orderItemId, DeliveryStatusDTO deliveryStatusDTO) {
 
         Company company = companyRepository.findByUserId(baseUserDetails.getUsername());
         if(company == null) {
@@ -292,10 +316,25 @@ public class OrderService {
         DeliveryStatus deliveryStatus = DeliveryStatus.valueOf(deliveryStatusDTO.getDeliveryStatus());
 
         try {
+            // 주문 아이템 조회
+            OrderItem orderItem = orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new RuntimeException("주문 아이템을 찾을 수 없습니다: " + orderItemId));
+
+            // 배송 취소(CANC) 상태로 변경되는 경우에만 재고 원복
+            if (deliveryStatus == DeliveryStatus.CANC) {
+                Product product = orderItem.getProduct();
+                int quantity = orderItem.getQuantity();
+
+                // 재고 원복
+                product.setStock(product.getStock() + quantity);
+                productRepository.save(product);
+            }
+
+            // 배송 상태 업데이트
             orderItemRepository.updateDeliveryStatus(orderItemId, deliveryStatus);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new RuntimeException("배송 상태 변경 중 오류가 발생했습니다", e);
         }
     }
 
@@ -309,7 +348,7 @@ public class OrderService {
     public boolean hasUserPurchasedProduct(String userId, Long productId) {
         User user = userRepository.findByUserId(userId)
             .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-        
+
         // 사용자가 주문한 모든 주문 아이템 중에서 특정 상품이 포함되어 있는지 확인
         return orderItemRepository.existsByOrderUserAndProductIdAndDeliveryStatusIn(
             user, 
