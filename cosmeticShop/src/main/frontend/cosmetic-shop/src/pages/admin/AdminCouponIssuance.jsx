@@ -61,7 +61,7 @@ export default function AdminCouponIssuance() {
         return true;
     };
 
-    // Handle form submission
+    // handleSubmit 함수 수정
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
@@ -73,16 +73,21 @@ export default function AdminCouponIssuance() {
 
         setSubmitting(true);
         try {
+            // discountRate 값이 문자열이 아닌 숫자로 확실하게 변환
+            const discountRateNum = parseInt(discountRate, 10);
+            console.log("Sending discount rate:", discountRateNum); // 로그 추가
+
             const couponData = {
                 companyName: selectedCompany,
-                discountRate: parseInt(discountRate),
-                duration: parseInt(duration),
+                discountRate: discountRateNum, // 명시적으로 변환된 숫자 사용
+                duration: parseInt(duration, 10),
                 couponName: couponName
             };
 
+            console.log("Sending coupon data:", couponData); // 전송 데이터 로깅
             await adminAPI.coupon.issueCoupon(couponData);
             setSuccess("Coupon issued successfully!");
-            
+
             // Reset form
             setSelectedCompany("");
             setDiscountRate("");

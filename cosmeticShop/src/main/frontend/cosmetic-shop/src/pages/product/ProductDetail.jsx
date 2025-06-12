@@ -452,12 +452,13 @@ function Detail({title}) {
             return;
         }
 
+        console.log("couponId = " + couponId)
         try {
             await userAPI.coupon.receiveCoupon(couponId);
             toast.success("쿠폰이 발급되었습니다.");
 
             // 쿠폰 목록에서 제거
-            setCoupons(prevCoupons => prevCoupons.filter(coupon => coupon.couponId !== couponId));
+            setCoupons(prevCoupons => prevCoupons.filter(coupon => coupon.id !== couponId));
         } catch (error) {
             console.error("쿠폰 발급 중 오류 발생:", error);
             toast.error("쿠폰 발급에 실패했습니다.");
@@ -1004,14 +1005,14 @@ function Detail({title}) {
                         ) : (
                             <div className="space-y-4">
                                 {coupons.map(coupon => (
-                                    <div key={coupon.couponId} className="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
+                                    <div key={coupon.id} className="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                                         <div>
                                             <p className="font-bold text-lg">{coupon.discountRate}% 할인</p>
                                             <p className="text-sm text-gray-600">{coupon.couponName}</p>
                                             <p className="text-xs text-gray-500">{coupon.companyName}</p>
                                         </div>
                                         <button
-                                            onClick={() => handleReceiveCoupon(coupon.couponId)}
+                                            onClick={() => handleReceiveCoupon(coupon.id)}
                                             className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                                         >
                                             받기

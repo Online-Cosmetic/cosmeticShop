@@ -2,26 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { userAPI } from '../../utils/customAxios';
 import NavItem from './MyComponents/NavItem';
 import OrderHistory from './MyComponents/OrderHistory';
-import CancelledOrders from './MyComponents/CancelledOrders';
-import OrderList from './MyComponents/OrderList';
 import Wishlist from './MyComponents/Wishlist';
 import Review from './MyComponents/Review';
 import QnASection from './MyComponents/QnASection';
 import EditInfo from './MyComponents/EditInfo';
 import AddressBook from './MyComponents/AddressBook';
-import QnAMyDetail from './MyComponents/QnAMyDetail';
 import Coupons from './MyComponents/Coupons'
 import Default from './MyComponents/Default'
 
 const SECTIONS = [
-  { key: 'Default', label: '주문 조회', Component: Default, icon: '📋' },
-
-  { key: 'orderHistory', label: '주문 조회', Component: OrderHistory, icon: '📦' },
-  { key: 'returnOrders', label: '취소/반품/교환', Component: CancelledOrders, icon: '↩️' },
-  { key: 'orderList', label: '장바구니', Component: OrderList, icon: '🛒' },
+  { key: 'Default', label: '한 눈에 보기', Component: Default, icon: '📋' },
+  { key: 'orderHistory', label: '주문 조회 및 삭제', Component: OrderHistory, icon: '📦' },
   { key: 'wishlist', label: '찜 목록', Component: Wishlist, icon: '❤️' },
   { key: 'review', label: '리뷰', Component: Review, icon: '✍️' },
-  { key: 'qna', label: 'Q&A', Component: QnASection, icon: '❓' },
+  { key: 'qna', label: '나의 Q&A', Component: QnASection, icon: '❓' },
   { key: 'Coupons', label: '쿠폰', Component: Coupons, icon: '🎟️' },
   { key: 'editInfo', label: '회원정보 수정', Component: EditInfo, icon: '👤' },
   { key: 'address', label: '배송지 관리', Component: AddressBook, icon: '🏠' },
@@ -64,16 +58,13 @@ function MyPage() {
 
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold mb-3 text-neutral-700">주문 관리</h2>
                 <ul className="space-y-1">
                   {SECTIONS.slice(1, 4).map(s => (
                     <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
                   ))}
                 </ul>
               </div>
-
               <div>
-                <h2 className="text-lg font-semibold mb-3 text-neutral-700">활동 내역</h2>
                 <ul className="space-y-1">
                   {SECTIONS.slice(4, 8).map(s => (
                     <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
@@ -82,7 +73,6 @@ function MyPage() {
               </div>
 
               <div>
-                <h2 className="text-lg font-semibold mb-3 text-neutral-700">내 정보</h2>
                 <ul className="space-y-1">
                   {SECTIONS.slice(8).map(s => (
                     <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />

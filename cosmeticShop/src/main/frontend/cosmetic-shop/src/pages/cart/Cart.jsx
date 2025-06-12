@@ -155,7 +155,8 @@ function Cart() {
                                         key={product.id}
                                         product={product}
                                         onQuantityChange={fetchCart}
-                                        editable={false}
+                                        editable={true}
+                                        showQuantityControls={false} // 수량 조절 UI를 표시하지 않음
                                         isChecked={checkedItems.has(product.id)}
                                         onCheck={() => handleCheckItem(product.id)}
                                         onDelete={() => handleDeleteItem(product.id)}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { userAPI } from '../../../utils/customAxios.js';
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 
 function QnASection({ items = [], onQnaClick }) {
     const [qnaData, setQnaData] = useState([]);
@@ -11,6 +11,19 @@ function QnASection({ items = [], onQnaClick }) {
     const totalPages = Math.ceil(qnaData.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const currentData = qnaData.slice(startIndex, startIndex + itemsPerPage);
+
+    const navigate = useNavigate();
+
+    const handleQuestionClick = async (nickname, title) => {
+        try {
+            const response = await userAPI.qna.getQnaIdByNicknameAndTitle(nickname, title); // 새 API 호출
+            const qnaId = response.data;
+            navigate(`/qna/detail/${qnaId}`); // 상세 페이지로 이동
+        } catch (error) {
+            console.error("QnA ID 찾기 실패", error);
+            alert('해당 글을 찾을 수 없습니다.');
+        }
+    };
 
     useEffect(() => {
         fetchMyQnas();
@@ -43,53 +56,12 @@ function QnASection({ items = [], onQnaClick }) {
         if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
     };
 
-    const handleSearch = () => {
-        if (searchTerm.trim() === '') {
-            fetchMyQnas();
-        } else {
-            userAPI.qna.searchMyQnasByTitle(searchTerm)
-                .then((response) => {
-                    setQnaData(response.data);
-                    setCurrentPage(1);
-                })
-                .catch((error) => {
-                    console.error("내 QnA 검색 오류:", error);
-                });
-        }
-    };
-
-    const handleLinkClick = (e) => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            e.preventDefault();
-            alert("로그인 후 작성할 수 있습니다.");
-        }
-    };
-
     return (
         <div className="w-full bg-white p-10 min-h-screen">
-            <h2 className="text-2xl font-bold mb-6">Q&A</h2>
+            <h2 className="text-2xl font-bold mb-6">글 목록</h2>
 
             <div className="relative mb-6 w-[400px]">
-                <div className="flex items-center border rounded overflow-hidden">
-                    <button className="bg-gray-100 px-4 py-2 text-gray-500 border-r">제목</button>
-                    <input
-                        type="text"
-                        placeholder="제목으로 검색"
-                        className="px-4 py-2 flex-1 outline-none pr-12"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <button
-                        id="searchBtn"
-                        onClick={handleSearch}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
-                </div>
+
             </div>
 
             <table className="w-full border-t border-b text-left mb-6 text-sm">
@@ -123,16 +95,6 @@ function QnASection({ items = [], onQnaClick }) {
                 <button onClick={handlePrev} disabled={currentPage === 1} className="disabled:text-gray-300">◀</button>
                 <span>{currentPage}</span>
                 <button onClick={handleNext} disabled={currentPage === totalPages} className="disabled:text-gray-300">▶</button>
-            </div>
-
-            <div className="flex justify-end">
-                <Link
-                    to="/QnAWrite"
-                    onClick={handleLinkClick}
-                    className="border px-4 py-2 text-sm"
-                >
-                    글쓰기
-                </Link>
             </div>
         </div>
     );

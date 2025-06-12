@@ -64,16 +64,7 @@ export default function Review() {
 
   return (
     <section className="px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">내 리뷰</h2>
-        <Link 
-          to="/user/orders" 
-          className="text-emerald-600 hover:text-emerald-700 font-medium"
-        >
-          구매 내역 보기
-        </Link>
-      </div>
-
+      <div className="flex justify-between items-center mb-6"/>
       {reviews.length === 0 ? (
         <div className="text-center py-10 bg-gray-50 rounded-lg">
           <p className="text-gray-500">작성한 리뷰가 없습니다.</p>

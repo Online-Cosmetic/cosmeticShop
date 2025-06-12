@@ -150,19 +150,25 @@ export const userAPI = {
         getAll: () => customAxios.get('/api/products'),
         getById: (id) => customAxios.get(`/api/products/${id}`),
         search: (query) => customAxios.get('/api/products/search', {params: {query}}),
-        // 추가: 최신순으로 전체 상품 조회
+        // 최신순으로 전체 상품 조회
         getLatest: () => customAxios.get('/api/products/batch/latest'),
-        // 추가: 인기순(좋아요 순)으로 전체 상품 조회
+        // 인기순(좋아요 순)으로 전체 상품 조회
         getPopular: () => customAxios.get('/api/products/batch/popular'),
-        // 추가: 카테고리별 상품 조회
-        getByCategory: (categoryName) => {
+        // 가격순으로 전체 상품 조회
+        getPriceOrdered: (order) => customAxios.get('/api/products/batch/price', {
+            params: { order } // asc 또는 desc
+        }),
+        // 카테고리별 상품 조회 (정렬 옵션 추가)
+        getByCategory: (categoryName, sortOption = 'latest') => {
             // 카테고리 이름을 카테고리 ID로 변환
             const categoryMap = {
                 // 전체 상품은 CategoryID 0으로 가정
                 'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
             };
             const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
-            return customAxios.get(`/api/products/batch/${categoryId}`);
+            return customAxios.get(`/api/products/batch/${categoryId}`, {
+                params: { sort: sortOption }
+            });
         },
         // 상품 좋아요 관련 API
         likes: {
@@ -214,7 +220,10 @@ export const userAPI = {
         }),
 
         // QnA 삭제
-        delete: (qnaId) => customAxios.delete(`/api/qnas/${qnaId}`)
+        delete: (qnaId) => customAxios.delete(`/api/qnas/${qnaId}`),
+
+        getQnaIdByNicknameAndTitle: (nickname, title) =>
+            customAxios.get('/api/qna/findIdByNicknameAndTitle', { params: { nickname, title } })
     },
 
     payment: {
@@ -269,12 +278,15 @@ export const userAPI = {
         getMyCoupons: () => customAxios.get('/api/coupons/mapping'),
 
         // 쿠폰 받기 (쿠폰 매핑 생성)
-        receiveCoupon: (couponId) => customAxios.post('/api/coupons/mapping', null, {
-            params: { couponId }
-        }),
+        receiveCoupon: (couponId) => customAxios.post(`/api/coupons/mapping?couponId=${couponId}`),
 
-        // 회사별 사용 가능한 쿠폰 조회 (회사 ID로)
-        getAvailableCouponsByCompany: (companyId) => customAxios.get(`/api/coupons/available/company/${companyId}`)
+        // 기업별 사용 가능한 쿠폰 조회
+        getAvailableCouponsByCompany: (companyId) =>
+            customAxios.get(`/api/coupons/available/company/${companyId}`),
+
+        // 주문용 사용 가능한 쿠폰 조회
+        getAvailableCouponsForOrder: (companyId) =>
+            customAxios.get(`/api/coupons/available/order/${companyId}`)
     }
 };
 

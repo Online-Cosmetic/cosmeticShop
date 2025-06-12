@@ -35,12 +35,18 @@ function ProductPage() {
                 if (sortOption === 'popular') {
                     // 인기순(좋아요 순) 정렬
                     response = await userAPI.product.getPopular();
+                } else if (sortOption === 'priceAsc') {
+                    // 가격 낮은순 정렬
+                    response = await userAPI.product.getPriceOrdered('asc');
+                } else if (sortOption === 'priceDesc') {
+                    // 가격 높은순 정렬
+                    response = await userAPI.product.getPriceOrdered('desc');
                 } else if (selectedCategory.toLowerCase() === "all") {
                     // 전체 상품 최신순 정렬
                     response = await userAPI.product.getLatest();
                 } else {
-                    // 카테고리별 상품
-                    response = await userAPI.product.getByCategory(selectedCategory);
+                    // 카테고리별 상품 (정렬 옵션 전달)
+                    response = await userAPI.product.getByCategory(selectedCategory, sortOption);
                 }
 
                 // API 응답 구조에 맞게 데이터 추출
@@ -52,31 +58,12 @@ function ProductPage() {
                     title: product.productName,
                     content: product.description,
                     price: product.price,
-                    discountRate: product.discountRate || 0, // 할인율 추가
+                    discountRate: product.discountRate || 0,
                     imageUrl: product.thumbImgUrl ? getImageUrl(product.thumbImgUrl) : null
                 }));
 
-                // 클라이언트 측 가격 정렬 (서버에서 처리하지 않는 경우)
-                let sortedProducts = [...formattedProducts];
-
-                if (sortOption === 'priceAsc') {
-                    // 가격 낮은순 정렬
-                    sortedProducts.sort((a, b) => {
-                        const aDiscountedPrice = a.price * (1 - a.discountRate / 100);
-                        const bDiscountedPrice = b.price * (1 - b.discountRate / 100);
-                        return aDiscountedPrice - bDiscountedPrice;
-                    });
-                } else if (sortOption === 'priceDesc') {
-                    // 가격 높은순 정렬
-                    sortedProducts.sort((a, b) => {
-                        const aDiscountedPrice = a.price * (1 - a.discountRate / 100);
-                        const bDiscountedPrice = b.price * (1 - b.discountRate / 100);
-                        return bDiscountedPrice - aDiscountedPrice;
-                    });
-                }
-
-                setProducts(sortedProducts);
-                setCurrentPage(1); // 카테고리 변경 시 첫 페이지로 리셋
+                setProducts(formattedProducts);
+                setCurrentPage(1); // 정렬 옵션 변경 시 첫 페이지로 리셋
             } catch (err) {
                 console.error("상품 로딩 중 오류 발생:", err);
                 setError("상품을 불러오는 중 오류가 발생했습니다.");
@@ -148,15 +135,17 @@ function ProductPage() {
                     <span className="text-emerald-600 ml-2 text-lg">({products.length})</span>
                 </h1>
 
+                {/*// 상품 정렬 옵션 부분 수정*/}
                 <div className="flex items-center">
                     <select
                         className="border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        defaultValue="latest"
+                        value={sortOption}
+                        onChange={(e) => setSortOption(e.target.value)}
                     >
-                        <option value="latest">최신순</option>
+                        <option value="latest">최신상품순</option>
                         <option value="popular">인기순</option>
-                        <option value="lowPrice">낮은 가격순</option>
-                        <option value="highPrice">높은 가격순</option>
+                        <option value="priceAsc">낮은 가격순</option>
+                        <option value="priceDesc">높은 가격순</option>
                     </select>
                 </div>
             </div>

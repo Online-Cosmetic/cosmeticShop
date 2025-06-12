@@ -106,18 +106,9 @@ export default function Wishlist() {
 
   return (
       <section className="w-full bg-white p-10 min-h-screen">
-        <h2 className="text-2xl font-bold mb-6">좋아요 누른 상품목록</h2>
 
         <div className="flex items-center justify-between mb-4">
-          <label className="flex items-center space-x-2">
-            <input
-                type="checkbox"
-                checked={allSelected}
-                onChange={toggleSelectAll}
-                className="form-checkbox h-5 w-5 text-primary"
-            />
-            <span>전체 선택</span>
-          </label>
+          <label className="flex items-center space-x-2"/>
           <button
               onClick={handleBulkDelete}
               className="border px-4 py-2 rounded hover:bg-gray-100"

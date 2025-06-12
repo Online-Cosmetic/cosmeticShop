@@ -22,12 +22,17 @@ function Order() {
     const [errorMsg, setErrorMsg] = useState("");
     const [orderPrice, setOrderPrice] = useState(0);
 
+    // 선택된 주소 상태 추가
+    const [selectedAddress, setSelectedAddress] = useState(null);
+
     // 쿠폰 관련 상태 추가
     const [availableCoupons, setAvailableCoupons] = useState({});  // 각 상품별 사용 가능한 쿠폰 목록
     const [selectedCoupons, setSelectedCoupons] = useState({});    // 각 상품별 선택된 쿠폰
     const [loadingCoupons, setLoadingCoupons] = useState(false);   // 쿠폰 로딩 상태
     const [couponDiscounts, setCouponDiscounts] = useState({});    // 각 상품별 쿠폰 할인 금액
-    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [totalCouponDiscount, setTotalCouponDiscount] = useState(0); // 총 쿠폰 할인 금액
+    // 쿠폰 적용 유도 상태 추가
+    const [showCouponGuide, setShowCouponGuide] = useState(true);  // 쿠폰 적용 유도 메시지 표시 여부
 
     // 주소 로딩 상태 참조 - useRef 사용하여 불필요한 리렌더링 방지
     const addressesLoadedRef = useRef(false);
@@ -212,36 +217,40 @@ function Order() {
         }
     }, [selectedAddress]);
 
-    // 쿠폰 관련 함수
+    // 쿠폰 관련 함수 수정
     const fetchAvailableCoupons = useCallback(async (productId, companyId) => {
+        console.log('쿠폰 로드 시도:', { productId, companyId });
+        console.log('userAPI 객체:', userAPI);
+        console.log('userAPI.coupon 객체:', userAPI.coupon);
         try {
             setLoadingCoupons(true);
 
-            // 1. 내가 가진 쿠폰 목록 가져오기
-            const myCouponsResponse = await userAPI.coupon.getMyCoupons();
-            const myCoupons = myCouponsResponse.data || [];
+            // API 호출 방식 변경 - getAvailableCouponsByCompany 사용
+            const response = await userAPI.coupon.getAvailableCouponsByCompany(companyId);
+            console.log(`상품 ${productId}의 쿠폰 정보:`, response);
+            const availableCoupons = response.data || [];
 
-            // 2. 사용 가능한 쿠폰만 필터링 (사용되지 않은 쿠폰)
-            const validCoupons = myCoupons.filter(coupon => 
-                !coupon.isUsed && 
-                new Date(coupon.expirationDate) > new Date() && 
-                coupon.companyName === companyId // 해당 회사의 쿠폰만 필터링
-            );
-
-            // 3. 상품별 사용 가능한 쿠폰 목록 업데이트
+            // 상품별 사용 가능한 쿠폰 목록 업데이트
             setAvailableCoupons(prev => ({
                 ...prev,
-                [productId]: validCoupons
+                [productId]: availableCoupons
             }));
 
         } catch (error) {
             console.error(`상품 ${productId}의 쿠폰 정보를 불러오는 중 오류 발생:`, error);
+            console.error("상세 오류:", error.response || error.message || error);
+
+            // 오류 발생 시 빈 배열로 설정하여 UI가 깨지지 않도록 처리
+            setAvailableCoupons(prev => ({
+                ...prev,
+                [productId]: []
+            }));
         } finally {
             setLoadingCoupons(false);
         }
     }, []);
 
-    // 쿠폰 선택 처리 함수
+    // ProductCard에서 쿠폰 선택 시 호출되는 함수
     const handleSelectCoupon = useCallback((productId, coupon) => {
         // 선택된 쿠폰 업데이트
         setSelectedCoupons(prev => ({
@@ -250,26 +259,44 @@ function Order() {
         }));
 
         // 해당 상품의 할인된 가격 계산
-        const product = cartItems.find(item => item.productId === productId);
+        const product = cartItems.find(item => item.productId === productId || item.id === productId);
         if (product) {
+            console.log('상품 객체 전체:', product);
+            console.log('상품 ID와 회사 ID:', {
+                id: product.id,
+                productId: product.productId,
+                companyId: product.companyId
+            });
+
             // 상품의 할인율 적용된 가격 계산
             const discountRate = product.discountRate || 0;
             const discountedPrice = Math.floor(product.price * (1 - discountRate / 100));
 
             // 쿠폰 할인 금액 계산 (할인된 가격에 쿠폰 할인율 적용)
-            const couponDiscountAmount = coupon 
-                ? Math.floor(discountedPrice * (coupon.discountRate / 100)) 
+            const couponDiscountAmount = coupon
+                ? Math.floor(discountedPrice * (coupon.discountRate / 100) * product.quantity)
                 : 0;
 
             // 쿠폰 할인 금액 업데이트
-            setCouponDiscounts(prev => ({
-                ...prev,
-                [productId]: couponDiscountAmount
-            }));
+            setCouponDiscounts(prev => {
+                const updated = {
+                    ...prev,
+                    [productId]: couponDiscountAmount
+                };
+
+                // 총 쿠폰 할인 금액 계산
+                const totalDiscount = Object.values(updated).reduce((sum, discount) => sum + discount, 0);
+                setTotalCouponDiscount(totalDiscount);
+
+                return updated;
+            });
         }
+
+        // 쿠폰이 선택되면 쿠폰 가이드 메시지 숨기기
+        setShowCouponGuide(false);
     }, [cartItems]);
 
-    // 데이터 로드 useEffect - 한 번만 실행되도록 빈 의존성 배열 사용
+    // 데이터 로드 useEffect
     useEffect(() => {
         // 이미 로드된 경우 중복 실행 방지를 위한 플래그
         let isMounted = true;
@@ -279,7 +306,7 @@ function Order() {
             setLoading(true);
 
             try {
-                // 주소 정보 로드 - 가장 먼저 로드하여 UI 렌더링 준비
+                // 주소 정보 로드
                 const addressesLoaded = await loadAddressData();
                 if (!isMounted) return;
 
@@ -290,8 +317,12 @@ function Order() {
                 // 상품 정보가 로드되면 각 상품별 쿠폰 정보 로드
                 if (productsLoaded && cartItems.length > 0) {
                     for (const item of cartItems) {
-                        if (item.productId && item.companyId) {
-                            await fetchAvailableCoupons(item.productId, item.companyId);
+                        // productId와 companyId가 있는 경우에만 쿠폰 정보 로드
+                        const productId = item.productId || item.id;
+                        const companyId = item.companyId;
+
+                        if (productId && companyId) {
+                            await fetchAvailableCoupons(productId, companyId);
                         }
                     }
                 }
@@ -321,7 +352,7 @@ function Order() {
                 localStorage.removeItem('directOrderTotalPrice');
             }
         };
-    }, []); // 빈 의존성 배열로 컴포넌트 마운트 시 한 번만 실행
+    }, [loadAddressData, loadProductItems, fetchAvailableCoupons, isDirectOrder, cartItems.length]);
 
     // 필수 구매자 정보 검증
     const validateBuyerInfo = () => {
@@ -353,19 +384,31 @@ function Order() {
         try {
             // 주문 상품 정보에 할인가 적용
             const orderItems = cartItems.map(item => {
+                const productId = item.productId || item.id;
+
                 // 할인율 적용 가격 계산
                 const discountRate = item.discountRate || 0;
                 const discountedPrice = Math.floor(item.price * (1 - discountRate / 100));
 
+                // 쿠폰 할인 적용 (선택된 쿠폰이 있는 경우)
+                const selectedCoupon = selectedCoupons[productId];
+                const couponDiscount = couponDiscounts[productId] || 0;
+                const finalPrice = discountedPrice - Math.floor(couponDiscount / item.quantity);
+
                 return {
-                    productId: item.productId,
-                    productName: item.productName,
+                    productId: productId,
+                    productName: item.productName || item.name,
                     quantity: item.quantity,
                     price: item.price,
                     discountRate: discountRate,
-                    finalPrice: discountedPrice // 할인된 최종 가격 추가
+                    couponId: selectedCoupon ? selectedCoupon.couponId : null,
+                    couponDiscountRate: selectedCoupon ? selectedCoupon.discountRate : 0,
+                    finalPrice: finalPrice
                 };
             });
+
+            // 쿠폰 할인을 적용한 최종 가격 계산
+            const finalTotalPrice = orderPrice - totalCouponDiscount;
 
             const orderRequest = {
                 orderItemDTO: orderItems,
@@ -376,7 +419,7 @@ function Order() {
                     detail: selectedAddress.detail || ""
                 },
                 recipientName: getBuyerInfo().name,
-                totalPrice: orderPrice, // CartSummary에서 계산된 최종 가격
+                totalPrice: finalTotalPrice, // 쿠폰 할인이 적용된 최종 가격
                 orderStatus: 'PENDING',
                 orderDate: new Date().toISOString(),
             };
@@ -407,6 +450,17 @@ function Order() {
         setShowPayment(false);
     };
 
+    // 사용 가능한 쿠폰이 있는지 확인하는 함수
+    const hasCouponsAvailable = useCallback(() => {
+        return Object.values(availableCoupons).some(coupons => coupons && coupons.length > 0);
+    }, [availableCoupons]);
+
+    // 쿠폰이 적용되었는지 확인
+    const hasAppliedCoupons = useCallback(() => {
+        return Object.keys(selectedCoupons).length > 0;
+    }, [selectedCoupons]);
+
+    // JSX 부분
     return (
         <div className="w-full max-w-5xl mx-auto my-auto">
             <main className="flex-grow">
@@ -424,20 +478,104 @@ function Order() {
                             />
                             <section className="flex-1 flex flex-col border rounded-lg p-5 shadow min-h-0">
                                 <h3 className="text-xl font-semibold mb-3">Order Items</h3>
+
+                                {/* 쿠폰 적용 유도 안내 메시지 */}
+                                {!loading && showCouponGuide && hasCouponsAvailable() && !hasAppliedCoupons() && (
+                                    <div className="bg-blue-50 p-3 mb-3 rounded-lg border border-blue-200 flex items-center justify-between">
+                                        <div className="flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                            </svg>
+                                            <span className="text-blue-700 font-medium">사용 가능한 쿠폰이 있습니다! 쿠폰을 적용하여 할인받으세요.</span>
+                                        </div>
+                                        <button
+                                            onClick={() => setShowCouponGuide(false)}
+                                            className="text-blue-500 hover:text-blue-700"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* 쿠폰 일괄 적용 버튼 */}
+                                {!loading && cartItems.length > 0 && hasCouponsAvailable() && (
+                                    <div className="mb-3 flex justify-end">
+                                        <button
+                                            onClick={() => {
+                                                // 각 상품에 최고 할인율의 쿠폰 자동 적용
+                                                cartItems.forEach(item => {
+                                                    const productId = item.productId || item.id;
+                                                    const productCoupons = availableCoupons[productId] || [];
+
+                                                    if (productCoupons.length > 0) {
+                                                        // 할인율이 가장 높은 쿠폰 찾기
+                                                        const bestCoupon = productCoupons.reduce((best, current) =>
+                                                                (current.discountRate > best.discountRate) ? current : best,
+                                                            productCoupons[0]
+                                                        );
+
+                                                        // 선택된 쿠폰이 없거나 현재 쿠폰이 더 좋은 경우에만 적용
+                                                        const currentCoupon = selectedCoupons[productId];
+                                                        if (!currentCoupon || bestCoupon.discountRate > currentCoupon.discountRate) {
+                                                            handleSelectCoupon(productId, bestCoupon);
+                                                        }
+                                                    }
+                                                });
+
+                                                // 가이드 메시지 숨기기
+                                                setShowCouponGuide(false);
+                                            }}
+                                            className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-md shadow-sm hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 flex items-center"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm4.707 3.707a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L8.414 9H14a1 1 0 100-2H8.414l1.293-1.293z" clipRule="evenodd" />
+                                            </svg>
+                                            최적 쿠폰 적용
+                                        </button>
+                                    </div>
+                                )}
+
                                 <div className="space-y-4 overflow-y-auto flex-1 pr-2 min-h-0">
                                     {loading ?
                                         <div>로딩 중...</div>
                                         : cartItems.length === 0 ?
                                             <div>주문할 상품이 없습니다.</div>
-                                            : cartItems.map((product) => (
-                                                <ProductCard
-                                                    key={product.id}
-                                                    product={product}
-                                                    onQuantityChange={() => {}}
-                                                    editable={false}
-                                                    isOrderPage={true}
-                                                />
-                                            ))}
+                                            : cartItems.map((product) => {
+                                                const productId = product.productId || product.id;
+                                                // 콘솔에 쿠폰 정보를 출력하여 디버깅
+                                                console.log(`상품 ${productId}의 쿠폰 목록:`, availableCoupons[productId]);
+                                                const productCoupons = availableCoupons[productId] || [];
+
+                                                return (
+                                                    <div key={productId} className="border border-gray-200 rounded-lg overflow-hidden">
+                                                        <ProductCard
+                                                            key={productId}
+                                                            product={product}
+                                                            onQuantityChange={() => {}}
+                                                            editable={false}
+                                                            isOrderPage={true}
+                                                            // 쿠폰 관련 props 전달 - 각 상품이 자체적으로 쿠폰 정보를 로드
+                                                            selectedCoupon={selectedCoupons[productId]}
+                                                            onSelectCoupon={handleSelectCoupon}
+                                                            couponDiscount={couponDiscounts[productId] || 0}
+                                                        />
+
+                                                        {/* 쿠폰 유도 알림 표시 */}
+                                                        {productCoupons.length > 0 && !selectedCoupons[productId] && (
+                                                            <div className="bg-amber-50 p-2 border-t border-amber-100 flex items-center">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2 3a1 1 0 00-1 1v2a1 1 0 001 1h6a1 1 0 001-1V6a1 1 0 00-1-1H7z" clipRule="evenodd" />
+                                                                </svg>
+                                                                <span className="text-amber-700 text-sm">
+                                                                    최대 <span className="font-bold">{Math.max(...productCoupons.map(c => c.discountRate))}%</span> 할인 쿠폰을 적용할 수 있어요!
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                 </div>
                             </section>
                         </div>
@@ -448,7 +586,20 @@ function Order() {
                                 {/* Order Summary - 패딩 줄임 */}
                                 <div className="border rounded-lg p-4 shadow">
                                     <h3 className="text-xl font-semibold mb-3">Order Summary</h3>
-                                    <CartSummary cartItems={cartItems}/>
+                                    <CartSummary
+                                        cartItems={cartItems}
+                                        couponDiscount={totalCouponDiscount}
+                                    />
+
+                                    {/* 쿠폰 할인 요약 표시 */}
+                                    {totalCouponDiscount > 0 && (
+                                        <div className="mt-3 pt-3 border-t border-dashed border-gray-200">
+                                            <div className="flex justify-between text-emerald-600 font-medium">
+                                                <span>총 쿠폰 할인:</span>
+                                                <span>-{totalCouponDiscount.toLocaleString()}원</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Select Payment Method - 패딩 줄임 */}
@@ -533,7 +684,7 @@ function Order() {
                                         {method === 'card' && (
                                             <CardPaymentForToss
                                                 orderId={orderId}
-                                                amount={orderPrice}
+                                                amount={orderPrice - totalCouponDiscount}
                                                 orderName={cartItems[0]?.productName}
                                                 buyerInfo={getBuyerInfo()}
                                                 onSuccess={handlePaymentSuccess}
@@ -543,7 +694,7 @@ function Order() {
                                         {method === 'bank' && (
                                             <BankTransferPayment
                                                 orderId={orderId}
-                                                amount={orderPrice}
+                                                amount={orderPrice - totalCouponDiscount}
                                                 orderName={cartItems[0]?.productName}
                                                 buyerInfo={getBuyerInfo()}
                                                 onSuccess={handlePaymentSuccess}
@@ -553,7 +704,7 @@ function Order() {
                                         {method === 'simple' && (
                                             <EasyPayment
                                                 orderId={orderId}
-                                                amount={orderPrice}
+                                                amount={orderPrice - totalCouponDiscount}
                                                 orderName={cartItems[0]?.productName}
                                                 buyerInfo={getBuyerInfo()}
                                                 onSuccess={handlePaymentSuccess}

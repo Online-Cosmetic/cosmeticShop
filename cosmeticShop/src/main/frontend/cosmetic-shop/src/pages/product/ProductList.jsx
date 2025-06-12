@@ -5,7 +5,7 @@ import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
 import { userAPI } from "../../utils/customAxios";
 import { useAuth } from "../../contexts/AuthContext";
 
-function ProductList({ products, title }) {
+function ProductList({ products, title, onSortChange }) {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
     // 좋아요 상태 관리
@@ -59,10 +59,17 @@ function ProductList({ products, title }) {
         return Math.floor(price * (1 - discountRate / 100));
     };
 
+    // 정렬 변경 핸들러 추가
+    const handleSortChange = (e) => {
+        if (onSortChange) {
+            onSortChange(e.target.value);
+        }
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold capitalize">{title}</h2>
+                {/*<h2 className="text-3xl font-bold capitalize">{title}</h2>*/}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {products.length === 0 ? (
