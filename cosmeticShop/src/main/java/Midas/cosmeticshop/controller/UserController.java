@@ -2,6 +2,7 @@ package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.UserInfo.NicknameChangeDTO;
+import Midas.cosmeticshop.dto.UserInfo.UserProfileDTO;
 import Midas.cosmeticshop.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,13 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    // 사용자 프로필 조회
+    @GetMapping("/profile")
+    public ResponseEntity<UserProfileDTO> getProfile(@AuthenticationPrincipal BaseUserDetails userDetails) {
+        UserProfileDTO profile = userService.getUserProfile(userDetails);
+        return ResponseEntity.ok(profile);
     }
 
     // 1. 아이디+이메일로 회원 존재 여부 확인

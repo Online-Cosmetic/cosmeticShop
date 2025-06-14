@@ -83,12 +83,12 @@ export default function AdminBadKeywordManagement() {
             <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-6">
                 {/* Header */}
                 <div className="flex justify-between items-center">
-                    <h2 className="text-3xl font-bold text-neutral-800">Bad Keyword Management</h2>
+                    <h2 className="text-3xl font-bold text-neutral-800">Bad Keyword 관리</h2>
                 </div>
 
                 {/* Add new keyword section */}
                 <div className="mt-2 p-6 bg-gray-50 rounded-lg shadow-sm">
-                    <h3 className="text-xl font-semibold mb-4 text-neutral-800">Add New Bad Keyword</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-neutral-800">등록</h3>
                     <div className="flex gap-3">
                         <input
                             type="text"
@@ -101,7 +101,7 @@ export default function AdminBadKeywordManagement() {
                             onClick={handleAddKeyword}
                             className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
                         >
-                            Add Keyword
+                            등록
                         </button>
                     </div>
                 </div>
@@ -112,13 +112,13 @@ export default function AdminBadKeywordManagement() {
                         onClick={handleDeleteReviews}
                         className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
                     >
-                        <span>Delete All Reviews with Bad Keywords</span>
+                        <span>모든 악성리뷰 일괄삭제</span>
                     </button>
                 </div>
 
                 {/* Keywords List */}
                 <div className="mt-4">
-                    <h3 className="text-xl font-semibold mb-4 text-neutral-800">Bad Keywords List</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-neutral-800">목록</h3>
 
                     {/* Loading state */}
                     {loading ? (
@@ -155,7 +155,7 @@ export default function AdminBadKeywordManagement() {
                                             onClick={() => handleDeleteKeyword(item.id)}
                                             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                                         >
-                                            Delete
+                                            삭제
                                         </button>
                                     </div>
                                 </div>

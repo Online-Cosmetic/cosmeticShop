@@ -100,7 +100,7 @@ export default function UserHeader() {
                     {/* 우측: 사용자 인사말 */}
                     {user && (
                         <div className="flex items-center">
-                            <span className="text-gray-700 font-medium">안녕하세요, {user.nickname || user.username} 님</span>
+                            <span className="text-gray-700 font-medium">안녕하세요, {user.nickName || user.username} 님</span>
                         </div>
                     )}
                 </div>

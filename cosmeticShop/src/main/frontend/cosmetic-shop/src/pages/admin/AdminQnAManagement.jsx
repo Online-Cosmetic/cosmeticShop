@@ -108,7 +108,7 @@ export default function AdminQnAManagement() {
             <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-2">
                 {/* 헤더 */}
                 <div className="flex justify-between items-center">
-                    <h2 className="text-3xl font-bold text-neutral-800">Q&A Management</h2>
+                    <h2 className="text-3xl font-bold text-neutral-800">Q&A 관리</h2>
                 </div>
 
                 {/* 필터 및 검색 */}
@@ -157,7 +157,7 @@ export default function AdminQnAManagement() {
                             onClick={handleSearch}
                             className="px-4 py-2 bg-neutral-800 text-white rounded-md"
                         >
-                            Search
+                            검색
                         </button>
                     </div>
                 </div>
@@ -166,17 +166,17 @@ export default function AdminQnAManagement() {
                 <div className="w-full bg-zinc-100 rounded-t-lg border-b border-neutral-200 flex items-center mt-6 py-2 px-4 text-lg text-black font-normal">
                     <div className="w-28 text-center">QnA Num.</div>
                     <div className="w-32 text-center">State</div>
-                    <div className="flex-1 text-center">Title</div>
-                    <div className="w-32 text-center">Author</div>
-                    <div className="w-36 text-center">YYYY-MM-DD</div>
-                    <div className="w-24 text-center">Actions</div>
+                    <div className="flex-1 text-center">제목</div>
+                    <div className="w-32 text-center">작성자</div>
+                    <div className="w-36 text-center">작성일</div>
+                    <div className="w-24 text-center">비고</div>
                 </div>
 
                 {/* 로딩 상태 */}
                 {loading ? (
                     <div className="w-full py-8 text-center text-gray-500">Loading...</div>
                 ) : currentItems.length === 0 ? (
-                    <div className="w-full py-8 text-center text-gray-500">No QnAs found.</div>
+                    <div className="w-full py-8 text-center text-gray-500">QnA 가 없습니다.</div>
                 ) : (
                     /* 테이블 항목 */
                     currentItems.map((item) => (
@@ -201,7 +201,7 @@ export default function AdminQnAManagement() {
                                     onClick={(e) => handleDelete(e, item.id)}
                                     className="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
                                 >
-                                    Delete
+                                    삭제
                                 </button>
                             </div>
                         </div>

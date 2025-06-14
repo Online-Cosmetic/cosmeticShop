@@ -291,60 +291,6 @@ public class ProductService {
             throw new IllegalArgumentException("해당 상품의 수정 권한이 없습니다.");
         }
 
-//        // 메인 이미지 처리
-//        if (deleteMainImage) {
-//            // 기존 메인 이미지가 있으면 삭제
-//            if (product.getThumbnailImage() != null) {
-//                String oldImageUrl = product.getThumbnailImage().getImageUrl();
-//                fileStorageService.deleteFile(oldImageUrl);
-//                thumnailImageRepository.delete(product.getThumbnailImage());
-//                product.setThumbnailImage(null);
-//            }
-//        }
-//
-//        // 새 메인 이미지 업로드
-//        if (mainImage != null && !mainImage.isEmpty()) {
-//            // 기존 메인 이미지가 있으면 삭제
-//            if (product.getThumbnailImage() != null) {
-//                String oldImageUrl = product.getThumbnailImage().getImageUrl();
-//                fileStorageService.deleteFile(oldImageUrl);
-//                thumnailImageRepository.delete(product.getThumbnailImage());
-//            }
-//
-//            String mainImageUrl = fileStorageService.storeFile(mainImage);
-//            ThumbnailImage thumbnailImage = ThumbnailImage.create(
-//                new ProductImageItemDTO(product.getId(), mainImageUrl));
-//            product.setThumbnailImage(thumbnailImage);
-//            thumnailImageRepository.save(product.getThumbnailImage());
-//        }
-//
-//        // 추가 이미지 처리
-//        if (deleteAdditionalImages) {
-//            // 기존 추가 이미지들 삭제
-//            for (ProductImage image : product.getProductImages()) {
-//                fileStorageService.deleteFile(image.getImageUrl());
-//            }
-//            productImageRepository.deleteAll(product.getProductImages());
-//            product.getProductImages().clear();
-//        }
-//
-//        // 새 추가 이미지 업로드
-//        if (additionalImages != null && additionalImages.length > 0) {
-//            List<ProductImage> newImages = new ArrayList<>();
-//            for (MultipartFile image : additionalImages) {
-//                if (!image.isEmpty()) {
-//                    String imageUrl = fileStorageService.storeFile(image);
-//                    ProductImage productImage = new ProductImage();
-//                    productImage.setProduct(product);
-//                    productImage.setImageUrl(imageUrl);
-//                    newImages.add(productImage);
-//                }
-//            }
-//            product.getProductImages().addAll(newImages);
-//            productImageRepository.saveAll(newImages);
-//        }
-//
-//        productRepository.save(product);
         // 메인 이미지 처리
         if (deleteMainImage || (mainImage != null && !mainImage.isEmpty())) {
             // 기존 메인 이미지가 있으면 연관관계 제거 후 삭제
@@ -411,6 +357,148 @@ public class ProductService {
 
         // 캐시 무효화를 위해 강제로 엔티티 매니저 refresh (옵션)
         // entityManager.refresh(product);
+    }
+
+    /* 가격순 정렬 상품 조회 */
+    public ProductBatchPreviewResponse getPriceOrderedProductsPreview(String order) {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+        response.setBatchesPreviews(new ArrayList<>());
+
+        List<Product> productList;
+        if ("desc".equalsIgnoreCase(order)) {
+            // 가격 높은순 정렬
+            productList = productRepository.findAllByActiveTrueOrderByPriceDesc();
+        } else {
+            // 가격 낮은순 정렬 (기본값)
+            productList = productRepository.findAllByActiveTrueOrderByPriceAsc();
+        }
+
+        for (Product product : productList) {
+            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 정렬 옵션 적용된 카테고리별 상품 조회 */
+    public ProductBatchPreviewResponse getCategorizedProductsPreview(int categoryId, String sortOption) {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+        response.setBatchesPreviews(new ArrayList<>());
+
+        List<Product> productList;
+
+        // 카테고리 ID가 0인 경우 전체 상품 조회
+        if (categoryId == 0) {
+            switch (sortOption) {
+                case "popular":
+                    productList = productRepository.findAllByActiveTrueOrderByLikedDesc();
+                    break;
+                case "priceAsc":
+                    productList = productRepository.findAllByActiveTrueOrderByPriceAsc();
+                    break;
+                case "priceDesc":
+                    productList = productRepository.findAllByActiveTrueOrderByPriceDesc();
+                    break;
+                case "latest":
+                default:
+                    productList = productRepository.findAllByActiveTrueOrderByIdDesc();
+                    break;
+            }
+        } else {
+            // 특정 카테고리 상품 조회
+            switch (sortOption) {
+                case "popular":
+                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByLikedDesc(categoryId);
+                    break;
+                case "priceAsc":
+                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByPriceAsc(categoryId);
+                    break;
+                case "priceDesc":
+                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByPriceDesc(categoryId);
+                    break;
+                case "latest":
+                default:
+                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByIdDesc(categoryId);
+                    break;
+            }
+        }
+
+        for (Product product : productList) {
+            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 정렬 옵션 적용된 회사별 상품 조회 */
+    public ProductBatchPreviewResponse getCompanyProductsPreview(Long companyId, String sortOption) {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+        response.setBatchesPreviews(new ArrayList<>());
+
+        List<Product> productList;
+
+        // 회사별 상품 조회
+        switch (sortOption) {
+            case "popular":
+                productList = productRepository.findByCompanyIdAndActiveTrueOrderByLikedDesc(companyId);
+                break;
+            case "priceAsc":
+                productList = productRepository.findByCompanyIdAndActiveTrueOrderByPriceAsc(companyId);
+                break;
+            case "priceDesc":
+                productList = productRepository.findByCompanyIdAndActiveTrueOrderByPriceDesc(companyId);
+                break;
+            case "latest":
+            default:
+                productList = productRepository.findByCompanyIdAndActiveTrueOrderByIdDesc(companyId);
+                break;
+        }
+
+        for (Product product : productList) {
+            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 정렬 옵션 적용된 카테고리 및 회사별 상품 조회 */
+    public ProductBatchPreviewResponse getCategoryAndCompanyProductsPreview(int categoryId, Long companyId, String sortOption) {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+        response.setBatchesPreviews(new ArrayList<>());
+
+        List<Product> productList;
+
+        // 카테고리 ID가 0인 경우 회사별 전체 상품 조회
+        if (categoryId == 0) {
+            return getCompanyProductsPreview(companyId, sortOption);
+        } else {
+            // 특정 카테고리 및 회사 상품 조회
+            switch (sortOption) {
+                case "popular":
+                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByLikedDesc(categoryId, companyId);
+                    break;
+                case "priceAsc":
+                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceAsc(categoryId, companyId);
+                    break;
+                case "priceDesc":
+                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceDesc(categoryId, companyId);
+                    break;
+                case "latest":
+                default:
+                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByIdDesc(categoryId, companyId);
+                    break;
+            }
+        }
+
+        for (Product product : productList) {
+            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
     }
 
     /* 사용자 ID로 기업 ID 조회 */

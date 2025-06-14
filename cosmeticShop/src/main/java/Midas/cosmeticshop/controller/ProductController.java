@@ -53,8 +53,10 @@ public class ProductController {
 
     /* 카테고리별 상품 조회 */
     @GetMapping("/batch/{categoryId}")
-    public ResponseEntity<ProductBatchPreviewResponse> categorizedProducts(@PathVariable int categoryId) {
-        ProductBatchPreviewResponse response = productService.getCategorizedProductsPreview(categoryId);
+    public ResponseEntity<ProductBatchPreviewResponse> categorizedProducts(
+        @PathVariable int categoryId,
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
+        ProductBatchPreviewResponse response = productService.getCategorizedProductsPreview(categoryId, sortOption);
         return ResponseEntity.ok(response);
     }
 
@@ -69,6 +71,33 @@ public class ProductController {
     @GetMapping("/batch/latest")
     public ResponseEntity<ProductBatchPreviewResponse> latestProducts() {
         ProductBatchPreviewResponse response = productService.getLatestProductsPreview();
+        return ResponseEntity.ok(response);
+    }
+
+    /* 카테고리 무관 가격순 조회 */
+    @GetMapping("/batch/price")
+    public ResponseEntity<ProductBatchPreviewResponse> priceProducts(
+        @RequestParam(value = "order", defaultValue = "asc") String order) {
+        ProductBatchPreviewResponse response = productService.getPriceOrderedProductsPreview(order);
+        return ResponseEntity.ok(response);
+    }
+
+    /* 회사별 상품 조회 */
+    @GetMapping("/batch/company/{companyId}")
+    public ResponseEntity<ProductBatchPreviewResponse> companyProducts(
+        @PathVariable Long companyId,
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
+        ProductBatchPreviewResponse response = productService.getCompanyProductsPreview(companyId, sortOption);
+        return ResponseEntity.ok(response);
+    }
+
+    /* 카테고리 및 회사별 상품 조회 */
+    @GetMapping("/batch/{categoryId}/company/{companyId}")
+    public ResponseEntity<ProductBatchPreviewResponse> categoryAndCompanyProducts(
+        @PathVariable int categoryId,
+        @PathVariable Long companyId,
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
+        ProductBatchPreviewResponse response = productService.getCategoryAndCompanyProductsPreview(categoryId, companyId, sortOption);
         return ResponseEntity.ok(response);
     }
 
@@ -88,9 +117,9 @@ public class ProductController {
     public ResponseEntity<Void> replaceProduct(
         @AuthenticationPrincipal BaseUserDetails userDetails,
         @PathVariable Long productId,
-        @RequestBody ProductUpdateDTO dto // @ModelAttribute에서 @RequestBody로 변경
+        @RequestBody ProductUpdateDTO dto
     ) {
-        productService.replaceProduct(userDetails, productId, dto, null); // 이미지는 null로 설정
+        productService.replaceProduct(userDetails, productId, dto, null);
         return ResponseEntity.noContent().build();
     }
 
@@ -115,18 +144,12 @@ public class ProductController {
         @RequestParam(value = "deleteMainImage", defaultValue = "false") boolean deleteMainImage,
         @RequestParam(value = "deleteAdditionalImages", defaultValue = "false") boolean deleteAdditionalImages
     ) {
-//        productService.updateProductImages(userDetails, productId, mainImage, additionalImages,
-//            deleteMainImage, deleteAdditionalImages);
-//        return ResponseEntity.noContent().build();
-        // 이미지 업데이트
         productService.updateProductImages(userDetails, productId, mainImage, additionalImages,
             deleteMainImage, deleteAdditionalImages);
 
-        // 업데이트된 이미지 정보 반환 (캐시 무효화를 위해)
         ProductDTO dto = productService.getProductInfo(productId);
         ProductImageDTO imageDTO = productService.getProductImages(productId);
 
-        // 업데이트된 이미지 정보를 담은 응답 생성
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("product", dto);

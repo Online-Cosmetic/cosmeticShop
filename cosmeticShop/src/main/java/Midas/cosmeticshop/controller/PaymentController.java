@@ -175,7 +175,7 @@ public class PaymentController {
     public ResponseEntity<List<TransactionDTO>> getLatestTransactions(
         @PathVariable String companyName,
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "5") int size) {
+        @RequestParam(defaultValue = "7") int size) {
         List<TransactionDTO> transactions = paymentService.getLatestTransactionsByCompany(
             companyName, page, size);
         return ResponseEntity.ok(transactions);

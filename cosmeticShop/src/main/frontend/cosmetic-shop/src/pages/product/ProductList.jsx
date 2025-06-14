@@ -59,12 +59,6 @@ function ProductList({ products, title, onSortChange }) {
         return Math.floor(price * (1 - discountRate / 100));
     };
 
-    // 정렬 변경 핸들러 추가
-    const handleSortChange = (e) => {
-        if (onSortChange) {
-            onSortChange(e.target.value);
-        }
-    };
 
     return (
         <div>

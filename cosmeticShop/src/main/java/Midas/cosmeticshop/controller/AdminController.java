@@ -64,6 +64,7 @@ public class AdminController {
     @PostMapping("/coupons")
     public ResponseEntity<Void> postCoupon(@RequestBody CouponPostDTO couponPostDTO,
                                            Authentication authentication) {
+        System.out.println(couponPostDTO.toString());
         adminService.postCoupon(couponPostDTO, authentication.getName());
         return ResponseEntity.ok().build();
     }

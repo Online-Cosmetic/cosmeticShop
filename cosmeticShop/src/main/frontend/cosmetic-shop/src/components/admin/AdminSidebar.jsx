@@ -7,10 +7,9 @@ export default function AdminSidebar() {
     const { pathname } = useLocation();
 
     const menuItems = [
-        { label: "Statistics", path: "/admin/statistics" },
-        { label: "Manage Q&A", path: "/admin/qna" },
-        { label: "Coupon Issuance", path: "/admin/coupon" },
-        { label: "Manage BadKeyword & Bad Review", path: "/admin/badkeyword" }
+        { label: "Q&A 관리", path: "/admin/qna" },
+        { label: "쿠폰 발급", path: "/admin/coupon" },
+        { label: "Bad Keyword 관리", path: "/admin/badkeyword" }
     ];
 
     return (

@@ -36,4 +36,26 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCompanyId(Long companyId);
     // 무한 스크롤을 위한 페이징 메소드 추가
     Page<Product> findByCompanyId(Long companyId, Pageable pageable);
+
+    // 가격 정렬 관련 메소드
+    List<Product> findAllByActiveTrueOrderByPriceAsc();
+    List<Product> findAllByActiveTrueOrderByPriceDesc();
+
+    // 카테고리별 정렬 관련 메소드
+    List<Product> findAllByCategoryIdAndActiveTrueOrderByLikedDesc(int categoryId);
+    List<Product> findAllByCategoryIdAndActiveTrueOrderByPriceAsc(int categoryId);
+    List<Product> findAllByCategoryIdAndActiveTrueOrderByPriceDesc(int categoryId);
+    List<Product> findAllByCategoryIdAndActiveTrueOrderByIdDesc(int categoryId);
+
+    // 회사별 정렬 관련 메소드
+    List<Product> findByCompanyIdAndActiveTrueOrderByLikedDesc(Long companyId);
+    List<Product> findByCompanyIdAndActiveTrueOrderByPriceAsc(Long companyId);
+    List<Product> findByCompanyIdAndActiveTrueOrderByPriceDesc(Long companyId);
+    List<Product> findByCompanyIdAndActiveTrueOrderByIdDesc(Long companyId);
+
+    // 카테고리 및 회사별 정렬 관련 메소드
+    List<Product> findByCategoryIdAndCompanyIdAndActiveTrueOrderByLikedDesc(int categoryId, Long companyId);
+    List<Product> findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceAsc(int categoryId, Long companyId);
+    List<Product> findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceDesc(int categoryId, Long companyId);
+    List<Product> findByCategoryIdAndCompanyIdAndActiveTrueOrderByIdDesc(int categoryId, Long companyId);
 }

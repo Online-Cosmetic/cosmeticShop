@@ -1,10 +1,13 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.CouponDTO;
+import Midas.cosmeticshop.dto.CouponMappingDto;
 import Midas.cosmeticshop.dto.CouponMappingGetDTO;
 import Midas.cosmeticshop.service.CouponMappingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,5 +50,18 @@ public class CouponMappingController {
         String userId = authentication != null ? authentication.getName() : null;
         List<CouponDTO> availableCoupons = couponMappingService.getAvailableCouponsByCompany(companyId, userId);
         return ResponseEntity.ok().body(availableCoupons);
+    }
+
+    /**
+     * 주문 페이지에서 사용자별·회사별 사용 가능한 쿠폰 조회
+     */
+    @GetMapping("/available/order/{companyId}")
+    public ResponseEntity<List<CouponMappingDto>> getAvailableForOrder(
+        @PathVariable Long companyId,
+        @AuthenticationPrincipal UserDetails user
+    ) {
+        String userId = user.getUsername();
+        List<CouponMappingDto> dtos = couponMappingService.getAvailableCoupons(userId, companyId);
+        return ResponseEntity.ok(dtos);
     }
 }

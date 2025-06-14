@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { companyAPI } from "../../utils/customAxios.js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowPathIcon, ChartBarIcon, ShoppingBagIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ChartBarIcon, ShoppingBagIcon, CurrencyDollarIcon, CalendarIcon } from '@heroicons/react/24/outline';
 
 const EnterpriseMain = () => {
     // QueryClient 인스턴스 가져오기
@@ -37,10 +37,10 @@ const EnterpriseMain = () => {
     } = useQuery({
         queryKey: ['transactions', companyName, transactionPage],
         queryFn: async () => {
-            const response = await companyAPI.product.getTransactions(companyName, transactionPage, 5);
+            const response = await companyAPI.product.getTransactions(companyName, transactionPage, 7);
 
             // 여기서 isLastPage 상태를 즉시 업데이트
-            const isLast = response.data.length < 5;
+            const isLast = response.data.length < 7;
             setIsLastPage(isLast);
 
             return response.data;
@@ -138,139 +138,150 @@ const EnterpriseMain = () => {
         <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-6">
             {/* 헤더 */}
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-neutral-800">기업 대시보드</h1>
+                <h1 className="text-3xl font-bold text-neutral-800">대시보드</h1>
                 <div className="text-lg text-gray-600">
                     {companyName} 님, 환영합니다
                 </div>
             </div>
 
-            {/* 요약 통계 카드 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-emerald-50 p-6 rounded-xl shadow-sm border border-emerald-100 flex items-center">
-                    <div className="bg-emerald-100 p-3 rounded-lg mr-4">
-                        <CurrencyDollarIcon className="h-8 w-8 text-emerald-600" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-semibold text-emerald-800">총 판매액</h3>
-                        <p className="text-3xl font-bold text-emerald-600 mt-1">₩{totalSales.toLocaleString()}</p>
-                    </div>
-                </div>
-
-                <div className="bg-blue-50 p-6 rounded-xl shadow-sm border border-blue-100 flex items-center">
-                    <div className="bg-blue-100 p-3 rounded-lg mr-4">
-                        <ShoppingBagIcon className="h-8 w-8 text-blue-600" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-semibold text-blue-800">총 판매 수량</h3>
-                        <p className="text-3xl font-bold text-blue-600 mt-1">{totalQuantity.toLocaleString()}개</p>
-                    </div>
-                </div>
-
-                <div className="bg-purple-50 p-6 rounded-xl shadow-sm border border-purple-100 flex items-center">
-                    <div className="bg-purple-100 p-3 rounded-lg mr-4">
-                        <ChartBarIcon className="h-8 w-8 text-purple-600" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-semibold text-purple-800">인기 상품</h3>
-                        <p className="text-xl font-bold text-purple-600 mt-1 truncate max-w-[200px]">
-                            {topProducts.length > 0 ? topProducts[0]?.productName : "데이터 없음"}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* 1. 주간 판매 차트 */}
+            {/* 주간 통계 영역 - 통합된 섹션으로 변경 */}
             <div className="bg-white border rounded-xl shadow-sm p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-neutral-800 flex items-center gap-2">
-                        <ChartBarIcon className="h-5 w-5 text-emerald-600" />
-                        주간 판매 현황
-                    </h2>
+                <div className="flex items-center gap-2 mb-6">
+                    <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                    <h2 className="text-xl font-bold text-neutral-800">지난 1주일 통계</h2>
                     <button
-                        onClick={() => refetchSalesData()}
-                        className="p-2 text-gray-500 rounded-lg hover:text-emerald-600 hover:bg-gray-100 transition-all"
-                        aria-label="주간 판매 데이터 새로고침"
+                        onClick={() => {
+                            refetchSalesData();
+                            refetchTopProducts();
+                        }}
+                        className="ml-auto p-2 text-gray-500 rounded-lg hover:text-indigo-600 hover:bg-gray-100 transition-all"
+                        aria-label="통계 데이터 새로고침"
                     >
                         <ArrowPathIcon className="w-5 h-5" />
                     </button>
                 </div>
 
-                {salesLoading ? (
-                    <div className="flex justify-center items-center h-60">
-                        <div className="text-xl text-gray-500">데이터 로딩 중...</div>
-                    </div>
-                ) : salesError ? (
-                    <div className="flex justify-center items-center h-60 bg-red-50 rounded-lg">
-                        <div className="text-xl text-red-500">데이터를 불러오는데 실패했습니다.</div>
-                    </div>
-                ) : chartData.length === 0 ? (
-                    <div className="flex justify-center items-center h-60 bg-gray-50 rounded-lg">
-                        <div className="text-xl text-gray-500">판매 데이터가 없습니다.</div>
-                    </div>
-                ) : (
-                    <div className="flex gap-10">
-                        {/* Y축 레이블 */}
-                        <div className="flex flex-col justify-between h-60">
-                            {Array.from({length: 6}, (_, i) => {
-                                const value = Math.round((maxValue * (5 - i)) / 5);
-                                return (
-                                    <div key={i} className="text-gray-500 text-sm font-medium">
-                                        ₩{value.toLocaleString()}
-                                    </div>
-                                );
-                            })}
+                {/* 통계 카드 그리드 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="bg-emerald-50 p-6 rounded-xl shadow-sm border border-emerald-100 flex items-center">
+                        <div className="bg-emerald-100 p-3 rounded-lg mr-4">
+                            <CurrencyDollarIcon className="h-8 w-8 text-emerald-600" />
                         </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-emerald-800">총 판매액</h3>
+                            <p className="text-3xl font-bold text-emerald-600 mt-1">₩{totalSales.toLocaleString()}</p>
+                        </div>
+                    </div>
 
-                        {/* 차트 영역 */}
-                        <div className="flex-1 relative h-60">
-                            {/* 격자선 */}
-                            {Array.from({length: 6}).map((_, i) => (
-                                <div
-                                    key={i}
-                                    className="absolute w-full border-t border-gray-100"
-                                    style={{top: `${(i * 100) / 5}%`}}
-                                />
-                            ))}
+                    <div className="bg-blue-50 p-6 rounded-xl shadow-sm border border-blue-100 flex items-center">
+                        <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                            <ShoppingBagIcon className="h-8 w-8 text-blue-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-blue-800">총 판매 수량</h3>
+                            <p className="text-3xl font-bold text-blue-600 mt-1">{totalQuantity.toLocaleString()}개</p>
+                        </div>
+                    </div>
 
-                            {/* 데이터 바 */}
-                            <div className="flex items-end justify-between h-full pt-2">
-                                {chartData.map((item, index) => (
-                                    <div
-                                        key={index}
-                                        className="relative flex flex-col items-center"
-                                        style={{width: `${100 / chartData.length}%`}}
-                                    >
-                                        <div
-                                            className="bg-emerald-500 rounded-t w-12 relative group cursor-pointer transition-all hover:bg-emerald-600"
-                                            style={{height: `${item.height}px`}}
-                                        >
-                                            {/* 툴팁 */}
-                                            <div
-                                                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded shadow opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">
-                                                ₩{item.value.toLocaleString()}
-                                            </div>
+                    <div className="bg-purple-50 p-6 rounded-xl shadow-sm border border-purple-100 flex items-center">
+                        <div className="bg-purple-100 p-3 rounded-lg mr-4">
+                            <ChartBarIcon className="h-8 w-8 text-purple-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-purple-800">인기 상품</h3>
+                            <p className="text-xl font-bold text-purple-600 mt-1 truncate max-w-[200px]">
+                                {topProducts.length > 0 ? topProducts[0]?.productName : "데이터 없음"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 주간 판매 차트 */}
+                <div className="border rounded-xl shadow-sm p-6 bg-gray-50">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-bold text-neutral-800 flex items-center gap-2">
+                            <ChartBarIcon className="h-5 w-5 text-emerald-600" />
+                            일별 판매 추이
+                        </h2>
+                    </div>
+
+                    {salesLoading ? (
+                        <div className="flex justify-center items-center h-60">
+                            <div className="text-xl text-gray-500">데이터 로딩 중...</div>
+                        </div>
+                    ) : salesError ? (
+                        <div className="flex justify-center items-center h-60 bg-red-50 rounded-lg">
+                            <div className="text-xl text-red-500">데이터를 불러오는데 실패했습니다.</div>
+                        </div>
+                    ) : chartData.length === 0 ? (
+                        <div className="flex justify-center items-center h-60 bg-gray-50 rounded-lg">
+                            <div className="text-xl text-gray-500">판매 데이터가 없습니다.</div>
+                        </div>
+                    ) : (
+                        <div className="flex gap-10">
+                            {/* Y축 레이블 */}
+                            <div className="flex flex-col justify-between h-60">
+                                {Array.from({length: 6}, (_, i) => {
+                                    const value = Math.round((maxValue * (5 - i)) / 5);
+                                    return (
+                                        <div key={i} className="text-gray-500 text-sm font-medium">
+                                            ₩{value.toLocaleString()}
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* X축 레이블 */}
-                {!salesLoading && !salesError && chartData.length > 0 && (
-                    <div className="w-full flex justify-between text-gray-500 text-sm font-medium pl-20 mt-4">
-                        {chartData.map((item, index) => (
-                            <div key={index} className="text-center"
-                                 style={{width: `${100 / chartData.length}%`}}>
-                                {new Date(item.date).toLocaleDateString('ko-KR', {
-                                    month: 'short',
-                                    day: 'numeric'
+                                    );
                                 })}
                             </div>
-                        ))}
-                    </div>
-                )}
+
+                            {/* 차트 영역 */}
+                            <div className="flex-1 relative h-60">
+                                {/* 격자선 */}
+                                {Array.from({length: 6}).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="absolute w-full border-t border-gray-100"
+                                        style={{top: `${(i * 100) / 5}%`}}
+                                    />
+                                ))}
+
+                                {/* 데이터 바 */}
+                                <div className="flex items-end justify-between h-full pt-2">
+                                    {chartData.map((item, index) => (
+                                        <div
+                                            key={index}
+                                            className="relative flex flex-col items-center"
+                                            style={{width: `${100 / chartData.length}%`}}
+                                        >
+                                            <div
+                                                className="bg-emerald-500 rounded-t w-12 relative group cursor-pointer transition-all hover:bg-emerald-600"
+                                                style={{height: `${item.height}px`}}
+                                            >
+                                                {/* 툴팁 */}
+                                                <div
+                                                    className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-800 text-white text-sm rounded shadow opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">
+                                                    ₩{item.value.toLocaleString()}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* X축 레이블 */}
+                    {!salesLoading && !salesError && chartData.length > 0 && (
+                        <div className="w-full flex justify-between text-gray-500 text-sm font-medium pl-20 mt-4">
+                            {chartData.map((item, index) => (
+                                <div key={index} className="text-center"
+                                     style={{width: `${100 / chartData.length}%`}}>
+                                    {new Date(item.date).toLocaleDateString('ko-KR', {
+                                        month: 'short',
+                                        day: 'numeric'
+                                    })}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* 2. Top Products & 트랜잭션 목록 섹션 */}
@@ -282,13 +293,7 @@ const EnterpriseMain = () => {
                             <ShoppingBagIcon className="h-5 w-5 text-blue-600" />
                             인기 상품 Top 5
                         </h3>
-                        <button
-                            onClick={() => refetchTopProducts()}
-                            className="p-2 text-gray-500 rounded-lg hover:text-blue-600 hover:bg-gray-100 transition-all"
-                            aria-label="인기 상품 새로고침"
-                        >
-                            <ArrowPathIcon className="w-5 h-5" />
-                        </button>
+                        <div className="text-sm text-gray-500">지난 1주일 기준</div>
                     </div>
 
                     {productsLoading ? (

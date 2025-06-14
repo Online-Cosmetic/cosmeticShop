@@ -37,7 +37,7 @@ public class CompanyController {
         return ResponseEntity.ok(products);
     }
 
-    /* 등록된 모든 기업명을 조회 */
+    /* 등록된 모든 기업명을 조회 (관리자용) */
     @GetMapping("/names")
     public ResponseEntity<CompanyNamesDTO> getAllCompanies(
         @AuthenticationPrincipal BaseUserDetails userDetails) {
@@ -45,6 +45,12 @@ public class CompanyController {
         if(!role.equals("ROLE_ADMIN")) {
             return ResponseEntity.badRequest().build();
         }
+        return ResponseEntity.ok(new CompanyNamesDTO(companyRepository.findAllCompanyNames()));
+    }
+
+    /* 등록된 모든 기업명을 조회 (공개) */
+    @GetMapping("/names/public")
+    public ResponseEntity<CompanyNamesDTO> getAllCompaniesPublic() {
         return ResponseEntity.ok(new CompanyNamesDTO(companyRepository.findAllCompanyNames()));
     }
 }

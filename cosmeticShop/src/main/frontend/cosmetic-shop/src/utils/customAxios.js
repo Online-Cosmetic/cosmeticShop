@@ -125,7 +125,7 @@ export const userAPI = {
         sendCode: (data) => customAxios.post('/api/user/send-code', data),
         verifyCode: (data) => customAxios.post('/api/user/verify-code', data),
         changePassword: (data) => customAxios.post('/api/user/change-password', data),
-        changeNickname: (data) => customAxios.post('/api/user/me/nickName', data)
+        changeNickname: (data) => customAxios.patch('/api/user/me/nickName', data)
     },
 
     cart: {
@@ -167,6 +167,24 @@ export const userAPI = {
             };
             const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
             return customAxios.get(`/api/products/batch/${categoryId}`, {
+                params: { sort: sortOption }
+            });
+        },
+        // 회사별 상품 조회 (정렬 옵션 추가)
+        getByCompany: (companyId, sortOption = 'latest') => {
+            return customAxios.get(`/api/products/batch/company/${companyId}`, {
+                params: { sort: sortOption }
+            });
+        },
+        // 카테고리 및 회사별 상품 조회 (정렬 옵션 추가)
+        getByCategoryAndCompany: (categoryName, companyId, sortOption = 'latest') => {
+            // 카테고리 이름을 카테고리 ID로 변환
+            const categoryMap = {
+                // 전체 상품은 CategoryID 0으로 가정
+                'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
+            };
+            const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
+            return customAxios.get(`/api/products/batch/${categoryId}/company/${companyId}`, {
                 params: { sort: sortOption }
             });
         },
@@ -223,7 +241,7 @@ export const userAPI = {
         delete: (qnaId) => customAxios.delete(`/api/qnas/${qnaId}`),
 
         getQnaIdByNicknameAndTitle: (nickname, title) =>
-            customAxios.get('/api/qna/findIdByNicknameAndTitle', { params: { nickname, title } })
+            customAxios.get('/api/qnas/findIdByNicknameAndTitle', { params: { nickname, title } })
     },
 
     payment: {
@@ -295,6 +313,9 @@ export const companyAPI = {
         getProfile: () => customAxios.get('/api/company/profile'),
         updateProfile: (data) => customAxios.put('/api/company/profile', data),
     },
+
+    // 모든 회사 이름 조회 (공개)
+    getAllCompanyNames: () => customAxios.get('/api/company/names/public'),
 
     product: {
         // 회사 제품 목록 조회 (페이징)
@@ -414,7 +435,10 @@ export const adminAPI = {
             return customAxios.get('/api/admin/order_stats/day', {
                 params: { startDate, endDate }
             });
-        }
+        },
+
+        // Get dashboard statistics including total orders, active users, active coupons, and total sales
+        getDashboardCounts: () => customAxios.get('/api/admin/order_stats/dashboard')
     }
 };
 

@@ -1,6 +1,7 @@
 package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.CouponDTO;
+import Midas.cosmeticshop.dto.CouponMappingDto;
 import Midas.cosmeticshop.dto.CouponMappingGetDTO;
 import Midas.cosmeticshop.entity.Coupon;
 import Midas.cosmeticshop.entity.CouponMapping;
@@ -11,6 +12,7 @@ import Midas.cosmeticshop.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.dialect.function.array.ArrayContainsArgumentTypeResolver;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -78,6 +80,40 @@ public class CouponMappingService {
         return companyCoupons.stream()
             .filter(coupon -> !userCouponIds.contains(coupon.getId()))
             .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * 주문 상품별로 사용 가능한 쿠폰 목록을 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @param companyId 회사 ID
+     * @return 사용 가능한 쿠폰 목록
+     */
+    public List<CouponMappingGetDTO> getAvailableCouponsForOrder(String userId, Long companyId) {
+        // 현재 시간 기준으로 만료되지 않은 쿠폰만 조회
+        LocalDateTime now = LocalDateTime.now();
+
+        List<CouponMapping> coupons = CouponMappingRepo
+            .findAvailableCouponsByUserIdAndCompanyId(userId, companyId, now);
+
+        return coupons.stream()
+            .map(CouponMappingGetDTO::new)
+            .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CouponMappingDto> getAvailableCoupons(String userId, Long companyId) {
+        List<CouponMapping> mappings = CouponMappingRepo
+            .findAvailableCouponsByUserIdAndCompanyId(userId, companyId, LocalDateTime.now());
+        return mappings.stream()
+            .map(cm -> new CouponMappingDto(
+                cm.getId(),
+                cm.getCoupon().getId(),
+                cm.getCoupon().getCouponName(),
+                cm.getCoupon().getDiscountRate(),
+                cm.getExpirationDate()
+            ))
             .collect(Collectors.toList());
     }
 

@@ -10,6 +10,6 @@ public class CouponMappingDto {
     private Long mappingId;
     private Long couponId;
     private String couponName;
-    private int discountAmount; // 또는 percent 등
+    private int discountRate; // 또는 percent 등
     private LocalDateTime expirationDate;
 }

@@ -39,16 +39,16 @@ export default function AddressBook() {
   const handleSetDefault = async (id) => {
     try {
       await userAPI.addresses.setDefault(id);
-      
+
       // 서버 응답 후 UI 업데이트
       setAddresses(prev => {
         // 기존 배열을 복사하여 작업
         const updatedAddresses = [...prev];
-        
+
         // 선택된 주소를 찾아 배열에서 제거
         const selectedAddress = updatedAddresses.find(addr => addr.id === id);
         const filteredAddresses = updatedAddresses.filter(addr => addr.id !== id);
-        
+
         // 선택된 주소를 배열의 첫 번째 위치에 추가
         return [selectedAddress, ...filteredAddresses];
       });
@@ -69,7 +69,7 @@ export default function AddressBook() {
   if (loading) {
     return <div className="text-center py-8">로딩 중...</div>;
   }
-  
+
   if (error) {
     return <div className="text-center py-8 text-red-500">{error}</div>;
   }
@@ -77,7 +77,6 @@ export default function AddressBook() {
   return (
     <section className="px-4">
       <div className="max-w-screen-lg mx-auto mt-6">
-        <h3 className="text-3xl font-extrabold mb-4">배송지 관리</h3>
         <hr className="border-gray-300 mb-6 w-full" />
 
         <div className="space-y-6">
@@ -91,16 +90,13 @@ export default function AddressBook() {
                 <div className="flex justify-between">
                   <div>
                     <div className="text-lg font-bold flex items-center">
-                      {address.name}
+                      {address.city + " " + address.street + " " + address.detail}
                       {index === 0 && (
                         <span className="ml-2 px-3 py-1 bg-red-500 text-white text-sm rounded-full">
                           기본배송지
                         </span>
                       )}
                     </div>
-                    <div className="text-gray-600">{address.recipient}</div>
-                    <div className="text-gray-600">{address.address}</div>
-                    <div className="text-gray-600">{address.phone}</div>
                   </div>
                   <div className="flex flex-col space-y-2">
                     {index !== 0 && (

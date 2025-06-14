@@ -48,19 +48,6 @@ export default function Review() {
     }
   };
 
-  // 리뷰 수정 페이지로 이동
-  const handleEditReview = (reviewId) => {
-    navigate(`/user/review/edit/${reviewId}`);
-  };
-
-  if (loading) {
-    return <div className="text-center py-10">리뷰를 불러오는 중입니다...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center py-10 text-red-500">{error}</div>;
-  }
-
 
   return (
     <section className="px-4">
@@ -103,14 +90,7 @@ export default function Review() {
                 </div>
 
                 <div className="flex space-x-2">
-                  <button 
-                    onClick={() => handleEditReview(review.id)}
-                    className="p-2 text-gray-500 hover:text-emerald-600 transition-colors"
-                    title="리뷰 수정"
-                  >
-                    <FaEdit />
-                  </button>
-                  <button 
+                  <button
                     onClick={() => handleDeleteReview(review.id)}
                     className={`p-2 ${confirmDelete === review.id ? 'text-red-600' : 'text-gray-500 hover:text-red-600'} transition-colors`}
                     title={confirmDelete === review.id ? "삭제 확인" : "리뷰 삭제"}

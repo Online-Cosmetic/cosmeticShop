@@ -144,6 +144,7 @@ public class SecurityConfig {
 
             // 프로필 변경 관련
             .requestMatchers(
+                "/api/user/profile",
                 "/api/user/check",
                 "/api/user/send-code",
                 "/api/user/verify-code",
@@ -162,7 +163,8 @@ public class SecurityConfig {
             .requestMatchers(
                 "/api/qnas/all",
                 "/api/qnas/detail/**",
-                "/api/qnas/search/**"
+                "/api/qnas/search/**",
+                "/api/qnas/findIdByNicknameAndTitle"
             ).permitAll()
 
             // QNA 관련 (로그인 필요)

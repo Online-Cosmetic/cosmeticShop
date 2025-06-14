@@ -3,21 +3,26 @@ package Midas.cosmeticshop.controller;
 import Midas.cosmeticshop.dto.QnaDTO;
 import Midas.cosmeticshop.dto.QnaListDTO;
 import Midas.cosmeticshop.dto.QnaPostDTO;
+import Midas.cosmeticshop.entity.Qna;
+import Midas.cosmeticshop.repository.QnaRepository;
 import Midas.cosmeticshop.service.QnaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/qnas")
 public class QnaController {
 
     private final QnaService qnaService;
+    private final QnaRepository qnaRepository;
 
-    public QnaController (QnaService qnaService) {
+    public QnaController (QnaService qnaService, QnaRepository qnaRepository) {
         this.qnaService = qnaService;
+        this.qnaRepository = qnaRepository;
     }
 
     //사용자가 작성한 Qna 목록 반환
@@ -119,5 +124,19 @@ public class QnaController {
     public ResponseEntity<Void> adminDeleteQna(@PathVariable Long qnaId, Authentication authentication) {
         qnaService.adminDeleteQna(qnaId, authentication.getName());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/findIdByNicknameAndTitle")
+    public ResponseEntity<Long> findQnaId(@RequestParam String nickname, @RequestParam String title) {
+        Optional<Qna> qnaOpt = qnaRepository.findByUserNickNameContaining(nickname)
+            .stream()
+            .filter(q -> q.getQuestionTitle().equals(title))
+            .findFirst();
+
+        if (qnaOpt.isPresent()) {
+            return ResponseEntity.ok(qnaOpt.get().getId());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

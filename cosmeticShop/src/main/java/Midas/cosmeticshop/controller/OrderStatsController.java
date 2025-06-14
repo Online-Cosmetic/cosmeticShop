@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/order_stats")
@@ -45,5 +46,14 @@ public class OrderStatsController {
         return ResponseEntity.ok().body(orderStatsService.getYearlyOrderStats(startDate, endDate, authentication.getName()));
     }
 
+    /**
+     * Get dashboard statistics including total orders, active users, and active coupons
+     * @param authentication The authentication object containing the user details
+     * @return A map containing the dashboard statistics
+     */
+    @GetMapping("/dashboard")
+    public ResponseEntity<Map<String, Object>> getDashboardStats(Authentication authentication) {
+        return ResponseEntity.ok().body(orderStatsService.getDashboardStats(authentication.getName()));
+    }
 
 }

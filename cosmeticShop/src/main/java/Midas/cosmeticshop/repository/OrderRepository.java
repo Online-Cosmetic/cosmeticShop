@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("""
         SELECT new Midas.cosmeticshop.dto.DailyOrderStatsBatchDTO(
-            (SELECT SUM(o.totalPrice) FROM Order o WHERE o.createdAt BETWEEN :start AND :end),
+            (SELECT CAST(SUM(ph.amount) AS Long) FROM PaymentHistory ph JOIN Order o ON ph.orderId = o.id WHERE o.createdAt BETWEEN :start AND :end AND ph.status = 'COMPLETED'),
             (SELECT COUNT(o) FROM Order o WHERE o.createdAt BETWEEN :start AND :end),
             (SELECT SUM(oi.quantity) FROM OrderItem oi WHERE oi.order.createdAt BETWEEN :start AND :end)
         )

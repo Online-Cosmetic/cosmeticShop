@@ -86,7 +86,7 @@ export default function AdminCouponIssuance() {
 
             console.log("Sending coupon data:", couponData); // 전송 데이터 로깅
             await adminAPI.coupon.issueCoupon(couponData);
-            setSuccess("Coupon issued successfully!");
+            setSuccess("쿠폰 발급에 성공했습니다!");
 
             // Reset form
             setSelectedCompany("");
@@ -106,7 +106,7 @@ export default function AdminCouponIssuance() {
             <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-6">
                 {/* Header */}
                 <div className="flex justify-between items-center">
-                    <h2 className="text-3xl font-bold text-neutral-800">Coupon Issuance</h2>
+                    <h2 className="text-3xl font-bold text-neutral-800">쿠폰 발행</h2>
                 </div>
 
                 {/* Error and Success Messages */}
@@ -126,7 +126,7 @@ export default function AdminCouponIssuance() {
                     {/* Brand Name (Company) */}
                     <div className="flex flex-col gap-2">
                         <label className="text-lg font-medium text-neutral-700">
-                            Brand Name
+                            브랜드명
                         </label>
                         <div className="relative">
                             <div 
@@ -164,7 +164,7 @@ export default function AdminCouponIssuance() {
                     {/* Discount Rate */}
                     <div className="flex flex-col gap-2">
                         <label className="text-lg font-medium text-neutral-700">
-                            Discount Rate
+                            할인율
                         </label>
                         <div className="relative">
                             <input
@@ -185,7 +185,7 @@ export default function AdminCouponIssuance() {
                     {/* Duration (Days) */}
                     <div className="flex flex-col gap-2">
                         <label className="text-lg font-medium text-neutral-700">
-                            Duration (Days)
+                            사용기한 (Days)
                         </label>
                         <input
                             type="number"
@@ -200,7 +200,7 @@ export default function AdminCouponIssuance() {
                     {/* Coupon Name */}
                     <div className="flex flex-col gap-2">
                         <label className="text-lg font-medium text-neutral-700">
-                            Coupon Name
+                            쿠폰 이름
                         </label>
                         <input
                             type="text"
@@ -222,7 +222,7 @@ export default function AdminCouponIssuance() {
                                     : "bg-neutral-800 hover:bg-neutral-900"
                             } text-white text-xl font-semibold rounded-2xl transition-colors`}
                         >
-                            {submitting ? "Issuing..." : "Issue Coupon"}
+                            {submitting ? "Issuing..." : "쿠폰 발행"}
                         </button>
                     </div>
                 </form>

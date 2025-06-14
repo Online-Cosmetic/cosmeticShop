@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import ProductList from "./ProductList";
-import { userAPI } from "../../utils/customAxios";
+import { userAPI, companyAPI } from "../../utils/customAxios";
 import { getImageUrl } from "../../utils/imageUtils";
 
 const CATEGORY_LIST = ["all", "makeup", "skincare", "hair", "body"];
@@ -23,7 +23,31 @@ function ProductPage() {
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [sortOption, setSortOption] = useState('latest'); // 정렬 옵션 상태 추가
+    const [companies, setCompanies] = useState([]); // 회사 목록 상태 추가
+    const [selectedCompany, setSelectedCompany] = useState(null); // 선택된 회사 상태 추가
+    const [companyLoading, setCompanyLoading] = useState(true); // 회사 목록 로딩 상태 추가
     const itemsPerPage = 9;
+
+    // 회사 목록 가져오기
+    useEffect(() => {
+        const fetchCompanies = async () => {
+            try {
+                setCompanyLoading(true);
+                const response = await companyAPI.getAllCompanyNames();
+                // 전체 선택 옵션 추가
+                setCompanies([{ id: null, name: "전체 회사" }, ...response.data.companyNames.map((name, index) => ({
+                    id: index + 1, // 임시 ID 할당 (실제로는 API에서 ID를 제공해야 함)
+                    name
+                }))]);
+            } catch (err) {
+                console.error("회사 목록 로딩 중 오류 발생:", err);
+            } finally {
+                setCompanyLoading(false);
+            }
+        };
+
+        fetchCompanies();
+    }, []);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -31,22 +55,34 @@ function ProductPage() {
                 setLoading(true);
                 let response;
 
-                // 정렬 옵션에 따라 API 호출 분기
-                if (sortOption === 'popular') {
-                    // 인기순(좋아요 순) 정렬
-                    response = await userAPI.product.getPopular();
-                } else if (sortOption === 'priceAsc') {
-                    // 가격 낮은순 정렬
-                    response = await userAPI.product.getPriceOrdered('asc');
-                } else if (sortOption === 'priceDesc') {
-                    // 가격 높은순 정렬
-                    response = await userAPI.product.getPriceOrdered('desc');
-                } else if (selectedCategory.toLowerCase() === "all") {
-                    // 전체 상품 최신순 정렬
-                    response = await userAPI.product.getLatest();
+                // 회사 필터링 및 정렬 옵션에 따라 API 호출 분기
+                if (selectedCompany && selectedCompany.id) {
+                    // 회사 필터링이 적용된 경우
+                    if (selectedCategory.toLowerCase() === "all") {
+                        // 전체 카테고리 + 특정 회사
+                        response = await userAPI.product.getByCompany(selectedCompany.id, sortOption);
+                    } else {
+                        // 특정 카테고리 + 특정 회사
+                        response = await userAPI.product.getByCategoryAndCompany(selectedCategory, selectedCompany.id, sortOption);
+                    }
                 } else {
-                    // 카테고리별 상품 (정렬 옵션 전달)
-                    response = await userAPI.product.getByCategory(selectedCategory, sortOption);
+                    // 회사 필터링이 적용되지 않은 경우 (기존 로직)
+                    if (sortOption === 'popular') {
+                        // 인기순(좋아요 순) 정렬
+                        response = await userAPI.product.getPopular();
+                    } else if (sortOption === 'priceAsc') {
+                        // 가격 낮은순 정렬
+                        response = await userAPI.product.getPriceOrdered('asc');
+                    } else if (sortOption === 'priceDesc') {
+                        // 가격 높은순 정렬
+                        response = await userAPI.product.getPriceOrdered('desc');
+                    } else if (selectedCategory.toLowerCase() === "all") {
+                        // 전체 상품 최신순 정렬
+                        response = await userAPI.product.getLatest();
+                    } else {
+                        // 카테고리별 상품 (정렬 옵션 전달)
+                        response = await userAPI.product.getByCategory(selectedCategory, sortOption);
+                    }
                 }
 
                 // API 응답 구조에 맞게 데이터 추출
@@ -63,7 +99,7 @@ function ProductPage() {
                 }));
 
                 setProducts(formattedProducts);
-                setCurrentPage(1); // 정렬 옵션 변경 시 첫 페이지로 리셋
+                setCurrentPage(1); // 필터링 옵션 변경 시 첫 페이지로 리셋
             } catch (err) {
                 console.error("상품 로딩 중 오류 발생:", err);
                 setError("상품을 불러오는 중 오류가 발생했습니다.");
@@ -73,7 +109,7 @@ function ProductPage() {
         };
 
         fetchProducts();
-    }, [selectedCategory, sortOption]);
+    }, [selectedCategory, sortOption, selectedCompany]);
 
     // 페이지네이션 계산
     const totalPages = Math.ceil(products.length / itemsPerPage);
@@ -128,14 +164,36 @@ function ProductPage() {
                 </div>
             </div>
 
+            {/* 회사 필터링 옵션 */}
+            {!companyLoading && companies.length > 1 && (
+                <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+                    <div className="flex flex-wrap gap-3">
+                        {companies.map((company) => (
+                            <label key={company.name} className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="company"
+                                    checked={selectedCompany === company}
+                                    onChange={() => setSelectedCompany(company)}
+                                    className="form-radio text-emerald-500 focus:ring-emerald-500"
+                                />
+                                <span className="text-gray-700">{company.name}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* 상품 정렬 옵션 */}
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">
                     {CATEGORY_NAMES[selectedCategory]}
                     <span className="text-emerald-600 ml-2 text-lg">({products.length})</span>
+                    {selectedCompany && selectedCompany.id && (
+                        <span className="text-emerald-600 ml-2 text-lg">- {selectedCompany.name}</span>
+                    )}
                 </h1>
 
-                {/*// 상품 정렬 옵션 부분 수정*/}
                 <div className="flex items-center">
                     <select
                         className="border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -150,7 +208,10 @@ function ProductPage() {
                 </div>
             </div>
 
-            <ProductList products={currentProducts} title="" />
+            {/* 상품 목록 영역 - 너비와 높이를 고정 */}
+            <div className="min-h-[800px] w-full">
+                <ProductList products={currentProducts} title="" />
+            </div>
 
             {/* 페이지네이션 */}
             {products.length > itemsPerPage && (

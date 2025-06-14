@@ -14,4 +14,14 @@ public class CouponPostDTO {
     private int discountRate;
     private int duration;
     private String companyName;
+
+    @Override
+    public String toString() {
+        return "CouponPostDTO{" +
+                "couponName='" + couponName + '\'' +
+                ", discountRate=" + discountRate +
+                ", duration=" + duration +
+                ", companyName='" + companyName + '\'' +
+                '}';
+    }
 }

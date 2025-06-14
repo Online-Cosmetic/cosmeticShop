@@ -130,9 +130,10 @@ public class AdminService {
 
         Coupon coupon = new Coupon();
         coupon.setCouponName(couponPostDTO.getCouponName());
-        coupon.setDiscountRate(coupon.getDiscountRate());
+        coupon.setDiscountRate(couponPostDTO.getDiscountRate());
         coupon.setDuration(couponPostDTO.getDuration());
         coupon.setCompany(company);
+
         CouponRepo.save(coupon);
     }
 

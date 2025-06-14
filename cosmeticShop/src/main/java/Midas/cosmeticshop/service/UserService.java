@@ -2,9 +2,11 @@ package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.UserInfo.NicknameChangeDTO;
+import Midas.cosmeticshop.dto.UserInfo.UserProfileDTO;
 import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.ResourceClosedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,21 @@ public class UserService {
 
     private final Map<String, String> codeStore = new ConcurrentHashMap<>();
     private final Map<String, Long> codeExpire = new ConcurrentHashMap<>();
+
+    public UserProfileDTO getUserProfile(BaseUserDetails userDetails) {
+        // 사용자 정보를 DB에서 가져와서 DTO로 변환
+        // 예시 코드:
+        User user = userRepository.findByUserId(userDetails.getUsername())
+            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        return UserProfileDTO.builder()
+            .id(user.getId())
+            .userId(user.getUserId())
+            .nickname(user.getNickName())
+            .email(user.getEmailAddress())
+            .role(user.getRole())
+            .build();
+    }
 
     public boolean existsByUserIdAndEmail(String userId, String email) {
         return userRepository.existsByUserIdAndEmailAddress(userId, email);

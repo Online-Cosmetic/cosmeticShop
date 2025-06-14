@@ -27,6 +27,15 @@ function MyPage() {
   const [qnas, setQnas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  useEffect(() => {
+    if (selected !== 'Default') {
+      setIsSidebarOpen(true);
+    } else {
+      setIsSidebarOpen(false);
+    }
+  }, [selected]);
 
   useEffect(() => {
     if (selected === 'qna') {
@@ -46,73 +55,78 @@ function MyPage() {
   }, [selected]);
 
   const Current = SECTIONS.find(s => s.key === selected).Component;
-  const currentSection = SECTIONS.find(s => s.key === selected);
+  
+  const handleSelect = (key) => {
+    setSelected(key);
+    if (key === 'Default') {
+      setIsSidebarOpen(false);
+    }
+  };
+  
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   return (
     <div className="w-full max-w-[1262px] mx-auto">
-      <div className="bg-white rounded-2xl shadow border p-6 flex flex-col md:flex-row gap-8">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0">
-          <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
-            <h1 className="text-2xl font-bold mb-6 text-neutral-800 border-b border-gray-200 pb-4">마이페이지</h1>
-
-            <div className="space-y-6">
-              <div>
-                <ul className="space-y-1">
-                  {SECTIONS.slice(1, 4).map(s => (
-                    <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <ul className="space-y-1">
-                  {SECTIONS.slice(4, 8).map(s => (
-                    <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <ul className="space-y-1">
-                  {SECTIONS.slice(8).map(s => (
-                    <NavItem key={s.key} section={s} selected={selected} onSelect={setSelected} />
-                  ))}
-                </ul>
-              </div>
-            </div>
+      <div className="bg-white rounded-2xl shadow border p-6 relative">
+        {/* 헤더 영역 - Default 페이지가 아닐 때만 표시 */}
+        {selected !== 'Default' && (
+          <div className="flex items-center mb-6 border-b pb-4">
+            <button 
+              onClick={toggleSidebar}
+              className="p-2 bg-emerald-50 rounded-full text-emerald-600 hover:bg-emerald-100 transition-colors mr-3"
+              aria-label="메뉴 토글"
+            >
+              {isSidebarOpen ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              )}
+            </button>
+            <h1 className="text-2xl font-bold text-neutral-800">마이페이지</h1>
           </div>
-        </aside>
+        )}
 
-        {/* Main Content */}
-        <main className="flex-1">
-          {/* Page Header */}
-          <div className="mb-6 pb-4 border-b border-gray-200">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{currentSection.icon}</span>
-              <h2 className="text-2xl font-bold text-neutral-800">{currentSection.label}</h2>
+        {/* 메인 콘텐츠 레이아웃 */}
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* 사이드바 - 완전히 숨기거나 표시함 */}
+          {selected !== 'Default' && isSidebarOpen && (
+            <div className="w-full md:w-64 shrink-0">
+              <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
+                <div className="space-y-6">
+                  <div>
+                    <ul className="space-y-1">
+                      {SECTIONS.slice(0, 4).map(s => (
+                        <NavItem key={s.key} section={s} selected={selected} onSelect={handleSelect} />
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <ul className="space-y-1">
+                      {SECTIONS.slice(4, 8).map(s => (
+                        <NavItem key={s.key} section={s} selected={selected} onSelect={handleSelect} />
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Content */}
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="text-xl text-gray-500">데이터를 불러오는 중...</div>
-            </div>
-          ) : error ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="text-xl text-red-500">{error}</div>
-            </div>
-          ) : selected === 'qna' && selectedQnaId ? (
-            <QnAMyDetail id={selectedQnaId} onBack={() => setSelectedQnaId(null)} />
-          ) : (
-            <Current
-              items={qnas}
-              onQnaClick={(id) => {
-                if (selected === 'qna') setSelectedQnaId(id);
-              }}
-            />
           )}
-        </main>
+
+          {/* 메인 콘텐츠 영역 - 사이드바가 없을 때 전체 너비 사용 */}
+          <div className="flex-1 transition-all duration-300">
+            {selected === 'Default' ? (
+              <Current onSelect={handleSelect} />
+            ) : (
+              <Current items={selected === 'qna' ? qnas : []} onQnaClick={setSelectedQnaId} />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
