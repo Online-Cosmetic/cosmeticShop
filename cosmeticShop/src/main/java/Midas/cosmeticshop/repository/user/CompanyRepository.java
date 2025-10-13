@@ -16,4 +16,6 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     @Query("SELECT c.companyName FROM Company c")
     List<String> findAllCompanyNames();
+
+    boolean existsByUserId(String companyId);
 }

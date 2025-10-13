@@ -2,9 +2,10 @@ package Midas.cosmeticshop.config.security;
 
 import Midas.cosmeticshop.jwt.JWTUtil;
 import Midas.cosmeticshop.jwt.JWTFilter;
-import Midas.cosmeticshop.oauth2.CustomSuccessHandler;
+//import Midas.cosmeticshop.oauth2.CustomSuccessHandler;
 import Midas.cosmeticshop.repository.user.BaseUserRepository;
 //import Midas.cosmeticshop.service.CustomOAuth2UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -39,7 +41,8 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final BaseUserRepository baseUserRepository;
 //    private final CustomOAuth2UserService customOAuth2UserService;
-    private final CustomSuccessHandler customSuccessHandler;
+    //private final CustomSuccessHandler customSuccessHandler;
+
 
     /**
      * AuthController 등에 주입하기 위해 AuthenticationManager를 빈으로 노출
@@ -55,6 +58,18 @@ public class SecurityConfig {
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(
+                "/images/**",
+                "/css/**",
+                "/js/**",
+                "/favicon.ico",
+                "/webjars/**",
+                "/static/**"
+        );
     }
 
     @Bean
@@ -116,6 +131,8 @@ public class SecurityConfig {
             .requestMatchers(
                 "/css/**", "/js/**", "/images/**", "/favicon.ico")
             .permitAll()
+
+            .requestMatchers("/error", "/error/**").permitAll() //에러 표시용
 
             // 로그인·회원가입 API
             .requestMatchers(
@@ -210,6 +227,8 @@ public class SecurityConfig {
 
             // 그 외
             .anyRequest().authenticated()
+
+
         );
 
 

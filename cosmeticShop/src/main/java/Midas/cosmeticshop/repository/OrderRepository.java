@@ -25,24 +25,19 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("""
     SELECT new Midas.cosmeticshop.dto.HourlyProductOrderStatsBatchDTO(
         p,
-        CONCAT(FUNCTION('YEAR', o.createdAt), '-', 
-               FUNCTION('MONTH', o.createdAt), '-',
-               FUNCTION('DAY', o.createdAt), ' ',
-               FUNCTION('HOUR', o.createdAt), ':00:00'),
+        cast(function('date_format', o.createdAt, '%Y-%m-%d %H:00:00') as string),
         SUM(oi.quantity)
     )
     FROM OrderItem oi
     JOIN oi.order o
     JOIN oi.product p
     WHERE o.createdAt BETWEEN :start AND :end
-    GROUP BY p, FUNCTION('YEAR', o.createdAt), 
-             FUNCTION('MONTH', o.createdAt),
-             FUNCTION('DAY', o.createdAt),
-             FUNCTION('HOUR', o.createdAt)
-    ORDER BY FUNCTION('YEAR', o.createdAt), 
-             FUNCTION('MONTH', o.createdAt),
-             FUNCTION('DAY', o.createdAt),
-             FUNCTION('HOUR', o.createdAt), p.id
+    GROUP BY
+        p,
+        cast(function('date_format', o.createdAt, '%Y-%m-%d %H:00:00') as string)
+    ORDER BY
+        cast(function('date_format', o.createdAt, '%Y-%m-%d %H:00:00') as string),
+        p.id
     """)
 List<HourlyProductOrderStatsBatchDTO> findProductOrderStatsBetween(
     @Param("start") LocalDateTime start, 
