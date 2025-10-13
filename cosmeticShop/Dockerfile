@@ -1,5 +1,5 @@
 # ---------- Build stage ----------
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
 # Gradle 관련 파일 복사
@@ -12,12 +12,13 @@ RUN chmod +x gradlew && ./gradlew --no-daemon dependencies || true
 
 # 나머지 소스 전체 복사
 COPY . .
+RUN chmod +x gradlew
 
 # JAR 빌드
 RUN ./gradlew --no-daemon clean bootJar -x test
 
 # ---------- Run stage ----------
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
 RUN useradd -ms /bin/bash spring && chown -R spring:spring /app
