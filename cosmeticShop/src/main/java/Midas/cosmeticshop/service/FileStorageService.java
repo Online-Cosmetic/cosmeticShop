@@ -1,76 +1,81 @@
 package Midas.cosmeticshop.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.net.URI;
+import java.net.http.*;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class FileStorageService {
 
-    private final Path fileStorageLocation = Paths.get(
-        "C:\\Users\\admin\\Desktop\\cosmeticShop\\cosmeticShop\\src\\main\\resources\\static\\images")
-        .toAbsolutePath().normalize();
+    @Value("${supabase.url}")         private String supabaseUrl;
+    @Value("${supabase.service-key}") private String serviceKey;
+    @Value("${supabase.bucket}")      private String bucket;       // 예) product-images
 
-    public FileStorageService() {
-        try {
-            Files.createDirectories(fileStorageLocation);
-        } catch (IOException e) {
-            throw new RuntimeException("업로드 디렉토리 생성 실패", e);
-        }
-    }
+    private static final HttpClient http = HttpClient.newHttpClient();
 
+    /** 업로드: Supabase에 저장하고 프론트 계약 유지 위해 "/images/{파일명}" 반환 */
     public String storeFile(MultipartFile file) {
-//        // 원본 파일명과 UUID를 조합해서 파일명 충돌 방지
-//        String originalFileName = file.getOriginalFilename();
-//        String fileName = UUID.randomUUID() + "_" + originalFileName;
-//
-//        try {
-//            Path targetLocation = fileStorageLocation.resolve(fileName);
-//            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-//            // 만약 외부에서 파일을 접근할 수 있도록 /images/ 경로에 매핑하였다면, 그 URL을 반환
-//            return "/images/" + fileName;
-//        } catch (IOException e) {
-//            throw new RuntimeException("파일 저장에 실패했습니다. 파일명 " + fileName, e);
-//        }
-        // 원본 파일명 가져오기
-        String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
-
-        // 타임스탬프 추가하여 파일명 생성 (캐싱 방지)
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-        String newFileName = timestamp + fileExtension;
+        String original = StringUtils.cleanPath(Optional.ofNullable(file.getOriginalFilename()).orElse(""));
+        if (!original.contains(".")) {
+            throw new IllegalArgumentException("확장자가 없는 파일은 업로드할 수 없습니다: " + original);
+        }
+        String ext = original.substring(original.lastIndexOf('.')).toLowerCase();
+        // 캐시 무효화 및 충돌 방지: 타임스탬프 + UUID
+        String newFileName = System.currentTimeMillis() + "-" + UUID.randomUUID() + ext;
+        String key = "images/" + newFileName; // Supabase object key(버킷 내부 경로)
 
         try {
-            // 파일명에 부적절한 문자가 있는지 확인
-            if(newFileName.contains("..")) {
-                throw new IllegalArgumentException("파일명에 부적절한 문자가 포함되어 있습니다: " + newFileName);
+            HttpRequest req = HttpRequest.newBuilder(
+                            URI.create(supabaseUrl + "/storage/v1/object/" + bucket + "/" + key))
+                    .header("Authorization", "Bearer " + serviceKey)
+                    .header("Content-Type",
+                            Optional.ofNullable(file.getContentType()).orElse("application/octet-stream"))
+                    .PUT(HttpRequest.BodyPublishers.ofByteArray(file.getBytes()))
+                    .build();
+
+            HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() >= 300) {
+                throw new RuntimeException("Supabase 업로드 실패: " + res.statusCode() + " " + res.body());
             }
-
-            // 파일 저장 경로 생성
-            Path targetLocation = this.fileStorageLocation.resolve(newFileName);
-
-            // 파일 복사
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-            // URL 경로 반환 (상대 경로)
+            // 프론트 계약 유지: 상대경로 반환
             return "/images/" + newFileName;
-        } catch (IOException ex) {
-            throw new RuntimeException("파일 저장 중 오류가 발생했습니다: " + newFileName, ex);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("업로드 인터럽트", e);
+        } catch (IOException e) {
+            throw new RuntimeException("파일 업로드 실패: " + newFileName, e);
         }
     }
 
+    /** 삭제: "/images/{파일명}" → Supabase object key 로 변환 후 삭제 */
     public void deleteFile(String imageUrl) {
-        if (imageUrl == null || imageUrl.isEmpty()) {
-            return;
-        }
+        if (imageUrl == null || imageUrl.isBlank()) return;
+
+        String fileName = imageUrl.replaceFirst("^/images/?", ""); // "xxxx-uuid.jpg"
+        String key = "images/" + fileName;
+
         try {
-            // imageUrl 예시: "/images/uuid_원본이름.jpg"
-            Path filePath = fileStorageLocation.resolve(imageUrl.replace("/images/", ""));
-            Files.deleteIfExists(filePath);
+            HttpRequest req = HttpRequest.newBuilder(
+                            URI.create(supabaseUrl + "/storage/v1/object/" + bucket + "/" + key))
+                    .header("Authorization", "Bearer " + serviceKey)
+                    .DELETE()
+                    .build();
+
+            HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() >= 300) {
+                throw new RuntimeException("Supabase 삭제 실패: " + res.statusCode() + " " + res.body());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("삭제 인터럽트", e);
         } catch (IOException e) {
             throw new RuntimeException("파일 삭제 실패: " + imageUrl, e);
         }
