@@ -29,5 +29,7 @@ COPY --from=build /app/build/libs/*.jar /app/app.jar
 
 EXPOSE 9000
 ENV JAVA_OPTS="" SPRING_OPTS=""
+ENV TZ=Asia/Seoul
+ENV JAVA_OPTS="-Duser.timezone=Asia/Seoul"
 
 ENTRYPOINT ["/bin/sh","-c","exec java $JAVA_OPTS -jar /app/app.jar $SPRING_OPTS"]

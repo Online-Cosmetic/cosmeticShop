@@ -23,22 +23,22 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     DailyOrderStatsBatchDTO findOrderStatsBetween(LocalDateTime start, LocalDateTime end);
 
     @Query("""
-    SELECT new Midas.cosmeticshop.dto.HourlyProductOrderStatsBatchDTO(
-        p,
-        cast(function('date_format', o.createdAt, '%Y-%m-%d %H:00:00') as string),
-        SUM(oi.quantity)
-    )
-    FROM OrderItem oi
-    JOIN oi.order o
-    JOIN oi.product p
-    WHERE o.createdAt BETWEEN :start AND :end
-    GROUP BY
-        p,
-        cast(function('date_format', o.createdAt, '%Y-%m-%d %H:00:00') as string)
-    ORDER BY
-        cast(function('date_format', o.createdAt, '%Y-%m-%d %H:00:00') as string),
-        p.id
-    """)
+        SELECT new Midas.cosmeticshop.dto.HourlyProductOrderStatsBatchDTO(
+          p,
+          format(truncate(o.createdAt, hour) as 'yyyy-MM-dd HH:00:00'),
+          SUM(oi.quantity)
+        )
+        FROM OrderItem oi
+        JOIN oi.order o
+        JOIN oi.product p
+        WHERE o.createdAt BETWEEN :start AND :end
+        GROUP BY
+            p,
+            truncate(o.createdAt, hour)
+        ORDER BY
+            truncate(o.createdAt, hour),
+            p.id
+        """)
 List<HourlyProductOrderStatsBatchDTO> findProductOrderStatsBetween(
     @Param("start") LocalDateTime start, 
     @Param("end") LocalDateTime end);

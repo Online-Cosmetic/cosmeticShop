@@ -29,7 +29,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
-	implementation 'com.mysql:mysql-connector-j'
+	//implementation 'com.mysql:mysql-connector-j'
 
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
@@ -63,6 +63,8 @@ dependencies {
 //	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test' // 테스트 관련 의존성 - JUnit Jupiter 사용
 	testImplementation 'org.springframework.security:spring-security-test'
+
+	implementation 'org.postgresql:postgresql' //prostgresql
 }
 
 tasks.named('test') {
