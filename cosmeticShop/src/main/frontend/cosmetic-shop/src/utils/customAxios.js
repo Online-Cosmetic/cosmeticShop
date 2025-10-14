@@ -3,8 +3,10 @@ import mitt from 'mitt';
 
 export const emitter = mitt();
 
+const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || 'http://localhost:9000').replace(/\/+$/, '');
+
 const customAxios = axios.create({
-    baseURL: 'http://localhost:9000',
+    baseURL: BACKEND_URL,
     withCredentials: true,
     // 리다이렉트 방지
     maxRedirects: 0,

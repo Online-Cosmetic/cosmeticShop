@@ -9,7 +9,7 @@ export const getImageUrl = (imagePath) => {
   }
 
   // 백엔드 서버 URL
-  const backendUrl = "http://localhost:9000";
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:9000";
 
   // 캐시 버스팅을 위한 타임스탬프 생성
   const timestamp = new Date().getTime();
