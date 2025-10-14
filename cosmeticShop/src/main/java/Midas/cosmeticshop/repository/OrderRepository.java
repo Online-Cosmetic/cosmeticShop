@@ -24,9 +24,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("""
         SELECT new Midas.cosmeticshop.dto.HourlyProductOrderStatsBatchDTO(
-          p,
-          format(truncate(o.createdAt, hour) as 'yyyy-MM-dd HH:00:00'),
-          SUM(oi.quantity)
+            p,
+            function('to_char', function('date_trunc','hour', o.createdAt), 'YYYY-MM-DD HH24:00:00'),
+            SUM(oi.quantity)
         )
         FROM OrderItem oi
         JOIN oi.order o
@@ -34,9 +34,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         WHERE o.createdAt BETWEEN :start AND :end
         GROUP BY
             p,
-            truncate(o.createdAt, hour)
+            function('date_trunc','hour', o.createdAt)
         ORDER BY
-            truncate(o.createdAt, hour),
+            function('date_trunc','hour', o.createdAt),
             p.id
         """)
 List<HourlyProductOrderStatsBatchDTO> findProductOrderStatsBetween(
