@@ -2,6 +2,7 @@ package Midas.cosmeticshop.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 @RestController
+@ConditionalOnProperty(name = "app.storage", havingValue = "supabase")
 public class ImageProxyController {
 
     @Value("${supabase.url}")         private String supabaseUrl;
