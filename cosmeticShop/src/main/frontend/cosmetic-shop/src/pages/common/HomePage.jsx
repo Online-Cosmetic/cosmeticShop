@@ -3,6 +3,7 @@ import { useAuth } from "../../contexts/AuthContext.jsx";
 import { userAPI } from "../../utils/customAxios.js";
 import { Link } from "react-router-dom";
 import { StarIcon, SparklesIcon, TrophyIcon, ShoppingBagIcon } from "@heroicons/react/24/solid";
+import { getImageUrl } from "@/utils/imageUtils";
 
 const HomePage = () => {
     const { user } = useAuth();
@@ -166,7 +167,7 @@ const HomePage = () => {
                                         <Link to={`/detail/${product.productId}`}>
                                             <div className="h-48 overflow-hidden bg-gray-100 relative">
                                                 <img 
-                                                    src={product.thumbImgUrl || "/product-placeholder.png"} 
+                                                    src={getImageUrl(product.thumbImgUrl)}
                                                     alt={product.productName} 
                                                     className="w-full h-full object-cover transition-transform hover:scale-105"
                                                 />
@@ -247,7 +248,7 @@ const HomePage = () => {
                             >
                                 <div className="w-full max-w-md h-64 relative overflow-hidden rounded-lg order-1 md:order-none shadow-md">
                                     <img 
-                                        src={recommended[currentRecommendedIndex]?.thumbImgUrl || "/product-placeholder.png"} 
+                                        src={getImageUrl(recommended[currentRecommendedIndex]?.thumbImgUrl)}
                                         alt={recommended[currentRecommendedIndex]?.productName || "추천 상품"} 
                                         className="w-full h-full object-cover rounded-lg"
                                     />
