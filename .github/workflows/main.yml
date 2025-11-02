@@ -1,4 +1,4 @@
-name: Deploy BE & FE to EC2 (root)
+name: Deploy BE & FE to EC2
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     name: Backend build -> copy JAR -> docker restart on EC2
     runs-on: ubuntu-latest
 
-    # Gradle이 있는 하위 폴더
+    # Gradle이 있는 하위 폴더에서 실행
     defaults:
       run:
         working-directory: cosmeticShop
@@ -34,44 +34,51 @@ jobs:
       - name: Build jar
         run: ./gradlew -x test clean bootJar
 
-      - name: Prepare dirs on EC2 (root)
+      # ubuntu 홈에 임시 업로드 경로 생성 (권한 문제 방지)
+      - name: Prepare dirs on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # root
+          username: ${{ secrets.EC2_USER }}   # ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           script: |
-            mkdir -p /root/cosmeticShop/cosmeticShop/build/libs
+            mkdir -p /home/ubuntu/deploy/build/libs
 
-      - name: Copy JAR to EC2 (root)
+      # 빌드된 JAR을 ubuntu 홈으로 업로드
+      - name: Copy JAR to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # root
+          username: ${{ secrets.EC2_USER }}   # ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           source: "cosmeticShop/build/libs/*.jar"   # 레포 루트 기준
-          target: "/root/cosmeticShop/cosmeticShop/build/libs/"
+          target: "/home/ubuntu/deploy/build/libs/"
 
-      - name: Build & restart container on EC2 (root)
+      # sudo로 루트 경로에 반영 + 도커 재기동
+      - name: Build & restart container on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # root
+          username: ${{ secrets.EC2_USER }}   # ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           script: |
-            set -e
-            cd /root/cosmeticShop/cosmeticShop
-            docker image prune -af || true
-            docker build -t cosmeticshop:latest .
-            docker rm -f cosmeticshop || true
-            docker run -d --name cosmeticshop \
-              -p 9000:9000 \
-              --env-file ${{ secrets.EC2_ENV_FILE_PATH }} \
-              --restart unless-stopped \
-              cosmeticshop:latest
+            sudo bash -lc '
+              set -e
+              mkdir -p /root/cosmeticShop/cosmeticShop/build/libs
+              mv /home/ubuntu/deploy/build/libs/*.jar /root/cosmeticShop/cosmeticShop/build/libs/ || true
+              cd /root/cosmeticShop/cosmeticShop
+              docker image prune -af || true
+              docker build -t cosmeticshop:latest .
+              docker rm -f cosmeticshop || true
+              docker run -d --name cosmeticshop \
+                -p 9000:9000 \
+                --env-file ${{ secrets.EC2_ENV_FILE_PATH }} \
+                --restart unless-stopped \
+                cosmeticshop:latest
+            '
             sleep 2
             curl -sfI http://127.0.0.1:9000/ | head -n 1 || true
 
@@ -102,30 +109,31 @@ jobs:
           npm run build
           tar -C dist -czf dist.tar.gz .
 
-      - name: Upload dist to EC2 (root)
+      - name: Upload dist to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # root
+          username: ${{ secrets.EC2_USER }}   # ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
           target: "/tmp/"
 
-      - name: Replace /var/www/cosmeticshop on EC2 (root)
+      - name: Replace /var/www/cosmeticshop on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # root
+          username: ${{ secrets.EC2_USER }}   # ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           script: |
-            set -e
-            mkdir -p /var/www/cosmeticshop
-            rm -rf /var/www/cosmeticshop/*
-            tar -xzf /tmp/dist.tar.gz -C /var/www/cosmeticshop
-            # (선택) nginx 재로드
-            if command -v nginx >/dev/null 2>&1; then
-              nginx -t && systemctl reload nginx || true
-            fi
+            sudo bash -lc '
+              set -e
+              mkdir -p /var/www/cosmeticshop
+              rm -rf /var/www/cosmeticshop/*
+              tar -xzf /tmp/dist.tar.gz -C /var/www/cosmeticshop
+              if command -v nginx >/dev/null 2>&1; then
+                nginx -t && systemctl reload nginx || true
+              fi
+            '
             curl -sfI http://127.0.0.1/ | head -n 1 || true
