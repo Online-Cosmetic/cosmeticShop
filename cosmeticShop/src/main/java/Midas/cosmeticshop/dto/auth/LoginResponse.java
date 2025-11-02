@@ -16,6 +16,7 @@ public class LoginResponse {
     private String errorMessage;
     private String email;
     private String username;
+    private String nickname;
 
     // ADMIN
     public LoginResponse(String userId, String role, String accessToken) {
@@ -28,13 +29,14 @@ public class LoginResponse {
     }
 
     // USER, COMPANY
-    public LoginResponse(String userId, String role, String accessToken, String email, String username) {
+    public LoginResponse(String userId, String role, String accessToken, String email, String username, String nickname) {
         this.userId = userId;
         this.role = role;
         this.accessToken = accessToken;
         this.errorMessage = null;
         this.email = email;
         this.username = username;
+        this.nickname = nickname;
     }
 
     // ERROR

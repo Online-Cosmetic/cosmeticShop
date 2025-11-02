@@ -18,6 +18,7 @@ export default function UserHeader() {
             localStorage.removeItem('user');
             localStorage.removeItem('userEmail');
             localStorage.removeItem('userName');
+            localStorage.removeItem('nickName');
             // 로그인 페이지로 이동
             navigate('/login');
         } catch (error) {
@@ -100,7 +101,7 @@ export default function UserHeader() {
                     {/* 우측: 사용자 인사말 */}
                     {user && (
                         <div className="flex items-center">
-                            <span className="text-gray-700 font-medium">안녕하세요, {user.nickName || user.username} 님</span>
+                            <span className="text-gray-700 font-medium">안녕하세요, {user.nickname} 님</span>
                         </div>
                     )}
                 </div>
