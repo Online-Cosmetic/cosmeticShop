@@ -117,7 +117,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
-          target: "/tmp/"
+          target: "/tmp/dist.tar.gz"
+
 
       - name: Replace /var/www/cosmeticshop on EC2
         uses: appleboy/ssh-action@v1.2.0
