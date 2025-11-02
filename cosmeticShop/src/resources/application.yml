@@ -44,11 +44,18 @@ logging:
     org.springframework.security: DEBUG
 
 app:
-  storage: local
+  storage: ${STORAGE_MODE:local}  # local, supabase, s3
   upload-dir: "C:/Users/admin/Desktop/cosmeticShop/cosmeticShop/src/main/resources/static/images"
 
 supabase:
-  url: ""
-  service-key: ""
+  url: "${SUPABASE_URL:}"
+  service-key: "${SUPABASE_SERVICE_KEY:}"
   bucket: "cosmall_image"
+
+aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET:}
+    region: ${AWS_REGION:ap-northeast-2}
+    access-key: ${AWS_ACCESS_KEY:}
+    secret-key: ${AWS_SECRET_KEY:}
 
