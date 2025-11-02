@@ -2,7 +2,8 @@ name: Deploy BE & FE to EC2
 
 on:
   push:
-    branches: [ "main", "develop" ]   # main에 push되면 배포
+    branches: ["main", "develop"]   # 두 브랜치에서 자동 배포
+  workflow_dispatch: {}              # 수동 실행 버튼
 
 concurrency:
   group: deploy
@@ -13,6 +14,11 @@ jobs:
     name: Backend build -> copy JAR -> docker restart on EC2
     runs-on: ubuntu-latest
 
+    #  Gradle, Dockerfile이 있는 하위 폴더에서 실행
+    defaults:
+      run:
+        working-directory: cosmeticShop
+
     steps:
       - uses: actions/checkout@v4
 
@@ -22,10 +28,22 @@ jobs:
           java-version: "17"
           cache: gradle
 
+      - name: Make gradlew executable (safety)
+        run: chmod +x ./gradlew
+
       - name: Build jar
         run: ./gradlew -x test clean bootJar
 
-      # 빌드된 JAR을 EC2의 프로젝트 경로로 복사 (Dockerfile이 거기서 빌드)
+      - name: Prepare dirs on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || 22 }}
+          script: |
+            mkdir -p /root/cosmeticShop/cosmeticShop/build/libs
+
       - name: Copy JAR to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -33,10 +51,9 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
-          source: "build/libs/*.jar"
+          source: "cosmeticShop/build/libs/*.jar"  # 레포 루트 기준
           target: "/root/cosmeticShop/cosmeticShop/build/libs/"
 
-      # EC2에서 도커 빌드 & 재시작
       - name: Build & restart container on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -47,9 +64,7 @@ jobs:
           script: |
             set -e
             cd /root/cosmeticShop/cosmeticShop
-            # (옵션) 약간의 청소
             docker image prune -af || true
-            # 도커 빌드 & 재실행
             docker build -t cosmeticshop:latest .
             docker rm -f cosmeticshop || true
             docker run -d --name cosmeticshop \
@@ -57,18 +72,18 @@ jobs:
               --env-file ${{ secrets.EC2_ENV_FILE_PATH }} \
               --restart unless-stopped \
               cosmeticshop:latest
-            # 헬스체크(실패해도 작업은 계속)
             sleep 2
-            curl -sf http://127.0.0.1:9000/ || true
+            curl -sfI http://127.0.0.1:9000/ | head -n 1 || true
 
   frontend:
     name: Frontend build -> upload dist -> replace on EC2
     runs-on: ubuntu-latest
-    needs: backend   # 백엔드 먼저
+    needs: backend
 
+    #  실제 프론트 위치에서 실행
     defaults:
       run:
-        working-directory: src/main/frontend/cosmetic-shop
+        working-directory: cosmeticShop/src/main/frontend/cosmetic-shop
 
     steps:
       - uses: actions/checkout@v4
@@ -77,7 +92,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: src/main/frontend/cosmetic-shop/package-lock.json
+          cache-dependency-path: cosmeticShop/src/main/frontend/cosmetic-shop/package-lock.json
 
       - name: Write .env.production
         run: printf "VITE_API_BASE=/api\n" > .env.production
@@ -95,7 +110,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
-          source: "src/main/frontend/cosmetic-shop/dist.tar.gz"
+          source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
           target: "/tmp/"
 
       - name: Replace /var/www/cosmeticshop on EC2
@@ -110,5 +125,4 @@ jobs:
             sudo mkdir -p /var/www/cosmeticshop
             sudo rm -rf /var/www/cosmeticshop/*
             sudo tar -xzf /tmp/dist.tar.gz -C /var/www/cosmeticshop
-            # 간단 확인
             curl -sfI http://127.0.0.1/ | head -n 1 || true
