@@ -2,7 +2,7 @@ name: Deploy BE & FE to EC2
 
 on:
   push:
-    branches: [ "main" ]   # main에 push되면 배포
+    branches: [ "main", "develop" ]   # main에 push되면 배포
 
 concurrency:
   group: deploy
