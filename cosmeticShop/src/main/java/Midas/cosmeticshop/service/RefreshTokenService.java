@@ -17,7 +17,7 @@ import java.util.Optional;
 @Service
 public class RefreshTokenService {
 
-    @Value("${spring.jwt.refreshExpirationMs}")
+    @Value("${JWT_REFRESHEXPIRATIONMS:604800000}")
     private Long refreshTokenDurationMs;
 
     private final RefreshTokenRepository refreshTokenRepository;

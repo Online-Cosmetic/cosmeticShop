@@ -1,0 +1,54 @@
+#spring.application.name=cosmeticShop
+
+server:
+  port: 9000
+  servlet:
+    session:
+      cookie:
+        same-site: None
+
+spring:
+  datasource:
+    url: jdbc:postgresql://ep-red-tooth-a1cvim3d-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+    driver-class-name: org.postgresql.Driver
+    username: neondb_owner
+    password: npg_hlj4QiqZFSg5
+
+  web:
+    resources:
+      static-locations: classpath:/static/, classpath:/public/
+
+  mail:
+    host: localhost
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        show-sql: true
+        format-sql: true
+    hibernate:
+      ddl-auto: update
+
+  jwt:
+    secretKey: ${JWT_SECRETKEY}
+    refreshExpirationMs: ${JWT_REFRESHEXPIRATIONMS:604800000}
+
+iamport:
+  api:
+    key: dummy-key
+    secret: dummy-secret
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+app:
+  storage: local
+  upload-dir: "C:/Users/admin/Desktop/cosmeticShop/cosmeticShop/src/main/resources/static/images"
+
+supabase:
+  url: ""
+  service-key: ""
+  bucket: "cosmall_image"
+

@@ -136,6 +136,10 @@ public class SecurityConfig {
             .requestMatchers(
                 "/css/**", "/js/**", "/images/**", "/favicon.ico")
             .permitAll()
+	    
+	     // ✅ presign 허용 (POST + OPTIONS 프리플라이트)
+    	    .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/uploads/presign").permitAll()
+    	    .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/api/uploads/presign").permitAll()
 
             .requestMatchers("/error", "/error/**").permitAll() //에러 표시용
 
