@@ -1,0 +1,114 @@
+name: Deploy BE & FE to EC2
+
+on:
+  push:
+    branches: [ "main" ]   # main에 push되면 배포
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend build -> copy JAR -> docker restart on EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Build jar
+        run: ./gradlew -x test clean bootJar
+
+      # 빌드된 JAR을 EC2의 프로젝트 경로로 복사 (Dockerfile이 거기서 빌드)
+      - name: Copy JAR to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || 22 }}
+          source: "build/libs/*.jar"
+          target: "/root/cosmeticShop/cosmeticShop/build/libs/"
+
+      # EC2에서 도커 빌드 & 재시작
+      - name: Build & restart container on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd /root/cosmeticShop/cosmeticShop
+            # (옵션) 약간의 청소
+            docker image prune -af || true
+            # 도커 빌드 & 재실행
+            docker build -t cosmeticshop:latest .
+            docker rm -f cosmeticshop || true
+            docker run -d --name cosmeticshop \
+              -p 9000:9000 \
+              --env-file ${{ secrets.EC2_ENV_FILE_PATH }} \
+              --restart unless-stopped \
+              cosmeticshop:latest
+            # 헬스체크(실패해도 작업은 계속)
+            sleep 2
+            curl -sf http://127.0.0.1:9000/ || true
+
+  frontend:
+    name: Frontend build -> upload dist -> replace on EC2
+    runs-on: ubuntu-latest
+    needs: backend   # 백엔드 먼저
+
+    defaults:
+      run:
+        working-directory: src/main/frontend/cosmetic-shop
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: src/main/frontend/cosmetic-shop/package-lock.json
+
+      - name: Write .env.production
+        run: printf "VITE_API_BASE=/api\n" > .env.production
+
+      - name: Install deps & build
+        run: |
+          npm ci
+          npm run build
+          tar -C dist -czf dist.tar.gz .
+
+      - name: Upload dist to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || 22 }}
+          source: "src/main/frontend/cosmetic-shop/dist.tar.gz"
+          target: "/tmp/"
+
+      - name: Replace /var/www/cosmeticshop on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || 22 }}
+          script: |
+            set -e
+            sudo mkdir -p /var/www/cosmeticshop
+            sudo rm -rf /var/www/cosmeticshop/*
+            sudo tar -xzf /tmp/dist.tar.gz -C /var/www/cosmeticshop
+            # 간단 확인
+            curl -sfI http://127.0.0.1/ | head -n 1 || true
