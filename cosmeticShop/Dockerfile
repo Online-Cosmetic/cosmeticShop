@@ -1,35 +1,13 @@
-# ---------- Build stage ----------
-FROM eclipse-temurin:17-jdk AS build
+# ---------- Simple Spring Boot Run Image ----------
+FROM openjdk:17-jdk-slim
 WORKDIR /app
 
-# Gradle 관련 파일 복사
-COPY gradlew gradlew
-COPY gradle gradle
-COPY build.gradle settings.gradle ./
+# 이미 빌드된 jar를 복사
+COPY build/libs/*.jar app.jar
 
-# Gradle wrapper 실행 권한 부여 + 의존성 캐시
-RUN chmod +x gradlew && ./gradlew --no-daemon dependencies || true
-
-# 나머지 소스 전체 복사
-COPY . .
-RUN chmod +x gradlew
-
-# JAR 빌드
-RUN ./gradlew --no-daemon clean bootJar -x test
-
-# ---------- Run stage ----------
-FROM eclipse-temurin:17-jre
-WORKDIR /app
-
-RUN useradd -ms /bin/bash spring && chown -R spring:spring /app
-USER spring
-
-# jar 파일 복사
-COPY --from=build /app/build/libs/*.jar /app/app.jar
-
+# 환경 설정
 EXPOSE 9000
-ENV JAVA_OPTS="" SPRING_OPTS=""
-ENV TZ=Asia/Seoul
-ENV JAVA_OPTS="-Duser.timezone=Asia/Seoul"
 
-ENTRYPOINT ["/bin/sh","-c","exec java $JAVA_OPTS -jar /app/app.jar $SPRING_OPTS"]
+# 실행 명령
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+

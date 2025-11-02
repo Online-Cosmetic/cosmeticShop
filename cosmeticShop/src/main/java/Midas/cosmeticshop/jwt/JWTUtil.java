@@ -26,7 +26,7 @@ public class JWTUtil {
     private final long accessTokenValidityMs  = 1000L * 60 * 30;     // 30분
     private final long refreshTokenValidityMs = 604_800_000L;   // 7일
 
-    public JWTUtil(@Value("${spring.jwt.secretKey}") String secret,
+    public JWTUtil(@Value("${JWT_SECRETKEY}") String secret,
                    UserDetailsService userDetailsService) {
         this.secretKey = new SecretKeySpec(
             secret.getBytes(StandardCharsets.UTF_8),
