@@ -2,8 +2,8 @@
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 
-# 이미 빌드된 jar를 복사
-COPY build/libs/*.jar app.jar
+# 이미 빌드된 jar를 복사 (plain.jar무시)
+COPY build/libs/*SNAPSHOT.jar app.jar
 
 # 환경 설정
 EXPOSE 9000
