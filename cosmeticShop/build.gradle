@@ -79,3 +79,15 @@ configurations.all {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ["src/main/java"]
+        }
+        resources {
+            // 네가 쓰는 구조를 명시적으로 포함
+            srcDirs = ["src/resources", "src/main/resources"]
+        }
+    }
+}
