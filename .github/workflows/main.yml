@@ -11,12 +11,12 @@ concurrency:
 
 jobs:
   backend:
-    name: Backend build -> copy JAR -> docker restart on EC2
+    name: Backend build → copy JAR → docker restart on EC2
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: cosmeticShop   # Gradle 프로젝트 폴더
+        working-directory: cosmeticShop/cosmeticShop   # ✅ 실제 build.gradle이 있는 폴더
 
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Make gradlew executable (safety)
+      - name: Make gradlew executable
         run: chmod +x ./gradlew || true
 
       - name: Build jar
@@ -41,8 +41,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
-          script: |
-            mkdir -p /home/ubuntu/deploy/build/libs
+          script: mkdir -p /home/ubuntu/deploy/build/libs
 
       # 빌드된 JAR 업로드 (ubuntu 계정 홈 기준)
       - name: Copy JAR to EC2
@@ -52,7 +51,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
-          source: "build/libs/*.jar"   # ✅ working-directory 이미 cosmeticShop이므로
+          source: "cosmeticShop/cosmeticShop/build/libs/*.jar"   # ✅ 정확한 상대경로
           target: "/home/ubuntu/deploy/build/libs/"
 
       # 도커 이미지 빌드 및 재기동 (root 권한으로 실행)
@@ -82,7 +81,7 @@ jobs:
             curl -sfI http://127.0.0.1:9000/ | head -n 1 || true
 
   frontend:
-    name: Frontend build -> upload dist -> replace on EC2
+    name: Frontend build → upload dist → replace on EC2
     runs-on: ubuntu-latest
     needs: backend
 
