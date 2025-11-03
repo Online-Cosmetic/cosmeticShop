@@ -221,7 +221,8 @@ public class FileStorageService {
                     getS3Client().putObject(put, RequestBody.fromBytes(bytes));
                 }
             }
-            return "/images/" + newFileName;
+            // ✅ 절대 URL 반환
+            return createPublicUrl(key);
         } catch (IOException e) {
             throw new RuntimeException("S3 업로드 실패: " + newFileName, e);
         }

@@ -134,7 +134,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
             // 정적 리소스에 대한 접근 허용 (순서 중요 - 가장 먼저 배치)
             .requestMatchers(
-                "/css/**", "/js/**", "/images/**", "/favicon.ico")
+                "/css/**", "/js/**", "/images/**", "/favicon.ico", "/images/**")
             .permitAll()
 	    
 	     // ✅ presign 허용 (POST + OPTIONS 프리플라이트)
