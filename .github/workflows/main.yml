@@ -2,7 +2,7 @@ name: Deploy BE & FE to EC2
 
 on:
   push:
-    branches: ["main", "develop"]   # 둘 다에서 자동 배포
+    branches: ["main", "develop"]   # main, develop 브랜치 push 시 자동 배포
   workflow_dispatch: {}              # 수동 실행 버튼
 
 concurrency:
@@ -14,10 +14,9 @@ jobs:
     name: Backend build -> copy JAR -> docker restart on EC2
     runs-on: ubuntu-latest
 
-    # Gradle이 있는 하위 폴더에서 실행
     defaults:
       run:
-        working-directory: cosmeticShop
+        working-directory: cosmeticShop   # Gradle 프로젝트 폴더
 
     steps:
       - uses: actions/checkout@v4
@@ -34,42 +33,42 @@ jobs:
       - name: Build jar
         run: ./gradlew -x test clean bootJar
 
-      # ubuntu 홈에 임시 업로드 경로 생성 (권한 문제 방지)
+      # EC2 ubuntu 홈에 임시 업로드 폴더 생성
       - name: Prepare dirs on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # ubuntu
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           script: |
             mkdir -p /home/ubuntu/deploy/build/libs
 
-      # 빌드된 JAR을 ubuntu 홈으로 업로드
+      # 빌드된 JAR 업로드 (ubuntu 계정 홈 기준)
       - name: Copy JAR to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # ubuntu
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
-          source: "cosmeticShop/build/libs/*.jar"   # 레포 루트 기준
+          source: "build/libs/*.jar"   # ✅ working-directory 이미 cosmeticShop이므로
           target: "/home/ubuntu/deploy/build/libs/"
 
-      # sudo로 루트 경로에 반영 + 도커 재기동
+      # 도커 이미지 빌드 및 재기동 (root 권한으로 실행)
       - name: Build & restart container on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # ubuntu
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           script: |
             sudo bash -lc '
               set -e
-              mkdir -p /root/cosmeticShop/cosmeticShop/build/libs
-              mv /home/ubuntu/deploy/build/libs/*.jar /root/cosmeticShop/cosmeticShop/build/libs/ || true
-              cd /root/cosmeticShop/cosmeticShop
+              mkdir -p /home/ubuntu/cosmeticShop/cosmeticShop/build/libs
+              mv /home/ubuntu/deploy/build/libs/*.jar /home/ubuntu/cosmeticShop/cosmeticShop/build/libs/ || true
+              cd /home/ubuntu/cosmeticShop/cosmeticShop
               docker image prune -af || true
               docker build -t cosmeticshop:latest .
               docker rm -f cosmeticshop || true
@@ -79,7 +78,7 @@ jobs:
                 --restart unless-stopped \
                 cosmeticshop:latest
             '
-            sleep 2
+            sleep 3
             curl -sfI http://127.0.0.1:9000/ | head -n 1 || true
 
   frontend:
@@ -113,7 +112,7 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # ubuntu
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
@@ -123,27 +122,21 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}   # ubuntu
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           script: |
             sudo bash -lc '
               set -e
-      
-              # 1) /tmp 아래에서 dist.tar.gz 최신 파일 찾기
               DIST=$(find /tmp -type f -name dist.tar.gz -printf "%T@ %p\n" | sort -nr | head -n1 | awk "{print \$2}")
               if [ -z "$DIST" ]; then
                 echo "dist.tar.gz not found under /tmp" >&2
                 exit 1
               fi
               echo "Using: $DIST"
-      
-              # 2) 기존 정적파일 삭제 후 교체
               mkdir -p /var/www/cosmeticshop
               rm -rf /var/www/cosmeticshop/*
               tar -xzf "$DIST" -C /var/www/cosmeticshop
-      
-              # 3) 권한 표준화 + nginx 재로드
               find /var/www/cosmeticshop -type d -exec chmod 755 {} \;
               find /var/www/cosmeticshop -type f -exec chmod 644 {} \;
               if command -v nginx >/dev/null 2>&1; then
