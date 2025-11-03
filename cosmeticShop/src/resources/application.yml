@@ -9,26 +9,26 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://ep-red-tooth-a1cvim3d-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
-    driver-class-name: org.postgresql.Driver
-    username: neondb_owner
-    password: npg_hlj4QiqZFSg5
+    url: ${SPRING_DATASOURCE_URL:}
+    username: ${SPRING_DATASOURCE_USERNAME:}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
   web:
     resources:
-      static-locations: classpath:/static/, classpath:/public/
+      static-locations: classpath:/static/,classpath:/public/
 
   mail:
     host: localhost
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    properties:
-      hibernate:
-        show-sql: true
-        format-sql: true
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
 
   jwt:
     secretKey: ${JWT_SECRETKEY}
@@ -58,4 +58,3 @@ aws:
     region: ${AWS_REGION:ap-northeast-2}
     access-key: ${AWS_ACCESS_KEY:}
     secret-key: ${AWS_SECRET_KEY:}
-
