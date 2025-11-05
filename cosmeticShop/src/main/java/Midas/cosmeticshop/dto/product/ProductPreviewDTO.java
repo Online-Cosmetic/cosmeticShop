@@ -17,13 +17,23 @@ public class ProductPreviewDTO { // 여러 상품 나와있을때 최소한의 �
     private String ThumbImgUrl;
 
     public static ProductPreviewDTO from(Product product) {
+        String imageUrl = null;
+        if (product.getThumbnailImage() != null) {
+            imageUrl = product.getThumbnailImage().getImageUrl();
+            
+            // S3 public URL로 변환
+            if (imageUrl != null && imageUrl.startsWith("/images/")) {
+                imageUrl = "https://cosmall-image-bucket.s3.ap-northeast-2.amazonaws.com" + imageUrl;
+            }
+        }
+
         return new ProductPreviewDTO(
             product.getId(),
             product.getProductName(),
             product.getDescription(),
             product.getPrice(),
-            product.getDiscountRate(), // 할인율 값 추가
-            product.getThumbnailImage() != null ? product.getThumbnailImage().getImageUrl() : null
+            product.getDiscountRate(),
+            imageUrl
         );
     }
 }
