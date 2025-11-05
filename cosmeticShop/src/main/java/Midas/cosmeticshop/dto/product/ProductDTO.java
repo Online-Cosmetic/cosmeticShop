@@ -21,6 +21,13 @@ public class ProductDTO {
 
 
     public static ProductDTO from(Product product) {
+        String imageUrl = product.getThumbnailImage().getImageUrl();
+
+        // S3 public URL로 변환
+        if (imageUrl.startsWith("/images/")) {
+            imageUrl = "https://cosmall-image-bucket.s3.ap-northeast-2.amazonaws.com" + imageUrl;
+        }
+
         return new ProductDTO(
             product.getId(),
             product.getCategoryId(),
@@ -30,7 +37,7 @@ public class ProductDTO {
             product.getDiscountRate(), // 할인율 값 추가
             product.getStock(),
             product.getCompany().getId(),
-            product.getThumbnailImage().getImageUrl()
+            imageUrl
         );
     }
 
