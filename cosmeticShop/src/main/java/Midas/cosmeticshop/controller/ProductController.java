@@ -5,6 +5,7 @@ import Midas.cosmeticshop.dto.product.*;
 import Midas.cosmeticshop.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,17 @@ public class ProductController {
         productService.registerProduct(userDetails, productDTO, mainImage, additionalImages);
         return ResponseEntity.ok().build();
     }
+
+    /* 상품 일괄 등록 */
+    @PostMapping(value = "/batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> registerProductsBatch(
+            @AuthenticationPrincipal BaseUserDetails userDetails,
+            @RequestParam("file") MultipartFile zipFile //csv+images zip 파일
+    ) {
+        var result = productService.registerProductsBatch(userDetails, zipFile);
+        return ResponseEntity.ok(result);
+    }
+
 
     /* 상품 상세 조회  */
     @GetMapping("/{productId}")
