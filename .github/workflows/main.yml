@@ -99,8 +99,6 @@ jobs:
             '
 
 
-
-
   frontend:
     name: Frontend build → upload dist → replace on EC2
     runs-on: ubuntu-latest
@@ -126,7 +124,7 @@ jobs:
         run: |
           npm ci
           npm run build
-          tar -C dist -czf dist.tar.gz .
+          tar -czf dist.tar.gz -C dist .
 
       - name: Upload dist to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -148,19 +146,17 @@ jobs:
           script: |
             sudo bash -lc '
               set -e
-              DIST=$(find /tmp -type f -name dist.tar.gz -printf "%T@ %p\n" | sort -nr | head -n1 | awk "{print \$2}")
-              if [ -z "$DIST" ]; then
+              echo "=== Unpacking Frontend ==="
+              if [ ! -f /tmp/dist.tar.gz ]; then
                 echo "dist.tar.gz not found under /tmp" >&2
                 exit 1
               fi
-              echo "Using: $DIST"
               mkdir -p /var/www/cosmeticshop
               rm -rf /var/www/cosmeticshop/*
-              tar -xzf "$DIST" -C /var/www/cosmeticshop
-              find /var/www/cosmeticshop -type d -exec chmod 755 {} \;
-              find /var/www/cosmeticshop -type f -exec chmod 644 {} \;
-              if command -v nginx >/dev/null 2>&1; then
-                nginx -t && systemctl reload nginx || true
-              fi
+              tar -xzf /tmp/dist.tar.gz -C /var/www/cosmeticshop
+              chown -R www-data:www-data /var/www/cosmeticshop
+              chmod -R 755 /var/www/cosmeticshop
+              echo "=== Restarting Nginx ==="
+              nginx -t && systemctl restart nginx
             '
-            curl -sfI http://127.0.0.1/ | head -n 1 || true
+
