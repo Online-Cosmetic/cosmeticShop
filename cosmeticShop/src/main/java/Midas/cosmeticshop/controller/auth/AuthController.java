@@ -122,7 +122,8 @@ public class AuthController {
                     role,
                     accessToken,
                     commonUser.getEmailAddress(),
-                    commonUser.getUsername()
+                    commonUser.getUsername(),
+                    commonUser.getNickName()
                 );
             } else if(user.getRole().equals("COMPANY")) {
                 Company company = (Company) user;
@@ -131,7 +132,8 @@ public class AuthController {
                     role,
                     accessToken,
                     company.getEmailAddress(),
-                    company.getCompanyName()
+                    company.getCompanyName(),
+                    null
                 );
             } else { // ADMIN
                 body = new LoginResponse(
