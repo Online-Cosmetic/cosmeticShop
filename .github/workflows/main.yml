@@ -55,8 +55,6 @@ jobs:
           target: "/home/ubuntu/deploy/build/libs/"
           strip_components: 3   # cosmeticShop/build/libs/ 제거하고 파일만 두기
 
-
-
       # 도커 이미지 빌드 및 재기동 (root 권한으로 실행)
       - name: Build & restart container on EC2
         uses: appleboy/ssh-action@v1.2.0
@@ -69,28 +67,28 @@ jobs:
             sudo bash -lc '
               set -e
               mkdir -p /home/ubuntu/cosmeticShop/cosmeticShop/build/libs
-      
+
               # JAR 존재 확인 (없으면 실패)
               ls -l /home/ubuntu/deploy/build/libs/*.jar
-      
+
               # JAR 배치
               mv -f /home/ubuntu/deploy/build/libs/*.jar /home/ubuntu/cosmeticShop/cosmeticShop/build/libs/
-      
+
               cd /home/ubuntu/cosmeticShop/cosmeticShop
-      
+
               docker rm -f cosmeticshop || true
               docker build -t cosmeticshop:latest .
-      
+
               # ✅ ENV 파일 확인 (ubuntu 홈)
               test -f /home/ubuntu/.env || { echo ".env not found"; exit 1; }
-              
+
               # ✅ .env를 컨테이너에 주입
               docker run -d --name cosmeticshop \
                 -p 9000:9000 \
                 --env-file /home/ubuntu/.env \
                 --restart unless-stopped \
                 cosmeticshop:latest
-      
+
               # 헬스체크
               sleep 3
               echo "---- docker ps ----"
@@ -98,7 +96,6 @@ jobs:
               echo "---- curl BE ----"
               curl -sfI http://127.0.0.1:9000/ | head -n 1 || true
             '
-
 
   frontend:
     name: Frontend build → upload dist → replace on EC2
@@ -136,10 +133,10 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
-          target: "/tmp/"
-          strip_components: 5   # cosmeticShop/src/main/frontend/cosmetic-shop/ 잘라내고 /tmp/dist.tar.gz 로만 업로드
-          rm: true
-          overwrite: true
+          target: "/tmp/cosmeticshop_fe/"     # ✅ 전용 폴더 (시스템 /tmp 충돌 방지)
+          strip_components: 5                  # cosmeticShop/src/main/frontend/cosmetic-shop/ 잘라냄
+          rm: true                             # 해당 폴더 비우고 업로드
+          overwrite: true                      # 동일 파일명 덮어쓰기
 
       - name: Replace /var/www/cosmeticshop on EC2
         uses: appleboy/ssh-action@v1.2.0
@@ -152,16 +149,15 @@ jobs:
             sudo bash -lc '
               set -e
               echo "=== Unpacking Frontend ==="
-              if [ ! -f /tmp/dist.tar.gz ]; then
-                echo "dist.tar.gz not found under /tmp" >&2
-                exit 1
-              fi
+              # 🔍 디버깅: 업로드된 파일 확인
+              ls -l /tmp/cosmeticshop_fe/dist.tar.gz || true
+              test -f /tmp/cosmeticshop_fe/dist.tar.gz || { echo "dist.tar.gz not found under /tmp/cosmeticshop_fe"; exit 1; }
+
               mkdir -p /var/www/cosmeticshop
               rm -rf /var/www/cosmeticshop/*
-              tar -xzf /tmp/dist.tar.gz -C /var/www/cosmeticshop
+              tar -xzf /tmp/cosmeticshop_fe/dist.tar.gz -C /var/www/cosmeticshop
               chown -R www-data:www-data /var/www/cosmeticshop
               chmod -R 755 /var/www/cosmeticshop
               echo "=== Restarting Nginx ==="
               nginx -t && systemctl restart nginx
             '
-
