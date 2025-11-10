@@ -33,11 +33,11 @@ function ProductPage() {
         const fetchCompanies = async () => {
             try {
                 setCompanyLoading(true);
-                const response = await companyAPI.getAllCompanyNames();
+                const response = await companyAPI.getAllCompaniesInfo();
                 // 전체 선택 옵션 추가
-                setCompanies([{ id: null, name: "전체 회사" }, ...response.data.companyNames.map((name, index) => ({
-                    id: index + 1, // 임시 ID 할당 (실제로는 API에서 ID를 제공해야 함)
-                    name
+                setCompanies([{ id: null, name: "전체 회사" }, ...response.data.map(company => ({
+                    id: company.id,
+                    name: company.name
                 }))]);
             } catch (err) {
                 console.error("회사 목록 로딩 중 오류 발생:", err);
@@ -66,21 +66,24 @@ function ProductPage() {
                         response = await userAPI.product.getByCategoryAndCompany(selectedCategory, selectedCompany.id, sortOption);
                     }
                 } else {
-                    // 회사 필터링이 적용되지 않은 경우 (기존 로직)
-                    if (sortOption === 'popular') {
-                        // 인기순(좋아요 순) 정렬
-                        response = await userAPI.product.getPopular();
-                    } else if (sortOption === 'priceAsc') {
-                        // 가격 낮은순 정렬
-                        response = await userAPI.product.getPriceOrdered('asc');
-                    } else if (sortOption === 'priceDesc') {
-                        // 가격 높은순 정렬
-                        response = await userAPI.product.getPriceOrdered('desc');
-                    } else if (selectedCategory.toLowerCase() === "all") {
-                        // 전체 상품 최신순 정렬
-                        response = await userAPI.product.getLatest();
+                    // 회사 필터링이 적용되지 않은 경우
+                    if (selectedCategory.toLowerCase() === "all") {
+                        // 전체 카테고리인 경우에만 정렬 옵션에 따라 분기
+                        if (sortOption === 'popular') {
+                            // 인기순(좋아요 순) 정렬
+                            response = await userAPI.product.getPopular();
+                        } else if (sortOption === 'priceAsc') {
+                            // 가격 낮은순 정렬
+                            response = await userAPI.product.getPriceOrdered('asc');
+                        } else if (sortOption === 'priceDesc') {
+                            // 가격 높은순 정렬
+                            response = await userAPI.product.getPriceOrdered('desc');
+                        } else {
+                            // 전체 상품 최신순 정렬
+                            response = await userAPI.product.getLatest();
+                        }
                     } else {
-                        // 카테고리별 상품 (정렬 옵션 전달)
+                        // 특정 카테고리인 경우 - 정렬 옵션과 함께 카테고리 필터링 유지
                         response = await userAPI.product.getByCategory(selectedCategory, sortOption);
                     }
                 }
