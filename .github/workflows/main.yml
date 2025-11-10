@@ -81,12 +81,13 @@ jobs:
               docker rm -f cosmeticshop || true
               docker build -t cosmeticshop:latest .
       
-              # ENV 파일 확인
-              test -f /root/cosmeticShop/cosmeticShop/.env
-      
+              # ✅ ENV 파일 확인 (ubuntu 홈)
+              test -f /home/ubuntu/.env || { echo ".env not found"; exit 1; }
+              
+              # ✅ .env를 컨테이너에 주입
               docker run -d --name cosmeticshop \
                 -p 9000:9000 \
-                --env-file /root/cosmeticShop/cosmeticShop/.env \
+                --env-file /home/ubuntu/.env \
                 --restart unless-stopped \
                 cosmeticshop:latest
       
