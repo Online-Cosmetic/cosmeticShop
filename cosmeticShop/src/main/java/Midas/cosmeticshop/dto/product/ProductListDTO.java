@@ -24,6 +24,11 @@ public class ProductListDTO {
         String imageUrl = null;
         if (product.getThumbnailImage() != null) {
             imageUrl = product.getThumbnailImage().getImageUrl();
+            
+            // S3 public URL로 변환
+            if (imageUrl != null && imageUrl.startsWith("/images/")) {
+                imageUrl = "https://cosmall-image-bucket.s3.ap-northeast-2.amazonaws.com" + imageUrl;
+            }
         }
 
         return ProductListDTO.builder()

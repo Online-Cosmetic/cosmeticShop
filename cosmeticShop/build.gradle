@@ -55,7 +55,8 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-//	implementation 'me.paulschwarz:spring-dotenv:2.5.4'
+	// application.yml에서 절대경로로 .env import하게 변경하여 의존성 삭제함
+	// implementation 'me.paulschwarz:spring-dotenv:2.5.4'
 
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 

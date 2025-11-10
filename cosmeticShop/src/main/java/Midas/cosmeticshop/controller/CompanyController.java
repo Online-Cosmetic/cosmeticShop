@@ -1,8 +1,10 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
+import Midas.cosmeticshop.dto.CompanyInfoDTO;
 import Midas.cosmeticshop.dto.CompanyNamesDTO;
 import Midas.cosmeticshop.dto.product.ProductListDTO;
+import Midas.cosmeticshop.entity.user.Company;
 import Midas.cosmeticshop.repository.user.CompanyRepository;
 import Midas.cosmeticshop.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/company")
@@ -52,5 +57,15 @@ public class CompanyController {
     @GetMapping("/names/public")
     public ResponseEntity<CompanyNamesDTO> getAllCompaniesPublic() {
         return ResponseEntity.ok(new CompanyNamesDTO(companyRepository.findAllCompanyNames()));
+    }
+
+    /* 등록된 모든 기업 정보(이름, ID)를 조회 (공개) */
+    @GetMapping("/info/public")
+    public ResponseEntity<List<CompanyInfoDTO>> getAllCompaniesInfoPublic() {
+        List<Company> companies = companyRepository.findAllCompanies();
+        List<CompanyInfoDTO> companyInfoList = companies.stream()
+                .map(company -> new CompanyInfoDTO(company.getId(), company.getCompanyName()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(companyInfoList);
     }
 }
