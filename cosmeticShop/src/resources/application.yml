@@ -8,6 +8,11 @@ server:
         same-site: None
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]               # 로컬 실행용
+      - optional:file:/home/ubuntu/.env[.properties]  # EC2 서버용
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:}
     username: ${SPRING_DATASOURCE_USERNAME:}
