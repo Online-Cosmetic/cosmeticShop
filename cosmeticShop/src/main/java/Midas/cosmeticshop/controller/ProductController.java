@@ -25,7 +25,7 @@ public class ProductController {
     public ResponseEntity<?> registerProduct(
         @AuthenticationPrincipal BaseUserDetails userDetails,
         @ModelAttribute ProductDTO productDTO,
-        @RequestParam("mainImage") MultipartFile mainImage,
+        @RequestParam(value = "mainImage", required = false) MultipartFile mainImage,
         @RequestParam(value = "additionalImages", required=false) MultipartFile[] additionalImages
     ) {
         productService.registerProduct(userDetails, productDTO, mainImage, additionalImages);

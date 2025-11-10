@@ -146,8 +146,7 @@ public class SecurityConfig {
             // 로그인·회원가입 API
             .requestMatchers(
                 "/api/auth/**",
-                "/login/oauth2/code/**", // 소셜로그인 URI
-                "/api/products/**"
+                "/login/oauth2/code/**" // 소셜로그인 URI
             ).permitAll()
 
             // 회사 정보 공개 API (비로그인 사용자도 접근 가능)
@@ -213,8 +212,27 @@ public class SecurityConfig {
                 "/api/qnas/{qnaId}/answers"
             ).hasRole("ADMIN")
 
+            // 상품 관련 - POST/PUT/DELETE/PATCH는 인증 필요
             .requestMatchers(
-                HttpMethod.POST, "/api/products",
+                HttpMethod.POST, "/api/products"
+            ).hasAnyRole("COMPANY", "ADMIN")
+            .requestMatchers(
+                HttpMethod.PUT, "/api/products/**"
+            ).hasAnyRole("COMPANY", "ADMIN")
+            .requestMatchers(
+                HttpMethod.DELETE, "/api/products/**"
+            ).hasAnyRole("COMPANY", "ADMIN")
+            .requestMatchers(
+                HttpMethod.PATCH, "/api/products/**"
+            ).hasAnyRole("COMPANY", "ADMIN")
+
+            // 상품 조회는 공개 (GET만)
+            .requestMatchers(
+                HttpMethod.GET, "/api/products/**"
+            ).permitAll()
+
+            // 회사 관련 API
+            .requestMatchers(
                 "/api/company/**"
             ).hasAnyRole("COMPANY", "ADMIN")
 

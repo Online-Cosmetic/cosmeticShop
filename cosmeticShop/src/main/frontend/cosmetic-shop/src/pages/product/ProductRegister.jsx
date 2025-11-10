@@ -43,6 +43,18 @@ function ProductRegister() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // 필수 필드 검증
+        if (!formData.categoryId || !formData.productName || !formData.price || !formData.stock) {
+            alert("필수 항목을 모두 입력해주세요. (카테고리, 상품명, 가격, 재고)");
+            return;
+        }
+        
+        if (!mainImage) {
+            alert("메인 이미지를 등록해주세요.");
+            return;
+        }
+        
         const data = new FormData();
         Object.entries(formData).forEach(([k, v]) => data.append(k, v));
         if (mainImage) data.append("mainImage", mainImage);
@@ -51,14 +63,16 @@ function ProductRegister() {
         try {
             await customAxios.post("/api/products", data, {
                 headers: {
-                    "Authorization": token ? `Bearer ${token}` : '',
                     "Content-Type": "multipart/form-data"
                 },
                 withCredentials: true
             });
-            navigate("/products");
+            alert("상품이 성공적으로 등록되었습니다.");
+            navigate("/enterprise/product/manage");
         } catch (err) {
             console.error("상품 등록 실패", err);
+            const errorMessage = err.response?.data?.message || err.response?.data || "상품 등록에 실패했습니다. 다시 시도해주세요.";
+            alert(errorMessage);
         }
     };
 
