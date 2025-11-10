@@ -132,11 +132,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
-          source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
-          target: "/tmp/cosmeticshop_fe/"     # ✅ 전용 폴더 (시스템 /tmp 충돌 방지)
-          strip_components: 5                  # cosmeticShop/src/main/frontend/cosmetic-shop/ 잘라냄
-          rm: true                             # 해당 폴더 비우고 업로드
-          overwrite: true                      # 동일 파일명 덮어쓰기
+          source: "dist.tar.gz"
+          target: "/tmp/cosmeticshop_fe"
+          overwrite: true
+
 
       - name: Deploy frontend to /tmp/cosmeticshop_fe/dist on EC2
         uses: appleboy/ssh-action@v1.2.0
