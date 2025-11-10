@@ -15,6 +15,10 @@ spring:
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
   config:
     import: optional:file:.env[.properties]
+  servlet:
+    multipart: # 멀티파트 파일 업로드 설정(상품 일괄등록용)
+      max-file-size: 100MB      # 파일 하나당 최대 100MB
+      max-request-size: 100MB   # 요청 전체 최대 100MB
 
   web:
     resources:
