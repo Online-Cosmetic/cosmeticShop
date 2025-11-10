@@ -138,6 +138,8 @@ jobs:
           source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
           target: "/tmp/"
           strip_components: 5   # cosmeticShop/src/main/frontend/cosmetic-shop/ 잘라내고 /tmp/dist.tar.gz 로만 업로드
+          rm: true
+          overwrite: true
 
       - name: Replace /var/www/cosmeticshop on EC2
         uses: appleboy/ssh-action@v1.2.0
