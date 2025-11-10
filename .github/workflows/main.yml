@@ -116,7 +116,10 @@ jobs:
           cache-dependency-path: cosmeticShop/src/main/frontend/cosmetic-shop/package-lock.json
 
       - name: Write .env.production
-        run: printf "VITE_API_BASE=/api\n" > .env.production
+        run: |
+          printf "VITE_BACKEND_URL=http://43.202.44.185\n" > .env.production
+          printf "VITE_IMAGE_BASE_URL=http://43.202.44.185\n" >> .env.production
+
 
       - name: Install deps & build
         run: |
