@@ -150,6 +150,12 @@ public class SecurityConfig {
                 "/api/products/**"
             ).permitAll()
 
+            // 회사 정보 공개 API (비로그인 사용자도 접근 가능)
+            .requestMatchers(
+                "/api/company/info/public",
+                "/api/company/names/public"
+            ).permitAll()
+
             // 관리자 페이지 접근 경로 허용
             .requestMatchers(
                 "/admin/login",

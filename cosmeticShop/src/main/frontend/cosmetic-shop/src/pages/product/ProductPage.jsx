@@ -35,12 +35,19 @@ function ProductPage() {
                 setCompanyLoading(true);
                 const response = await companyAPI.getAllCompaniesInfo();
                 // 전체 선택 옵션 추가
-                setCompanies([{ id: null, name: "전체 회사" }, ...response.data.map(company => ({
-                    id: company.id,
-                    name: company.name
-                }))]);
+                if (response.data && response.data.length > 0) {
+                    setCompanies([{ id: null, name: "전체 회사" }, ...response.data.map(company => ({
+                        id: company.id,
+                        name: company.name
+                    }))]);
+                } else {
+                    // 회사가 없을 경우 전체 회사만 표시
+                    setCompanies([{ id: null, name: "전체 회사" }]);
+                }
             } catch (err) {
                 console.error("회사 목록 로딩 중 오류 발생:", err);
+                // 에러 발생 시에도 전체 회사 옵션은 표시
+                setCompanies([{ id: null, name: "전체 회사" }]);
             } finally {
                 setCompanyLoading(false);
             }
