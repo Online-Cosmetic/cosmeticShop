@@ -138,7 +138,7 @@ jobs:
           rm: true                             # 해당 폴더 비우고 업로드
           overwrite: true                      # 동일 파일명 덮어쓰기
 
-      - name: Replace /var/www/cosmeticshop on EC2
+      - name: Deploy frontend to /tmp/cosmeticshop_fe/dist on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -149,15 +149,17 @@ jobs:
             sudo bash -lc '
               set -e
               echo "=== Unpacking Frontend ==="
-              # 🔍 디버깅: 업로드된 파일 확인
               ls -l /tmp/cosmeticshop_fe/dist.tar.gz || true
               test -f /tmp/cosmeticshop_fe/dist.tar.gz || { echo "dist.tar.gz not found under /tmp/cosmeticshop_fe"; exit 1; }
 
-              mkdir -p /var/www/cosmeticshop
-              rm -rf /var/www/cosmeticshop/*
-              tar -xzf /tmp/cosmeticshop_fe/dist.tar.gz -C /var/www/cosmeticshop
-              chown -R www-data:www-data /var/www/cosmeticshop
-              chmod -R 755 /var/www/cosmeticshop
+              # 👉 Nginx root와 맞춰서 /tmp/cosmeticshop_fe/dist 에 풀기
+              mkdir -p /tmp/cosmeticshop_fe/dist
+              rm -rf /tmp/cosmeticshop_fe/dist/*
+              tar -xzf /tmp/cosmeticshop_fe/dist.tar.gz -C /tmp/cosmeticshop_fe/dist
+
+              chown -R www-data:www-data /tmp/cosmeticshop_fe/dist
+              chmod -R 755 /tmp/cosmeticshop_fe/dist
+
               echo "=== Restarting Nginx ==="
               nginx -t && systemctl restart nginx
             '
