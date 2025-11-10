@@ -69,6 +69,8 @@ dependencies {
 	implementation platform("software.amazon.awssdk:bom:2.25.39")
 	implementation "software.amazon.awssdk:s3"
 
+	implementation 'org.springframework:spring-test'
+
 }
 
 configurations.all {

@@ -15,13 +15,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.io.BufferedReader;
+import java.io.StringReader;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 
 @Service
@@ -80,6 +83,113 @@ public class ProductService {
         }
         product.getProductImages().addAll(productImages);
         productImageRepository.saveAll(Objects.requireNonNull(product.getProductImages()));
+    }
+
+    public Map<String, Object> registerProductsBatch(BaseUserDetails userDetails, MultipartFile zipFile) {
+        String userId = userDetails.getUsername();
+        String role = userDetails.getAuthorities().iterator().next().getAuthority();
+        int successCount = 0;
+        int failureCount = 0;
+
+        if (!"ROLE_COMPANY".equals(role)) {
+            throw new IllegalArgumentException("권한이 없습니다. 기업 회원만 상품 등록이 가능합니다.");
+        }
+
+        try (ZipInputStream zis = new ZipInputStream(zipFile.getInputStream())) {
+            ZipEntry entry;
+            //1. zip 파일 내의 CSV 파일과 이미지 파일들을 분리 저장
+            Map<String, byte[]> imageMap = new HashMap<>();
+            String csvContent = null;
+            while ((entry = zis.getNextEntry()) != null) {
+                if(entry.isDirectory()) continue;
+                String entryName = entry.getName();
+                if (entryName.endsWith(".csv")) {
+                    csvContent = new String(zis.readAllBytes());
+                } else{
+                    byte[] bytes = zis.readAllBytes();
+                    String fileName = entryName.substring(entryName.lastIndexOf('/') + 1);
+                    imageMap.put(fileName, bytes);
+                }
+            }
+            if (csvContent == null) {
+                throw new IllegalArgumentException("CSV 파일이 포함되어 있지 않습니다.");
+            }
+            //2. CSV 파싱 및 상품 등록
+            try(BufferedReader reader = new BufferedReader(new StringReader(csvContent))) {
+                String header = reader.readLine();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    try{
+                        String[] cols = line.split(",");
+
+                        int categoryId = Integer.parseInt(cols[0].trim());
+                        String name = cols[1].trim();
+                        String description = cols[2].trim();
+                        int price = Integer.parseInt(cols[3].trim());
+                        int stock = Integer.parseInt(cols[4].trim());
+                        String mainImageName = cols[5].trim();
+                        String additionalImageNames = cols.length > 6 ? cols[6].trim() : "";
+
+                        byte[] mainImageBytes = imageMap.get(mainImageName);
+                        if(mainImageBytes == null) {
+                            throw new IllegalArgumentException("메인 이미지 파일을 찾을 수 없습니다: " + mainImageName);
+                        }
+
+                        List<MultipartFile> additionalImagesList = new ArrayList<>();
+
+                        if (!additionalImageNames.isBlank()) {
+                            for (String imgName : additionalImageNames.split("\\|")) {
+                                imgName = imgName.trim();
+                                byte[] bytes = imageMap.get(imgName);
+                                if (bytes != null) {
+                                    // imgName(실제 파일 이름)을 그대로 사용해서 MockMultipartFile 생성
+                                    String mainContentType = detectContentType(imgName);
+
+                                    MultipartFile additionalImage = new MockMultipartFile(
+                                            imgName,       // form field name
+                                            imgName,       // original filename
+                                            mainContentType,   // ✅ 실제 확장자에 맞는 content-type
+                                            bytes
+                                    );
+                                    additionalImagesList.add(additionalImage);
+                                }
+                            }
+                        }
+
+                        ProductDTO dto = new ProductDTO();
+                        dto.setCategoryId(categoryId);
+                        dto.setProductName(name);
+                        dto.setDescription(description);
+                        dto.setPrice(price);
+                        dto.setStock(stock);
+                        String additionalContentType = detectContentType(mainImageName);
+                        MultipartFile mainImage = new MockMultipartFile(mainImageName, mainImageName, additionalContentType, mainImageBytes);
+                        MultipartFile[] additionalImages = additionalImagesList.toArray(new MultipartFile[0]);
+                        registerProduct(userDetails, dto, mainImage, additionalImages);
+                        successCount++;
+
+                    } catch(Exception e) {
+                        failureCount++;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("배치 상품 등록 중 오류가 발생했습니다.", e);
+        }
+        return Map.of(
+            "successfulRegistrations", successCount,
+            "failedRegistrations", failureCount
+        );
+    }
+
+    //이미지 확장자 구분
+    private String detectContentType(String fileName) {
+        String lower = fileName.toLowerCase();
+        if (lower.endsWith(".png"))  return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".webp")) return "image/webp";
+        if (lower.endsWith(".gif"))  return "image/gif";
+        return "application/octet-stream"; // 모르는 건 기본 바이너리
     }
 
     /* 상품 정보 조회 */
@@ -509,4 +619,6 @@ public class ProductService {
     public Long getCompanyIdByUserId(String userId) {
         return companyRepository.findByUserId(userId).getId();
     }
+
+
 }
