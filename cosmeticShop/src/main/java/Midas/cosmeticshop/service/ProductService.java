@@ -63,9 +63,8 @@ public class ProductService {
             String mainImageUrl = fileStorageService.storeFile(mainImage);
             thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(product.getId(), mainImageUrl));
             product.setThumbnailImage(thumbnailImage);
+            thumnailImageRepository.save(thumbnailImage);
         }
-
-        thumnailImageRepository.save(Objects.requireNonNull(product.getThumbnailImage()));
 
         List<ProductImage> productImages = new ArrayList<>();
         if (additionalImages != null) {

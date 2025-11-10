@@ -125,6 +125,7 @@ jobs:
           npm ci
           npm run build
           tar -czf dist.tar.gz -C dist .
+          ls -lh dist.tar.gz
 
       - name: Upload dist to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -134,7 +135,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
-          target: "/tmp/dist.tar.gz"
+          target: "/tmp/"
 
       - name: Replace /var/www/cosmeticshop on EC2
         uses: appleboy/ssh-action@v1.2.0
