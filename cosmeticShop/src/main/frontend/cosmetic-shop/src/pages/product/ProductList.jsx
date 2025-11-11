@@ -66,92 +66,88 @@ function ProductList({ products, title, onSortChange }) {
                 {/*<h2 className="text-3xl font-bold capitalize">{title}</h2>*/}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {products.length === 0 ? (
-                    <p className="col-span-3 text-center text-gray-500">해당 카테고리에 상품이 없습니다.</p>
-                ) : (
-                    products.map((product) => {
-                        // 할인된 가격 계산 - 백엔드에서 받은 discountRate 사용
-                        const discountRate = product.discountRate || 0;
-                        const discountedPrice = calculateDiscountedPrice(product.price, discountRate);
-                        const isLiked = likedProducts[product.id] || false;
+                {products.map((product) => {
+                     // 할인된 가격 계산 - 백엔드에서 받은 discountRate 사용
+                     const discountRate = product.discountRate || 0;
+                     const discountedPrice = calculateDiscountedPrice(product.price, discountRate);
+                     const isLiked = likedProducts[product.id] || false;
 
 
-                        return (
-                            <div
-                                key={product.id}
-                                onClick={() => navigate(`/detail/${product.id}`, { state: { mainImageUrl: product.imageUrl } })}
-                                className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 group"
-                            >
-                                <div className="relative">
-                                    <div className="relative w-full h-64 overflow-hidden bg-white">
-                                        <img
-                                            src={product.imageUrl || "https://via.placeholder.com/300x300.png?text=No+Image"}
-                                            alt={product.title}
-                                            className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-105"
-                                            onError={(e) => {
-                                                e.target.src = "https://via.placeholder.com/300x300.png?text=No+Image";
-                                            }}
-                                        />
-                                    </div>
+                     return (
+                         <div
+                             key={product.id}
+                             onClick={() => navigate(`/detail/${product.id}`, { state: { mainImageUrl: product.imageUrl } })}
+                             className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 group"
+                         >
+                             <div className="relative">
+                                 <div className="relative w-full h-64 overflow-hidden bg-white">
+                                     <img
+                                         src={product.imageUrl || "https://via.placeholder.com/300x300.png?text=No+Image"}
+                                         alt={product.title}
+                                         className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-105"
+                                         onError={(e) => {
+                                             e.target.src = "https://via.placeholder.com/300x300.png?text=No+Image";
+                                         }}
+                                     />
+                                 </div>
 
-                                    {/* 할인율 배지 */}
-                                    {discountRate > 0 && (
-                                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">
-                                            {discountRate}% OFF
-                                        </div>
-                                    )}
+                                 {/* 할인율 배지 */}
+                                 {discountRate > 0 && (
+                                     <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">
+                                         {discountRate}% OFF
+                                     </div>
+                                 )}
 
-                                    {/* 하트 버튼 */}
-                                    <button
-                                        className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-full text-gray-400 hover:text-rose-500 hover:bg-white transition-all duration-300 shadow-sm"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleLike(product.id);
-                                        }}
-                                    >
-                                        {isLiked ? (
-                                            <SolidHeartIcon className="h-5 w-5 text-rose-500" />
-                                        ) : (
-                                            <HeartIcon className="h-5 w-5 text-gray-400 hover:text-rose-500" />
-                                        )}
-                                    </button>
-                                </div>
+                                 {/* 하트 버튼 */}
+                                 <button
+                                     className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-full text-gray-400 hover:text-rose-500 hover:bg-white transition-all duration-300 shadow-sm"
+                                     onClick={(e) => {
+                                         e.stopPropagation();
+                                         toggleLike(product.id);
+                                     }}
+                                 >
+                                     {isLiked ? (
+                                         <SolidHeartIcon className="h-5 w-5 text-rose-500" />
+                                     ) : (
+                                         <HeartIcon className="h-5 w-5 text-gray-400 hover:text-rose-500" />
+                                     )}
+                                 </button>
+                             </div>
 
-                                <div className="p-5 space-y-2">
-                                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors duration-200">
-                                        {product.title || product.productName}
-                                    </h3>
+                             <div className="p-5 space-y-2">
+                                 <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors duration-200">
+                                     {product.title || product.productName}
+                                 </h3>
 
-                                    <p className="text-sm text-gray-500 line-clamp-2">
-                                        {product.content || product.description}
-                                    </p>
+                                 <p className="text-sm text-gray-500 line-clamp-2">
+                                     {product.content || product.description}
+                                 </p>
 
-                                    <div className="space-y-1 mt-2">
-                                        {discountRate > 0 ? (
-                                            <>
-                                                <div className="flex items-center">
-                                                    <span className="text-gray-500 text-sm line-through mr-2">
-                                                        {product.price.toLocaleString()}원
-                                                    </span>
-                                                    <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded font-medium">
-                                                        {discountRate}% 할인
-                                                    </span>
-                                                </div>
-                                                <p className="font-bold text-lg text-red-600">
-                                                    {discountedPrice.toLocaleString()}원
-                                                </p>
-                                            </>
-                                        ) : (
-                                            <p className="font-bold text-lg text-gray-900">
-                                                {product.price.toLocaleString()}원
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
+                                 <div className="space-y-1 mt-2">
+                                     {discountRate > 0 ? (
+                                         <>
+                                             <div className="flex items-center">
+                                                 <span className="text-gray-500 text-sm line-through mr-2">
+                                                     {product.price.toLocaleString()}원
+                                                 </span>
+                                                 <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded font-medium">
+                                                     {discountRate}% 할인
+                                                 </span>
+                                             </div>
+                                             <p className="font-bold text-lg text-red-600">
+                                                 {discountedPrice.toLocaleString()}원
+                                             </p>
+                                         </>
+                                     ) : (
+                                         <p className="font-bold text-lg text-gray-900">
+                                             {product.price.toLocaleString()}원
+                                         </p>
+                                     )}
+                                 </div>
+                             </div>
+                         </div>
+                     );
+                })}
             </div>
         </div>
     );
