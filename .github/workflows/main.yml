@@ -79,10 +79,10 @@ jobs:
               docker rm -f cosmeticshop || true
               docker build -t cosmeticshop:latest .
 
-              # ✅ ENV 파일 확인 (ubuntu 홈)
+              # ENV 파일 확인 (ubuntu 홈)
               test -f /home/ubuntu/.env || { echo ".env not found"; exit 1; }
 
-              # ✅ .env를 컨테이너에 주입
+              # .env를 컨테이너에 주입
               docker run -d --name cosmeticshop \
                 -p 9000:9000 \
                 --env-file /home/ubuntu/.env \
@@ -115,11 +115,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: cosmeticShop/src/main/frontend/cosmetic-shop/package-lock.json
 
+      #  도메인 하드코딩 대신 Nginx 프록시(/api) 사용
       - name: Write .env.production
         run: |
-          printf "VITE_BACKEND_URL=http://43.202.44.185\n" > .env.production
-          printf "VITE_IMAGE_BASE_URL=http://43.202.44.185\n" >> .env.production
-
+          printf "VITE_API_BASE=/api\n" > .env.production
+          printf "VITE_IMAGE_BASE_URL=/images\n" >> .env.production
 
       - name: Install deps & build
         run: |
@@ -128,6 +128,7 @@ jobs:
           tar -czf dist.tar.gz -C dist .
           ls -lh dist.tar.gz
 
+      #  단순하게 /tmp 로 업로드 (strip_components 사용 X)
       - name: Upload dist to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -136,12 +137,11 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
-          target: "/tmp/cosmeticshop_fe"
+          target: "/tmp/"
           overwrite: true
-          strip_components: 5 
 
-
-      - name: Deploy frontend to /tmp/cosmeticshop_fe/dist on EC2
+      #  /var/www/cosmeticshop 에 바로 배포 (Nginx root와 일치)
+      - name: Deploy frontend to /var/www/cosmeticshop on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -152,16 +152,14 @@ jobs:
             sudo bash -lc '
               set -e
               echo "=== Unpacking Frontend ==="
-              ls -l /tmp/cosmeticshop_fe/dist.tar.gz || true
-              test -f /tmp/cosmeticshop_fe/dist.tar.gz || { echo "dist.tar.gz not found under /tmp/cosmeticshop_fe"; exit 1; }
+              test -f /tmp/dist.tar.gz || { echo "dist.tar.gz not found under /tmp"; exit 1; }
 
-              # 👉 Nginx root와 맞춰서 /tmp/cosmeticshop_fe/dist 에 풀기
-              mkdir -p /tmp/cosmeticshop_fe/dist
-              rm -rf /tmp/cosmeticshop_fe/dist/*
-              tar -xzf /tmp/cosmeticshop_fe/dist.tar.gz -C /tmp/cosmeticshop_fe/dist
+              mkdir -p /var/www/cosmeticshop
+              rm -rf /var/www/cosmeticshop/*
+              tar -xzf /tmp/dist.tar.gz -C /var/www/cosmeticshop
 
-              chown -R www-data:www-data /tmp/cosmeticshop_fe/dist
-              chmod -R 755 /tmp/cosmeticshop_fe/dist
+              chown -R www-data:www-data /var/www/cosmeticshop
+              chmod -R 755 /var/www/cosmeticshop
 
               echo "=== Restarting Nginx ==="
               nginx -t && systemctl restart nginx
