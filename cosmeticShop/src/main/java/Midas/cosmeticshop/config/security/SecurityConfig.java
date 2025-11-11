@@ -107,7 +107,8 @@ public class SecurityConfig {
                         "https://*.vercel.app",
                         "https://your-frontend.com",
                         "http://localhost:5173",
-                        "http://localhost:3000"
+                        "http://localhost:3000",
+                        "http://43.202.44.185"
                 ));
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                 configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
