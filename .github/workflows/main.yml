@@ -139,6 +139,7 @@ jobs:
           source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
           target: "/tmp/"
           overwrite: true
+          strip_components: 5
 
       #  /var/www/cosmeticshop 에 바로 배포 (Nginx root와 일치)
       - name: Deploy frontend to /var/www/cosmeticshop on EC2
