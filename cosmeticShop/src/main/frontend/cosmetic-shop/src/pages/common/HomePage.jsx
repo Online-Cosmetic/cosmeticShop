@@ -30,14 +30,14 @@ const HomePage = () => {
         const fetchProducts = async () => {
             try {
                 // 인기 상품 가져오기
-                const popularResponse = await userAPI.product.getPopular();
+                const popularResponse = await userAPI.product.getBestsellers();
                 console.log("인기 상품 응답:", popularResponse.data);
                 if (popularResponse.data && popularResponse.data.batchesPreviews) {
                     setBestSellers(popularResponse.data.batchesPreviews);
                 }
 
                 // 최신 상품 가져오기 (추천 상품으로 사용)
-                const latestResponse = await userAPI.product.getLatest();
+                const latestResponse = await userAPI.product.getRecommendedProducts();
                 console.log("최신 상품 응답:", latestResponse.data);
                 if (latestResponse.data && latestResponse.data.batchesPreviews) {
                     setRecommended(latestResponse.data.batchesPreviews);

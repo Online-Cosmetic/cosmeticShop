@@ -616,5 +616,67 @@ public class ProductService {
         return companyRepository.findByUserId(userId).getId();
     }
 
+    /* 메인페이지용 베스트셀러 (liked 기준 인기순 상위 10개 상품) */
+    public ProductBatchPreviewResponse getBestsellers() {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
 
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findTop10ByActiveTrueOrderByLikedDesc();
+//        List<Product> productList = productRepository.findAllByOrderByLikedDesc();
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 메인페이지용 추천상품 (최신순 상위 5개 품목) */
+    public ProductBatchPreviewResponse getRecommendedProducts() {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findTop5ByActiveTrueOrderByIdDesc();
+//        List<Product> productList = productRepository.findAllByOrderByIdDesc();
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 상품 상세페이지 관련상품 (동일 카테고리 최신순 상위 8개 품목) */
+    public ProductBatchPreviewResponse getRelatedProducts(int categoryId, String sortOption) {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+        response.setBatchesPreviews(new ArrayList<>());
+
+        List<Product> productList;
+
+        // 특정 카테고리 상품 조회
+        switch (sortOption) {
+            case "popular":
+                productList = productRepository.findTop8ByCategoryIdAndActiveTrueOrderByLikedDesc(categoryId);
+                break;
+            case "priceAsc":
+                productList = productRepository.findTop8ByCategoryIdAndActiveTrueOrderByPriceAsc(categoryId);
+                break;
+            case "priceDesc":
+                productList = productRepository.findTop8ByCategoryIdAndActiveTrueOrderByPriceDesc(categoryId);
+                break;
+            case "latest":
+            default:
+                productList = productRepository.findTop8ByCategoryIdAndActiveTrueOrderByIdDesc(categoryId);
+                break;
+        }
+
+        for (Product product : productList) {
+            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
 }

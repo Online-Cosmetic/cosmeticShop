@@ -67,22 +67,24 @@ function ProductPage() {
                     }
                 } else {
                     // 회사 필터링이 적용되지 않은 경우 (기존 로직)
-                    if (sortOption === 'popular') {
-                        // 인기순(좋아요 순) 정렬
-                        response = await userAPI.product.getPopular();
-                    } else if (sortOption === 'priceAsc') {
-                        // 가격 낮은순 정렬
-                        response = await userAPI.product.getPriceOrdered('asc');
-                    } else if (sortOption === 'priceDesc') {
-                        // 가격 높은순 정렬
-                        response = await userAPI.product.getPriceOrdered('desc');
-                    } else if (selectedCategory.toLowerCase() === "all") {
-                        // 전체 상품 최신순 정렬
-                        response = await userAPI.product.getLatest();
-                    } else {
-                        // 카테고리별 상품 (정렬 옵션 전달)
-                        response = await userAPI.product.getByCategory(selectedCategory, sortOption);
-                    }
+                    // 카테고리별 상품 (정렬 옵션 전달)
+                       response = await userAPI.product.getByCategory(selectedCategory, sortOption);
+//                     if (sortOption === 'popular') {
+//                         // 인기순(좋아요 순) 정렬
+//                         response = await userAPI.product.getPopular();
+//                     } else if (sortOption === 'priceAsc') {
+//                         // 가격 낮은순 정렬
+//                         response = await userAPI.product.getPriceOrdered('asc');
+//                     } else if (sortOption === 'priceDesc') {
+//                         // 가격 높은순 정렬
+//                         response = await userAPI.product.getPriceOrdered('desc');
+//                     } else if (selectedCategory.toLowerCase() === "all") {
+//                         // 전체 상품 최신순 정렬
+//                         response = await userAPI.product.getLatest();
+//                     } else {
+//                         // 카테고리별 상품 (정렬 옵션 전달)
+//                         response = await userAPI.product.getByCategory(selectedCategory, sortOption);
+//                     }
                 }
 
                 // API 응답 구조에 맞게 데이터 추출

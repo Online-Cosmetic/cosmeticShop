@@ -58,4 +58,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceAsc(int categoryId, Long companyId);
     List<Product> findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceDesc(int categoryId, Long companyId);
     List<Product> findByCategoryIdAndCompanyIdAndActiveTrueOrderByIdDesc(int categoryId, Long companyId);
+
+    //베스트셀러용 인기(liked) 상위 10개 상품 조회
+    List<Product> findTop10ByActiveTrueOrderByLikedDesc();
+    //추천상품용 최신 상위 10개 상품 조회
+    List<Product> findTop5ByActiveTrueOrderByIdDesc();
+    //관련상품용 동일 카테고리 정렬기준별 상위 10개 상품 조회 (latest로 구현되어있으나 확장성을 위해 다른 정렬기준도 유지)
+    List<Product> findTop8ByCategoryIdAndActiveTrueOrderByLikedDesc(int categoryId);
+    List<Product> findTop8ByCategoryIdAndActiveTrueOrderByPriceAsc(int categoryId);
+    List<Product> findTop8ByCategoryIdAndActiveTrueOrderByPriceDesc(int categoryId);
+    List<Product> findTop8ByCategoryIdAndActiveTrueOrderByIdDesc(int categoryId);
 }

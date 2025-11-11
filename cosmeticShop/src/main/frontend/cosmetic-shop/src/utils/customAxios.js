@@ -152,6 +152,22 @@ export const userAPI = {
         getAll: () => customAxios.get('/api/products'),
         getById: (id) => customAxios.get(`/api/products/${id}`),
         search: (query) => customAxios.get('/api/products/search', {params: {query}}),
+        // 베스트셀러 조회 (liked 순 10개)
+        getBestsellers: () => customAxios.get('/api/products/batch/bestsellers'),
+        // 추천상품 조회 (최신순 10개)
+        getRecommendedProducts: () => customAxios.get('/api/products/batch/recommended'),
+        // 관련상품 조회 (동일카테고리 10개)
+        getRelatedProducts: (categoryName, sortOption = 'latest') => {
+                    // 카테고리 이름을 카테고리 ID로 변환
+                    const categoryMap = {
+                        // 전체 상품은 CategoryID 0으로 가정
+                        'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
+                    };
+                    const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
+                    return customAxios.get(`/api/products/batch/related/${categoryId}`, {
+                        params: { sort: sortOption }
+                    });
+                },
         // 최신순으로 전체 상품 조회
         getLatest: () => customAxios.get('/api/products/batch/latest'),
         // 인기순(좋아요 순)으로 전체 상품 조회

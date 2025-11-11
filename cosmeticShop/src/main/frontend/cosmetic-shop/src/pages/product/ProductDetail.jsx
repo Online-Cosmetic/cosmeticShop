@@ -114,7 +114,7 @@ function Detail({title}) {
 
                 // 관련 상품 가져오기 (같은 카테고리 상품 가정)
                 const categoryName = getCategoryNameById(productData.categoryId);
-                const categoryResponse = await userAPI.product.getByCategory(categoryName);
+                const categoryResponse = await userAPI.product.getRelatedProducts(categoryName);
 
                 // 받아온 데이터를 ProductList 컴포넌트에 맞게 변환
                 const formattedProducts = (categoryResponse.data.batchesPreviews || [])
