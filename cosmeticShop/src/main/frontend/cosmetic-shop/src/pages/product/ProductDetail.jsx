@@ -34,6 +34,10 @@ function Detail({title}) {
     const [hasReviewed, setHasReviewed] = useState(false);
     const [sortBy, setSortBy] = useState('popular'); // 'popular' 또는 'latest'
 
+    // 리뷰 작성 버튼 노출 조건 계산
+    const alreadyReviewed = isAuthenticated && hasReviewed;
+    const canWriteReview = isAuthenticated && hasPurchased && !alreadyReviewed;
+
     // 쿠폰 관련 상태 추가
     const [coupons, setCoupons] = useState([]);
     const [myCoupons, setMyCoupons] = useState([]);
@@ -311,6 +315,11 @@ function Detail({title}) {
 
         if (!hasPurchased) {
             toast.error("상품을 구매한 후에 리뷰를 작성할 수 있습니다.");
+            return;
+        }
+
+        if (hasReviewed) {
+            toast.error("이미 작성한 리뷰가 있습니다.");
             return;
         }
 
@@ -872,9 +881,34 @@ function Detail({title}) {
 
                 {/*리뷰 섹션에 정렬 옵션 추가*/}
                 <div className="mt-12">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold">상품 리뷰</h2>
-                        <div className="flex items-center">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <h2 className="text-2xl font-bold">상품 리뷰</h2>
+                                {alreadyReviewed && (
+                                    <span className="text-sm text-emerald-600 font-medium">
+                                        이미 작성한 리뷰가 있습니다.
+                                    </span>
+                                )}
+                            </div>
+                            {isAuthenticated && !hasPurchased && (
+                                <p className="mt-2 text-sm text-gray-500">
+                                    상품을 구매한 고객만 리뷰를 작성할 수 있습니다.
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <button
+                                onClick={goToReviewWrite}
+                                disabled={!canWriteReview}
+                                className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 shadow-sm self-start ${
+                                    canWriteReview
+                                        ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                                        : "bg-gray-200 text-gray-600 hover:bg-gray-200"
+                                } sm:mr-3`}
+                            >
+                                리뷰 작성하기
+                            </button>
                             <button
                                 onClick={() => handleSortChange('popular')}
                                 className={`px-3 py-1 mr-2 rounded-md ${sortBy === 'popular'

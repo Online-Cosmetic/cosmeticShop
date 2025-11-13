@@ -9,5 +9,9 @@ import java.util.List;
 @Getter
 @Setter
 public class ProductBatchPreviewResponse {
-    List<ProductPreviewDTO> batchesPreviews = new ArrayList<>();
+    private List<ProductPreviewDTO> batchesPreviews = new ArrayList<>();
+    private boolean hasNext;
+    private long totalElements;
+    private int page;
+    private int pageSize;
 }

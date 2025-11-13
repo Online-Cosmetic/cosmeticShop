@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import ProductList from "./ProductList";
 import { userAPI, companyAPI } from "../../utils/customAxios";
@@ -18,16 +18,27 @@ function ProductPage() {
     const navigate = useNavigate();
     const selectedCategory = category || "all";  // 기본값
 
+    const PAGE_SIZE = 9;
+
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [error, setError] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [loadMoreError, setLoadMoreError] = useState(null);
     const [sortOption, setSortOption] = useState('latest'); // 정렬 옵션 상태 추가
     const [companies, setCompanies] = useState([]); // 회사 목록 상태 추가
     const [selectedCompany, setSelectedCompany] = useState(null); // 선택된 회사 상태 추가
     const [companyLoading, setCompanyLoading] = useState(true); // 회사 목록 로딩 상태 추가
-    const itemsPerPage = 9;
     const [searchQuery, setSearchQuery] = useState(""); // 검색어 상태 추가
+    const [appliedSearch, setAppliedSearch] = useState("");
+    const [page, setPage] = useState(-1);
+    const [hasNext, setHasNext] = useState(true);
+    const [totalCount, setTotalCount] = useState(null);
+
+    const fetchIdRef = useRef(0);
+    const observerRef = useRef(null);
+    const sentinelRef = useRef(null);
+    const lastFetchedPageRef = useRef(-1);
 
     // 회사 목록 가져오기
     useEffect(() => {
@@ -51,91 +62,173 @@ function ProductPage() {
     }, []);
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                setLoading(true);
-                let response;
+        const handler = setTimeout(() => {
+            setAppliedSearch(searchQuery.trim());
+        }, 300);
 
-                // 회사 필터링 및 정렬 옵션에 따라 API 호출 분기
-                if (selectedCompany && selectedCompany.id) {
-                    // 회사 필터링이 적용된 경우
-                    if (selectedCategory.toLowerCase() === "all") {
-                        // 전체 카테고리 + 특정 회사
-                        response = await userAPI.product.getByCompany(selectedCompany.id, sortOption);
-                    } else {
-                        // 특정 카테고리 + 특정 회사
-                        response = await userAPI.product.getByCategoryAndCompany(selectedCategory, selectedCompany.id, sortOption);
-                    }
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
+
+    const companyFilterId = selectedCompany && selectedCompany.id ? selectedCompany.id : null;
+
+    const fetchProducts = useCallback(async (pageToLoad = 0, reset = false) => {
+        const fetchId = ++fetchIdRef.current;
+        const safePageToLoad = Math.max(pageToLoad, 0);
+
+        if (!reset && safePageToLoad <= lastFetchedPageRef.current) {
+            return;
+        }
+
+        if (reset) {
+            setError(null);
+        }
+        setLoadMoreError(null);
+        setIsFetchingMore(true);
+        if (reset) {
+            setIsInitialLoading(true);
+        }
+
+        try {
+            let response;
+
+            if (companyFilterId) {
+                if (selectedCategory.toLowerCase() === "all") {
+                    response = await userAPI.product.getByCompany(companyFilterId, sortOption, safePageToLoad, PAGE_SIZE, appliedSearch);
                 } else {
-                    // 회사 필터링이 적용되지 않은 경우 (기존 로직)
-                    // 카테고리별 상품 (정렬 옵션 전달)
-                       response = await userAPI.product.getByCategory(selectedCategory, sortOption);
-//                     if (sortOption === 'popular') {
-//                         // 인기순(좋아요 순) 정렬
-//                         response = await userAPI.product.getPopular();
-//                     } else if (sortOption === 'priceAsc') {
-//                         // 가격 낮은순 정렬
-//                         response = await userAPI.product.getPriceOrdered('asc');
-//                     } else if (sortOption === 'priceDesc') {
-//                         // 가격 높은순 정렬
-//                         response = await userAPI.product.getPriceOrdered('desc');
-//                     } else if (selectedCategory.toLowerCase() === "all") {
-//                         // 전체 상품 최신순 정렬
-//                         response = await userAPI.product.getLatest();
-//                     } else {
-//                         // 카테고리별 상품 (정렬 옵션 전달)
-//                         response = await userAPI.product.getByCategory(selectedCategory, sortOption);
-//                     }
+                    response = await userAPI.product.getByCategoryAndCompany(selectedCategory, companyFilterId, sortOption, safePageToLoad, PAGE_SIZE, appliedSearch);
                 }
-
-                // API 응답 구조에 맞게 데이터 추출
-                const productData = response.data.batchesPreviews || [];
-
-                // 받아온 데이터를 ProductList 컴포넌트에 맞게 변환
-                const formattedProducts = productData.map(product => ({
-                    id: product.productId,
-                    title: product.productName,
-                    content: product.description,
-                    price: product.price,
-                    discountRate: product.discountRate || 0,
-                    imageUrl: product.thumbImgUrl ? getImageUrl(product.thumbImgUrl) : null
-                }));
-
-                setProducts(formattedProducts);
-                setCurrentPage(1); // 필터링 옵션 변경 시 첫 페이지로 리셋
-            } catch (err) {
-                console.error("상품 로딩 중 오류 발생:", err);
-                setError("상품을 불러오는 중 오류가 발생했습니다.");
-            } finally {
-                setLoading(false);
+            } else {
+                response = await userAPI.product.getByCategory(selectedCategory, sortOption, safePageToLoad, PAGE_SIZE, appliedSearch);
             }
-        };
 
-        fetchProducts();
-    }, [selectedCategory, sortOption, selectedCompany]);
+            if (fetchId !== fetchIdRef.current) {
+                return;
+            }
 
-    const filteredProducts = products.filter((p) => {
-        if (!searchQuery.trim()) return true; // 검색어가 없으면 전체 상품 표시
-        const q = searchQuery.toLowerCase();  // 대소문자 구분 없이 검색
-        return (
-            p.title.toLowerCase().includes(q) ||
-            (p.content && p.content.toLowerCase().includes(q))
+            const productData = response?.data?.batchesPreviews || [];
+            const formattedProducts = productData.map(product => ({
+                id: product.productId,
+                title: product.productName,
+                content: product.description,
+                price: product.price,
+                discountRate: product.discountRate || 0,
+                imageUrl: product.thumbImgUrl ? getImageUrl(product.thumbImgUrl) : null
+            }));
+
+            const batchUnique = [];
+            const batchIds = new Set();
+            formattedProducts.forEach(product => {
+                if (!batchIds.has(product.id)) {
+                    batchIds.add(product.id);
+                    batchUnique.push(product);
+                }
+            });
+
+            let uniqueCount = 0;
+
+            setProducts(prev => {
+                if (reset) {
+                    uniqueCount = batchUnique.length;
+                    return batchUnique;
+                }
+                const prevIds = new Set(prev.map(prod => prod.id));
+                const uniqueNew = batchUnique.filter(prod => !prevIds.has(prod.id));
+                uniqueCount = uniqueNew.length;
+                return uniqueNew.length > 0 ? [...prev, ...uniqueNew] : prev;
+            });
+            setPage(safePageToLoad);
+            lastFetchedPageRef.current = safePageToLoad;
+
+            const hasNextFromResponse = response?.data?.hasNext;
+            let resolvedHasNext;
+            if (typeof hasNextFromResponse === "boolean") {
+                resolvedHasNext = hasNextFromResponse;
+            } else {
+                resolvedHasNext = formattedProducts.length === PAGE_SIZE;
+            }
+            setHasNext(resolvedHasNext);
+
+            setTotalCount(prev => {
+                const total = response?.data?.totalElements;
+                if (typeof total === "number") {
+                    return total;
+                }
+                if (total !== undefined && total !== null) {
+                    const parsed = Number(total);
+                    if (!Number.isNaN(parsed)) {
+                        return parsed;
+                    }
+                }
+                if (reset) {
+                    return uniqueCount;
+                }
+                return prev != null ? prev + uniqueCount : uniqueCount;
+            });
+        } catch (err) {
+            if (fetchId !== fetchIdRef.current) {
+                return;
+            }
+            console.error("상품 로딩 중 오류 발생:", err);
+            if (reset) {
+                setProducts([]);
+                setHasNext(false);
+                setError("상품을 불러오는 중 오류가 발생했습니다.");
+            } else {
+                setLoadMoreError("추가 상품을 불러오는 중 오류가 발생했습니다.");
+            }
+        } finally {
+            if (fetchId === fetchIdRef.current) {
+                setIsFetchingMore(false);
+                if (reset) {
+                    setIsInitialLoading(false);
+                }
+            }
+        }
+    }, [selectedCategory, sortOption, companyFilterId, appliedSearch]);
+
+    useEffect(() => {
+        lastFetchedPageRef.current = -1;
+        setProducts([]);
+        setPage(-1);
+        setHasNext(true);
+        setTotalCount(null);
+        setLoadMoreError(null);
+        fetchProducts(0, true);
+    }, [selectedCategory, sortOption, companyFilterId, appliedSearch, fetchProducts]);
+
+    useEffect(() => {
+        if (!sentinelRef.current) return;
+
+        if (observerRef.current) {
+            observerRef.current.disconnect();
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const [entry] = entries;
+                if (entry?.isIntersecting && hasNext && !isFetchingMore && !isInitialLoading) {
+                    fetchProducts(page + 1);
+                }
+            },
+            { rootMargin: "200px" }
         );
-    });
+
+        observer.observe(sentinelRef.current);
+        observerRef.current = observer;
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [fetchProducts, hasNext, isFetchingMore, isInitialLoading, page]);
 
     const handleViewAll = () => {
         setSearchQuery("");
         setSelectedCompany(null);   // 회사 필터도 초기화 하고 싶으면
-        setCurrentPage(1);          // 페이지도 1페이지로
+        setPage(-1);                // 페이지도 초기화
+        setHasNext(true);
         navigate("/products/all");
     };
-
-    // 페이지네이션 계산
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-    const offset = (currentPage - 1) * itemsPerPage;
-    const currentProducts = filteredProducts.slice(offset, offset + itemsPerPage);
-
-    if (loading) return (
+    if (isInitialLoading) return (
         <div className="flex items-center justify-center min-h-[60vh]">
             <div className="animate-pulse flex flex-col items-center">
                 <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
@@ -144,7 +237,7 @@ function ProductPage() {
         </div>
     );
 
-    if (error) return (
+    if (error && products.length === 0) return (
         <div className="flex items-center justify-center min-h-[60vh]">
             <div className="bg-red-50 text-red-600 p-6 rounded-lg shadow-sm max-w-md text-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -161,6 +254,9 @@ function ProductPage() {
             </div>
         </div>
     );
+
+    const productCountLabel = totalCount ?? products.length;
+    const showEmptyState = !isInitialLoading && !error && products.length === 0;
 
     return (
         <div className="w-full max-w-screen-xl mx-auto px-4 py-8">
@@ -194,7 +290,6 @@ function ProductPage() {
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
-                                    setCurrentPage(1); // 검색어 바뀌면 1페이지로 리셋
                                 }}
                                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                             />
@@ -221,18 +316,24 @@ function ProductPage() {
             {!companyLoading && companies.length > 1 && (
                 <div className="mb-6 bg-gray-50 p-4 rounded-lg">
                     <div className="flex flex-wrap gap-3">
-                        {companies.map((company) => (
-                            <label key={company.name} className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="company"
-                                    checked={selectedCompany === company}
-                                    onChange={() => setSelectedCompany(company)}
-                                    className="form-radio text-emerald-500 focus:ring-emerald-500"
-                                />
-                                <span className="text-gray-700">{company.name}</span>
-                            </label>
-                        ))}
+                        {companies.map((company) => {
+                            const isSelected = selectedCompany
+                                ? selectedCompany.id === company.id
+                                : company.id == null;
+
+                            return (
+                                <label key={company.name} className="flex items-center space-x-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="company"
+                                        checked={isSelected}
+                                        onChange={() => setSelectedCompany(company.id == null ? null : company)}
+                                        className="form-radio text-emerald-500 focus:ring-emerald-500"
+                                    />
+                                    <span className="text-gray-700">{company.name}</span>
+                                </label>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -241,7 +342,7 @@ function ProductPage() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">
                     {CATEGORY_NAMES[selectedCategory]}
-                    <span className="text-emerald-600 ml-2 text-lg">({filteredProducts.length})</span>
+                    <span className="text-emerald-600 ml-2 text-lg">({productCountLabel})</span>
                     {selectedCompany && selectedCompany.id && (
                         <span className="text-emerald-600 ml-2 text-lg">- {selectedCompany.name}</span>
                     )}
@@ -263,7 +364,7 @@ function ProductPage() {
 
             {/* 상품 목록 영역 + 상품이 없을 때 메세지 - 너비와 높이를 고정 */}
             <div className="min-h-[800px] w-full flex items-start justify-center">
-                {filteredProducts.length === 0 && !loading && !error ? (
+                {showEmptyState ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -293,52 +394,28 @@ function ProductPage() {
                         </button>
                     </div>
                 ) : (
-                    <ProductList products={currentProducts} title="" />
+                    <div className="w-full">
+                        <ProductList products={products} title="" />
+                        <div ref={sentinelRef} className="h-1" />
+                        {isFetchingMore && (
+                            <div className="flex justify-center py-8">
+                                <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        )}
+                        {loadMoreError && (
+                            <div className="mt-4 text-center text-sm text-red-500">
+                                {loadMoreError}
+                            </div>
+                        )}
+                        {!hasNext && !isFetchingMore && products.length > 0 && (
+                            <div className="mt-8 text-center text-sm text-gray-400">
+                                모든 상품을 확인했습니다.
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
 
-            {/* 페이지네이션 */}
-            {filteredProducts.length > itemsPerPage && (
-                <div className="flex justify-center mt-12 mb-4">
-                    <div className="inline-flex rounded-md shadow-sm">
-                        <button
-                            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            이전
-                        </button>
-
-                        <div className="hidden sm:flex">
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <button
-                                    key={i + 1}
-                                    onClick={() => setCurrentPage(i + 1)}
-                                    className={`px-4 py-2 text-sm font-medium border border-gray-300 ${
-                                        currentPage === i + 1
-                                            ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600"
-                                            : "bg-white text-gray-700 hover:bg-gray-50"
-                                    } ${i === 0 ? "" : "border-l-0"} ${i === totalPages - 1 ? "rounded-r-md" : ""}`}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="sm:hidden px-4 py-2 text-sm font-medium bg-white border border-gray-300 border-l-0">
-                            {currentPage} / {totalPages}
-                        </div>
-
-                        <button
-                            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed sm:border-l-0"
-                        >
-                            다음
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

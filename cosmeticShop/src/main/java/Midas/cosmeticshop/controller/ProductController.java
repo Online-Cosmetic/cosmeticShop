@@ -67,8 +67,11 @@ public class ProductController {
     @GetMapping("/batch/{categoryId}")
     public ResponseEntity<ProductBatchPreviewResponse> categorizedProducts(
         @PathVariable int categoryId,
-        @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
-        ProductBatchPreviewResponse response = productService.getCategorizedProductsPreview(categoryId, sortOption);
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "9") int size) {
+        ProductBatchPreviewResponse response = productService.getCategorizedProductsPreview(categoryId, sortOption, keyword, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -98,8 +101,11 @@ public class ProductController {
     @GetMapping("/batch/company/{companyId}")
     public ResponseEntity<ProductBatchPreviewResponse> companyProducts(
         @PathVariable Long companyId,
-        @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
-        ProductBatchPreviewResponse response = productService.getCompanyProductsPreview(companyId, sortOption);
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "9") int size) {
+        ProductBatchPreviewResponse response = productService.getCompanyProductsPreview(companyId, sortOption, keyword, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -108,8 +114,11 @@ public class ProductController {
     public ResponseEntity<ProductBatchPreviewResponse> categoryAndCompanyProducts(
         @PathVariable int categoryId,
         @PathVariable Long companyId,
-        @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
-        ProductBatchPreviewResponse response = productService.getCategoryAndCompanyProductsPreview(categoryId, companyId, sortOption);
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "9") int size) {
+        ProductBatchPreviewResponse response = productService.getCategoryAndCompanyProductsPreview(categoryId, companyId, sortOption, keyword, page, size);
         return ResponseEntity.ok(response);
     }
 

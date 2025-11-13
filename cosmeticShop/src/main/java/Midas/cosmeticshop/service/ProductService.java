@@ -9,12 +9,15 @@ import Midas.cosmeticshop.jwt.JWTUtil;
 import Midas.cosmeticshop.repository.ProductImageRepository;
 import Midas.cosmeticshop.repository.ProductRepository;
 import Midas.cosmeticshop.repository.ThumbnailImageRepository;
+import Midas.cosmeticshop.repository.specification.ProductSpecifications;
 import Midas.cosmeticshop.repository.user.CompanyRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -301,22 +305,6 @@ public class ProductService {
 //        productRepository.delete(product);
     }
 
-    /* 카테고리에 속하는 상품 조회 */
-    public ProductBatchPreviewResponse getCategorizedProductsPreview(int categoryId) {
-        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
-
-        response.setBatchesPreviews(new ArrayList<>());
-        List<Product> productList = productRepository.findAllByCategoryIdAndActiveTrue(categoryId);
-//        List<Product> productList = productRepository.findAllByCategoryId(categoryId);
-
-        for(Product product : productList) {
-            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
-            response.getBatchesPreviews().add(dto);
-        }
-
-        return response;
-    }
-
     /* 찜하기 수 많은 상품 조회 */
     public ProductBatchPreviewResponse getPopularProductsPreview() {
         ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
@@ -492,123 +480,59 @@ public class ProductService {
     }
 
     /* 정렬 옵션 적용된 카테고리별 상품 조회 */
-    public ProductBatchPreviewResponse getCategorizedProductsPreview(int categoryId, String sortOption) {
-        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
-        response.setBatchesPreviews(new ArrayList<>());
-
-        List<Product> productList;
-
-        // 카테고리 ID가 0인 경우 전체 상품 조회
-        if (categoryId == 0) {
-            switch (sortOption) {
-                case "popular":
-                    productList = productRepository.findAllByActiveTrueOrderByLikedDesc();
-                    break;
-                case "priceAsc":
-                    productList = productRepository.findAllByActiveTrueOrderByPriceAsc();
-                    break;
-                case "priceDesc":
-                    productList = productRepository.findAllByActiveTrueOrderByPriceDesc();
-                    break;
-                case "latest":
-                default:
-                    productList = productRepository.findAllByActiveTrueOrderByIdDesc();
-                    break;
-            }
-        } else {
-            // 특정 카테고리 상품 조회
-            switch (sortOption) {
-                case "popular":
-                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByLikedDesc(categoryId);
-                    break;
-                case "priceAsc":
-                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByPriceAsc(categoryId);
-                    break;
-                case "priceDesc":
-                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByPriceDesc(categoryId);
-                    break;
-                case "latest":
-                default:
-                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByIdDesc(categoryId);
-                    break;
-            }
-        }
-
-        for (Product product : productList) {
-            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
-            response.getBatchesPreviews().add(dto);
-        }
-
-        return response;
+    public ProductBatchPreviewResponse getCategorizedProductsPreview(int categoryId, String sortOption, String keyword, int page, int size) {
+        return getFilteredProducts(categoryId, null, sortOption, keyword, page, size);
     }
 
     /* 정렬 옵션 적용된 회사별 상품 조회 */
-    public ProductBatchPreviewResponse getCompanyProductsPreview(Long companyId, String sortOption) {
-        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
-        response.setBatchesPreviews(new ArrayList<>());
-
-        List<Product> productList;
-
-        // 회사별 상품 조회
-        switch (sortOption) {
-            case "popular":
-                productList = productRepository.findByCompanyIdAndActiveTrueOrderByLikedDesc(companyId);
-                break;
-            case "priceAsc":
-                productList = productRepository.findByCompanyIdAndActiveTrueOrderByPriceAsc(companyId);
-                break;
-            case "priceDesc":
-                productList = productRepository.findByCompanyIdAndActiveTrueOrderByPriceDesc(companyId);
-                break;
-            case "latest":
-            default:
-                productList = productRepository.findByCompanyIdAndActiveTrueOrderByIdDesc(companyId);
-                break;
-        }
-
-        for (Product product : productList) {
-            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
-            response.getBatchesPreviews().add(dto);
-        }
-
-        return response;
+    public ProductBatchPreviewResponse getCompanyProductsPreview(Long companyId, String sortOption, String keyword, int page, int size) {
+        return getFilteredProducts(null, companyId, sortOption, keyword, page, size);
     }
 
     /* 정렬 옵션 적용된 카테고리 및 회사별 상품 조회 */
-    public ProductBatchPreviewResponse getCategoryAndCompanyProductsPreview(int categoryId, Long companyId, String sortOption) {
+    public ProductBatchPreviewResponse getCategoryAndCompanyProductsPreview(int categoryId, Long companyId, String sortOption, String keyword, int page, int size) {
+        return getFilteredProducts(categoryId, companyId, sortOption, keyword, page, size);
+    }
+
+    private ProductBatchPreviewResponse getFilteredProducts(Integer categoryId, Long companyId, String sortOption, String keyword, int page, int size) {
+        Sort sort = resolveSort(sortOption);
+        int safePage = Math.max(page, 0);
+        int safeSize = size <= 0 ? 9 : size;
+        Pageable pageable = PageRequest.of(safePage, safeSize, sort);
+
+        Specification<Product> specification = Specification.where(ProductSpecifications.isActive());
+        if (categoryId != null && categoryId > 0) {
+            specification = specification.and(ProductSpecifications.hasCategory(categoryId));
+        }
+        if (companyId != null) {
+            specification = specification.and(ProductSpecifications.belongsToCompany(companyId));
+        }
+
+        Specification<Product> keywordSpec = ProductSpecifications.containsKeyword(keyword);
+        if (keywordSpec != null) {
+            specification = specification.and(keywordSpec);
+        }
+
+        Page<Product> productPage = productRepository.findAll(specification, pageable);
+
         ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
-        response.setBatchesPreviews(new ArrayList<>());
-
-        List<Product> productList;
-
-        // 카테고리 ID가 0인 경우 회사별 전체 상품 조회
-        if (categoryId == 0) {
-            return getCompanyProductsPreview(companyId, sortOption);
-        } else {
-            // 특정 카테고리 및 회사 상품 조회
-            switch (sortOption) {
-                case "popular":
-                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByLikedDesc(categoryId, companyId);
-                    break;
-                case "priceAsc":
-                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceAsc(categoryId, companyId);
-                    break;
-                case "priceDesc":
-                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceDesc(categoryId, companyId);
-                    break;
-                case "latest":
-                default:
-                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByIdDesc(categoryId, companyId);
-                    break;
-            }
-        }
-
-        for (Product product : productList) {
-            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
-            response.getBatchesPreviews().add(dto);
-        }
-
+        response.setBatchesPreviews(productPage.getContent().stream()
+            .map(ProductPreviewDTO::from)
+            .collect(Collectors.toList()));
+        response.setHasNext(productPage.hasNext());
+        response.setTotalElements(productPage.getTotalElements());
+        response.setPage(productPage.getNumber());
+        response.setPageSize(productPage.getSize());
         return response;
+    }
+
+    private Sort resolveSort(String sortOption) {
+        return switch (sortOption) {
+            case "popular" -> Sort.by(Sort.Order.desc("liked"));
+            case "priceAsc" -> Sort.by(Sort.Order.asc("price"));
+            case "priceDesc" -> Sort.by(Sort.Order.desc("price"));
+            default -> Sort.by(Sort.Order.desc("id"));
+        };
     }
 
     /* 사용자 ID로 기업 ID 조회 */

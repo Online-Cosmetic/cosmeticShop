@@ -177,33 +177,57 @@ export const userAPI = {
             params: { order } // asc 또는 desc
         }),
         // 카테고리별 상품 조회 (정렬 옵션 추가)
-        getByCategory: (categoryName, sortOption = 'latest') => {
+        getByCategory: (categoryName, sortOption = 'latest', page = 0, size = 9, keyword = '') => {
             // 카테고리 이름을 카테고리 ID로 변환
             const categoryMap = {
                 // 전체 상품은 CategoryID 0으로 가정
                 'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
             };
             const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
+            const params = {
+                sort: sortOption,
+                page,
+                size
+            };
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
             return customAxios.get(`/api/products/batch/${categoryId}`, {
-                params: { sort: sortOption }
+                params
             });
         },
         // 회사별 상품 조회 (정렬 옵션 추가)
-        getByCompany: (companyId, sortOption = 'latest') => {
+        getByCompany: (companyId, sortOption = 'latest', page = 0, size = 9, keyword = '') => {
+            const params = {
+                sort: sortOption,
+                page,
+                size
+            };
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
             return customAxios.get(`/api/products/batch/company/${companyId}`, {
-                params: { sort: sortOption }
+                params
             });
         },
         // 카테고리 및 회사별 상품 조회 (정렬 옵션 추가)
-        getByCategoryAndCompany: (categoryName, companyId, sortOption = 'latest') => {
+        getByCategoryAndCompany: (categoryName, companyId, sortOption = 'latest', page = 0, size = 9, keyword = '') => {
             // 카테고리 이름을 카테고리 ID로 변환
             const categoryMap = {
                 // 전체 상품은 CategoryID 0으로 가정
                 'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
             };
             const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
+            const params = {
+                sort: sortOption,
+                page,
+                size
+            };
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
             return customAxios.get(`/api/products/batch/${categoryId}/company/${companyId}`, {
-                params: { sort: sortOption }
+                params
             });
         },
         // 상품 좋아요 관련 API
