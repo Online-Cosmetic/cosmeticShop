@@ -122,7 +122,7 @@ export default function AdminQnAManagement() {
                                     : "bg-gray-200 text-neutral-700"
                             }`}
                         >
-                            All
+                            모두보기
                         </button>
                         <button
                             onClick={() => setFilter("answered")}
@@ -132,7 +132,7 @@ export default function AdminQnAManagement() {
                                     : "bg-gray-200 text-neutral-700"
                             }`}
                         >
-                            Done
+                            답변완료
                         </button>
                         <button
                             onClick={() => setFilter("unanswered")}
@@ -142,13 +142,13 @@ export default function AdminQnAManagement() {
                                     : "bg-gray-200 text-neutral-700"
                             }`}
                         >
-                            Incomplete
+                            답변대기
                         </button>
                     </div>
                     <div className="flex gap-2">
                         <input
                             type="text"
-                            placeholder="Search by title..."
+                            placeholder="Q&A 제목으로 검색"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="px-4 py-2 border rounded-md"
@@ -164,8 +164,8 @@ export default function AdminQnAManagement() {
 
                 {/* 테이블 헤더 */}
                 <div className="w-full bg-zinc-100 rounded-t-lg border-b border-neutral-200 flex items-center mt-6 py-2 px-4 text-lg text-black font-normal">
-                    <div className="w-28 text-center">QnA Num.</div>
-                    <div className="w-32 text-center">State</div>
+                    <div className="w-28 text-center">QnA 번호</div>
+                    <div className="w-32 text-center">상태</div>
                     <div className="flex-1 text-center">제목</div>
                     <div className="w-32 text-center">작성자</div>
                     <div className="w-36 text-center">작성일</div>

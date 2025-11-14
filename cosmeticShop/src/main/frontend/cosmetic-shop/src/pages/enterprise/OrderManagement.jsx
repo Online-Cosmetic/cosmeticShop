@@ -126,28 +126,28 @@ function OrderManagement() {
             case 'READY':
                 return {
                     class: 'bg-orange-100 text-orange-600',
-                    text: 'Ready',
+                    text: '배송준비',
                     nextStatus: 'PROG',
                     nextText: 'Start Processing'
                 };
             case 'PROG':
                 return {
                     class: 'bg-violet-100 text-violet-600',
-                    text: 'Processing',
+                    text: '배송중',
                     nextStatus: 'COMP',
                     nextText: 'Complete'
                 };
             case 'COMP':
                 return {
                     class: 'bg-teal-100 text-teal-600',
-                    text: 'Completed',
+                    text: '배송완료',
                     nextStatus: null,
                     nextText: null
                 };
             case 'CANC':
                 return {
                     class: 'bg-red-100 text-red-600',
-                    text: 'Cancelled',
+                    text: '주문취소',
                     nextStatus: null,
                     nextText: null
                 };
@@ -188,22 +188,21 @@ function OrderManagement() {
                         {/* Table Header - 열 추가 */}
                         <div
                             className="grid grid-cols-9 bg-neutral-50 p-4 border-b border-neutral-300 font-extrabold text-sm text-neutral-800 rounded-t-2xl">
-                            <div>Order ID</div>
-                            <div>Image</div>
-                            <div>Product Name</div>
-                            <div>Quantity</div>
-                            <div>Price</div>
-                            <div>Address</div>
-                            <div>Order Date</div>
-                            <div>Customer Name</div>
-                            <div>Status</div>
-                            <div>Action</div>
+                            <div>주문ID</div>
+                            <div>이미지</div>
+                            <div>상품이름</div>
+                            <div>주문수량</div>
+                            <div>가격</div>
+                            <div>주소</div>
+                            <div>주문일</div>
+                            <div>고객이름</div>
+                            <div>상태</div>
+                            <div>작업</div>
                         </div>
 
                         {/* Table Rows */}
                         {paginatedOrders.length === 0 ? (
-                            <div className="text-center py-10 text-gray-500">No orders found matching your
-                                filters.</div>
+                            <div className="text-center py-10 text-gray-500">필터와 일치하는 주문이 없습니다.</div>
                         ) : (
                             paginatedOrders.map((order, i) => {
                                 const statusInfo = getStatusInfo(order.orderItemDTO.deliveryStatus);
@@ -294,19 +293,19 @@ function OrderManagement() {
                         <div className="flex justify-center gap-4 pt-6">
                             <div className="flex items-center gap-2">
                                 <div className="w-4 h-4 bg-orange-400 rounded opacity-20"/>
-                                <span className="text-xs font-bold text-orange-400">Ready</span>
+                                <span className="text-xs font-bold text-orange-400">배송준비</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-4 h-4 bg-violet-600 rounded opacity-20"/>
-                                <span className="text-xs font-bold text-violet-600">Processing</span>
+                                <span className="text-xs font-bold text-violet-600">배송중</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-4 h-4 bg-teal-600 rounded opacity-20"/>
-                                <span className="text-xs font-bold text-teal-600">Completed</span>
+                                <span className="text-xs font-bold text-teal-600">배송완료</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-4 h-4 bg-red-600 rounded opacity-20"/>
-                                <span className="text-xs font-bold text-red-600">Cancelled</span>
+                                <span className="text-xs font-bold text-red-600">주문취소</span>
                             </div>
                         </div>
                     </>

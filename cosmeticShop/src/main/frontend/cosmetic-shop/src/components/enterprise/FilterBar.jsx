@@ -41,11 +41,11 @@ const FilterBar = ({ filters, onChange, onReset }) => {
                         onChange={(e) => onChange("status", e.target.value)}
                         className="text-sm text-gray-800 border border-gray-300 rounded px-2 py-1"
                     >
-                        <option value="">Order Status</option>
-                        <option value="ready">Ready</option>
-                        <option value="processing">Processing</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="">주문상태</option>
+                        <option value="ready">배송준비</option>
+                        <option value="processing">배송중</option>
+                        <option value="completed">배송완료</option>
+                        <option value="cancelled">주문취소</option>
                     </select>
                 </div>
 

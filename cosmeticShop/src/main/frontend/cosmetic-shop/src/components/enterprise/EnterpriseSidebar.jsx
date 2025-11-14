@@ -8,10 +8,10 @@ export default function EnterpriseSidebar() {
     const { pathname } = useLocation();
 
     const menuItems = [
-        { label: "Overview", path: "/enterprise/dashboard" },
-        { label: "Register Product", path: "/enterprise/product/register" },
-        { label: "Manage Products", path: "/enterprise/product/manage" },
-        { label: "Order & Delivery", path: "/enterprise/orders" },
+        { label: "대시보드", path: "/enterprise/dashboard" },
+        { label: "상품 등록", path: "/enterprise/product/register" },
+        { label: "상품 관리", path: "/enterprise/product/manage" },
+        { label: "주문상품 내역", path: "/enterprise/orders" },
     ];
 
     if (user?.role !== 'ROLE_COMPANY') return null;
