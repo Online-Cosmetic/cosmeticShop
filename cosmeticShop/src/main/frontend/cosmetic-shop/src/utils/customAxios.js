@@ -359,6 +359,9 @@ export const companyAPI = {
     // 모든 회사 이름 조회 (공개)
     getAllCompanyNames: () => customAxios.get('/api/company/names/public'),
 
+    // 모든 회사 정보(ID, 이름) 조회 (공개)
+    getAllCompanyInfos: () => customAxios.get('/api/company/infos/public'),
+
     product: {
         // 회사 제품 목록 조회 (페이징)
         getProducts: (page = 0, size = 10) =>

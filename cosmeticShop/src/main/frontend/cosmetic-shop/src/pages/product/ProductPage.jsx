@@ -45,14 +45,24 @@ function ProductPage() {
         const fetchCompanies = async () => {
             try {
                 setCompanyLoading(true);
-                const response = await companyAPI.getAllCompanyNames();
+                const response = await companyAPI.getAllCompanyInfos();
                 // 전체 선택 옵션 추가
-                setCompanies([{ id: null, name: "전체 회사" }, ...response.data.companyNames.map((name, index) => ({
-                    id: index + 1, // 임시 ID 할당 (실제로는 API에서 ID를 제공해야 함)
-                    name
+                setCompanies([{ id: null, name: "전체 회사" }, ...response.data.map((company) => ({
+                    id: company.id,
+                    name: company.name
                 }))]);
             } catch (err) {
                 console.error("회사 목록 로딩 중 오류 발생:", err);
+                // 실패 시 기존 API로 폴백
+                try {
+                    const fallbackResponse = await companyAPI.getAllCompanyNames();
+                    setCompanies([{ id: null, name: "전체 회사" }, ...fallbackResponse.data.companyNames.map((name, index) => ({
+                        id: index + 1,
+                        name
+                    }))]);
+                } catch (fallbackErr) {
+                    console.error("회사 목록 폴백 로딩 중 오류 발생:", fallbackErr);
+                }
             } finally {
                 setCompanyLoading(false);
             }
