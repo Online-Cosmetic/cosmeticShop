@@ -228,14 +228,6 @@ function ProductPage() {
         setHasNext(true);
         navigate("/products/all");
     };
-    if (isInitialLoading) return (
-        <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="animate-pulse flex flex-col items-center">
-                <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-emerald-600 font-medium">상품을 불러오는 중입니다...</p>
-            </div>
-        </div>
-    );
 
     if (error && products.length === 0) return (
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -364,7 +356,15 @@ function ProductPage() {
 
             {/* 상품 목록 영역 + 상품이 없을 때 메세지 - 너비와 높이를 고정 */}
             <div className="min-h-[800px] w-full flex items-start justify-center">
-                {showEmptyState ? (
+                {isInitialLoading ? (
+                    // 🔺 상품 영역 안에서만 로딩 UI 렌더
+                    <div className="flex items-center justify-center min-h-[60vh]">
+                        <div className="animate-pulse flex flex-col items-center">
+                            <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="mt-4 text-emerald-600 font-medium">상품을 불러오는 중입니다...</p>
+                        </div>
+                    </div>
+                ) : showEmptyState ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
