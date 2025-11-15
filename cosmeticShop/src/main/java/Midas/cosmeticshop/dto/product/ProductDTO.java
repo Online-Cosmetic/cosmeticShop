@@ -21,6 +21,11 @@ public class ProductDTO {
 
 
     public static ProductDTO from(Product product) {
+        String thumbnailImageUrl = null;
+        if (product.getThumbnailImage() != null) {
+            thumbnailImageUrl = product.getThumbnailImage().getImageUrl();
+        }
+        
         return new ProductDTO(
             product.getId(),
             product.getCategoryId(),
@@ -30,7 +35,7 @@ public class ProductDTO {
             product.getDiscountRate(), // 할인율 값 추가
             product.getStock(),
             product.getCompany().getId(),
-            product.getThumbnailImage().getImageUrl()
+            thumbnailImageUrl
         );
     }
 

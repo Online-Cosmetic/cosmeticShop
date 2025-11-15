@@ -156,16 +156,20 @@ export const userAPI = {
         getBestsellers: () => customAxios.get('/api/products/batch/bestsellers'),
         // 추천상품 조회 (최신순 10개)
         getRecommendedProducts: () => customAxios.get('/api/products/batch/recommended'),
-        // 관련상품 조회 (동일카테고리 10개)
-        getRelatedProducts: (categoryName, sortOption = 'latest') => {
+        // 관련상품 조회 (동일카테고리 8개)
+        getRelatedProducts: (categoryName, sortOption = 'latest', excludeProductId = null) => {
                     // 카테고리 이름을 카테고리 ID로 변환
                     const categoryMap = {
                         // 전체 상품은 CategoryID 0으로 가정
                         'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
                     };
                     const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
+                    const params = { sort: sortOption };
+                    if (excludeProductId) {
+                        params.excludeProductId = excludeProductId;
+                    }
                     return customAxios.get(`/api/products/batch/related/${categoryId}`, {
-                        params: { sort: sortOption }
+                        params
                     });
                 },
         // 최신순으로 전체 상품 조회
@@ -364,8 +368,15 @@ export const companyAPI = {
 
     product: {
         // 회사 제품 목록 조회 (페이징)
-        getProducts: (page = 0, size = 10) =>
-            customAxios.get(`/api/company/products`, { params: { page, size }}),
+        getProducts: (page = 0, size = 10, keyword = null, sort = 'latest') =>
+            customAxios.get(`/api/company/products`, { 
+                params: { 
+                    page, 
+                    size,
+                    ...(keyword && { keyword }),
+                    sort
+                }
+            }),
 
         // 상품 정보 업데이트 (JSON)
         updateProduct: (productId, data) => {

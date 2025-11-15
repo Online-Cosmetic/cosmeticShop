@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import customAxios from '../../utils/customAxios.js';
 
 function ProductRegister() {
@@ -18,6 +19,28 @@ function ProductRegister() {
   const [mainImage, setMainImage] = useState(null);
   const [additionalImages, setAdditionalImages] = useState([]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+
+  // 이미지 URL 메모이제이션 (불필요한 재생성 방지)
+  const mainImageUrl = useMemo(() => {
+    return mainImage ? URL.createObjectURL(mainImage) : null;
+  }, [mainImage]);
+
+  const additionalImageUrls = useMemo(() => {
+    return additionalImages.map(image => URL.createObjectURL(image));
+  }, [additionalImages]);
+
+  // 이미지 URL 정리 (메모리 누수 방지)
+  useEffect(() => {
+    return () => {
+      // 컴포넌트 언마운트 시 URL 객체 해제
+      if (mainImageUrl) {
+        URL.revokeObjectURL(mainImageUrl);
+      }
+      additionalImageUrls.forEach(url => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [mainImageUrl, additionalImageUrls]);
 
   // ZIP 모달 상태
   const [showZipModal, setShowZipModal] = useState(false);
@@ -38,25 +61,58 @@ function ProductRegister() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // 이미지 업로드(메인/서브)
-  const handleImageUpload = (e, isMain) => {
-    const files = Array.from(e.target.files);
-    if (isMain) {
-      setMainImage(files[0]);
-    } else {
-      const selected = files.slice(0, 5);
-      if (files.length > 5) alert("최대 5장까지 가능합니다.");
-      setAdditionalImages(selected);
+  // 메인 이미지 선택 처리
+  const handleMainImageUpload = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // GIF 파일 체크
+      if (file.type === 'image/gif') {
+        toast.error("GIF 이미지는 업로드할 수 없습니다.");
+        e.target.value = ''; // 파일 입력 초기화
+        return;
+      }
+      
+      setMainImage(file);
+      e.target.value = ''; // 같은 파일 다시 선택 가능하도록
     }
   };
-  const handleFilesUpload = (e, isMain) => {
-    const files = Array.from(e.target.files);
-    if (isMain) {
-      setMainImage(files[0]);
-    } else {
-      const selected = files.slice(0, 5);
-      if (files.length > 5) alert("최대 5장까지 가능합니다.");
-      setAdditionalImages(selected);
+
+  // 추가 이미지 선택 처리
+  const handleAdditionalImagesUpload = (e) => {
+    if (e.target.files) {
+      // 현재 추가 이미지 개수 확인
+      const currentCount = additionalImages.length;
+      const availableSlots = 5 - currentCount;
+      
+      if (availableSlots <= 0) {
+        toast.warning("추가 이미지는 최대 5개까지 등록 가능합니다.");
+        e.target.value = ''; // 파일 입력 초기화
+        return;
+      }
+      
+      // GIF 파일 필터링
+      const files = Array.from(e.target.files);
+      const gifFiles = files.filter(file => file.type === 'image/gif');
+      const validFiles = files.filter(file => file.type !== 'image/gif');
+      
+      if (gifFiles.length > 0) {
+        toast.error("GIF 이미지는 업로드할 수 없습니다.");
+      }
+      
+      if (validFiles.length === 0) {
+        e.target.value = ''; // 파일 입력 초기화
+        return;
+      }
+      
+      // 선택한 파일 중 사용 가능한 개수만큼만 추가
+      const selectedFiles = validFiles.slice(0, availableSlots);
+      
+      // 기존 이미지에 추가 (교체가 아닌 추가)
+      setAdditionalImages(prev => [...prev, ...selectedFiles]);
+      
+      // 파일 입력 초기화 (같은 파일 다시 선택 가능하도록)
+      e.target.value = '';
     }
   };
 
@@ -76,10 +132,12 @@ function ProductRegister() {
         },
         withCredentials: true
       });
+      toast.success('상품이 성공적으로 등록되었습니다.');
       navigate('/products');
     } catch (err) {
       console.error('상품 등록 실패', err);
-      alert('상품 등록에 실패했습니다.');
+      const errorMessage = err.response?.data?.message || err.message || '상품 등록에 실패했습니다.';
+      toast.error(errorMessage);
     }
   };
 
@@ -171,35 +229,94 @@ function ProductRegister() {
           </div>
 
           {/* 메인 이미지 */}
-          <div className="flex items-center gap-10">
-            <label className="w-1/4 text-2xl font-medium">Main Image</label>
-            <input
-              type="file"
-              onChange={(e) => handleImageUpload(e, true)}
-              className="file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-neutral-600 file:text-white hover:file:bg-neutral-700 w-full text-sm text-gray-500"
-            />
+          <div className="flex items-start gap-10">
+            <label className="w-1/4 text-2xl font-medium pt-2">Main Image</label>
+            <div className="w-full">
+              {mainImageUrl ? (
+                <div className="relative inline-block">
+                  <img
+                    src={mainImageUrl}
+                    alt="메인 이미지 미리보기"
+                    className="w-32 h-32 object-cover rounded border-2 border-blue-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMainImage(null);
+                      URL.revokeObjectURL(mainImageUrl);
+                    }}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold hover:bg-red-600 transition-colors shadow-lg"
+                    title="이미지 제거"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <label className="cursor-pointer flex items-center justify-center w-32 h-32 border-2 border-dashed border-gray-400 rounded bg-gray-50 hover:bg-gray-100 transition-colors group">
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleMainImageUpload}
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                  />
+                  <span className="text-3xl text-gray-400 group-hover:text-gray-600">+</span>
+                </label>
+              )}
+            </div>
           </div>
 
           {/* 추가 이미지 */}
-          <div className="flex items-center gap-10">
-            <label className="w-1/4 text-2xl font-medium">Sub Images</label>
-            <input
-              type="file"
-              multiple
-              onChange={(e) => handleImageUpload(e, false)}
-              className="file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-neutral-600 file:text-white hover:file:bg-neutral-700 w-full text-sm text-gray-500"
-            />
-          </div>
+          <div className="flex items-start gap-10">
+            <label className="w-1/4 text-2xl font-medium pt-2">
+              Sub Images
+              <span className="text-sm text-gray-500 ml-2">
+                ({additionalImages.length}/5)
+              </span>
+            </label>
+            <div className="w-full">
+              <div className="flex items-center gap-4 flex-wrap">
+                {additionalImages.length < 5 && (
+                  <label className="cursor-pointer flex items-center justify-center w-20 h-20 border-2 border-dashed border-gray-400 rounded bg-white hover:bg-gray-50 transition-colors group">
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={handleAdditionalImagesUpload}
+                      multiple
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                    />
+                    <span className="text-3xl text-gray-400 group-hover:text-gray-600">+</span>
+                  </label>
+                )}
 
-          {/* Sub Files */}
-          <div className="flex items-center gap-10">
-            <label className="w-1/4 text-2xl font-medium">Sub Files</label>
-            <input
-              type="file"
-              multiple
-              onChange={(e) => handleFilesUpload(e, false)}
-              className="file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-neutral-600 file:text-white hover:file:bg-neutral-700 w-full text-sm text-gray-500"
-            />
+                {/* 추가 이미지 미리보기 */}
+                {additionalImages.map((image, idx) => (
+                  <div key={idx} className="relative group">
+                    <img
+                      src={additionalImageUrls[idx]}
+                      alt={`추가 이미지 ${idx + 1}`}
+                      className="w-20 h-20 object-cover rounded border-2 border-green-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newImages = [...additionalImages];
+                        URL.revokeObjectURL(additionalImageUrls[idx]);
+                        newImages.splice(idx, 1);
+                        setAdditionalImages(newImages);
+                      }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold hover:bg-red-600 transition-colors shadow-lg"
+                      title="이미지 제거"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                
+                {additionalImages.length === 0 && (
+                  <p className="text-sm text-gray-500">추가 이미지를 선택하세요 (최대 5개)</p>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="mt-6 flex items-center justify-end gap-3">

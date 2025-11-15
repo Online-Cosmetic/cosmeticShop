@@ -127,9 +127,11 @@ public class ProductController {
     public ResponseEntity<Page<ProductListDTO>> getCompanyProducts(
         @PathVariable Long companyId,
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption
     ) {
-        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size);
+        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size, keyword, sortOption);
         return ResponseEntity.ok(products);
     }
 
@@ -163,10 +165,18 @@ public class ProductController {
         @RequestParam(value = "mainImage", required = false) MultipartFile mainImage,
         @RequestParam(value = "additionalImages", required = false) MultipartFile[] additionalImages,
         @RequestParam(value = "deleteMainImage", defaultValue = "false") boolean deleteMainImage,
-        @RequestParam(value = "deleteAdditionalImages", defaultValue = "false") boolean deleteAdditionalImages
+        @RequestParam(value = "deleteAdditionalImages", defaultValue = "false") boolean deleteAdditionalImages,
+        @RequestParam(value = "remainingAdditionalImageUrls", required = false) java.util.List<String> remainingAdditionalImageUrls
     ) {
-        productService.updateProductImages(userDetails, productId, mainImage, additionalImages,
-            deleteMainImage, deleteAdditionalImages);
+        productService.updateProductImages(
+            userDetails,
+            productId,
+            mainImage,
+            additionalImages,
+            deleteMainImage,
+            deleteAdditionalImages,
+            remainingAdditionalImageUrls
+        );
 
         ProductDTO dto = productService.getProductInfo(productId);
         ProductImageDTO imageDTO = productService.getProductImages(productId);
@@ -197,8 +207,9 @@ public class ProductController {
     @GetMapping("/batch/related/{categoryId}")
     public ResponseEntity<ProductBatchPreviewResponse> getRelatedProducts(
             @PathVariable int categoryId,
-            @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
-        ProductBatchPreviewResponse response = productService.getRelatedProducts(categoryId, sortOption);
+            @RequestParam(value = "sort", defaultValue = "latest") String sortOption,
+            @RequestParam(value = "excludeProductId", required = false) Long excludeProductId) {
+        ProductBatchPreviewResponse response = productService.getRelatedProducts(categoryId, sortOption, excludeProductId);
         return ResponseEntity.ok(response);
     }
 }

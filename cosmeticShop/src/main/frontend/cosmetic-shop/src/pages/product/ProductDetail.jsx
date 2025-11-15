@@ -118,11 +118,12 @@ function Detail({title}) {
 
                 // 관련 상품 가져오기 (같은 카테고리 상품 가정)
                 const categoryName = getCategoryNameById(productData.categoryId);
-                const categoryResponse = await userAPI.product.getRelatedProducts(categoryName);
+                // 현재 상품 ID를 전달하여 백엔드에서 제외하도록 함
+                const categoryResponse = await userAPI.product.getRelatedProducts(categoryName, 'latest', Number(id));
 
                 // 받아온 데이터를 ProductList 컴포넌트에 맞게 변환
+                // 백엔드에서 이미 현재 상품을 제외했으므로 필터링 불필요
                 const formattedProducts = (categoryResponse.data.batchesPreviews || [])
-                    .filter(item => item.productId !== Number(id)) // 현재 상품 제외
                     .map(item => ({
                         id: item.productId,
                         title: item.productName,

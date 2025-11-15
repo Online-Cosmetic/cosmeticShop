@@ -64,9 +64,15 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<Product> findTop10ByActiveTrueOrderByLikedDesc();
     //추천상품용 최신 상위 10개 상품 조회
     List<Product> findTop5ByActiveTrueOrderByIdDesc();
-    //관련상품용 동일 카테고리 정렬기준별 상위 10개 상품 조회 (latest로 구현되어있으나 확장성을 위해 다른 정렬기준도 유지)
+    //관련상품용 동일 카테고리 정렬기준별 상위 8개 상품 조회 (latest로 구현되어있으나 확장성을 위해 다른 정렬기준도 유지)
     List<Product> findTop8ByCategoryIdAndActiveTrueOrderByLikedDesc(int categoryId);
     List<Product> findTop8ByCategoryIdAndActiveTrueOrderByPriceAsc(int categoryId);
     List<Product> findTop8ByCategoryIdAndActiveTrueOrderByPriceDesc(int categoryId);
     List<Product> findTop8ByCategoryIdAndActiveTrueOrderByIdDesc(int categoryId);
+    
+    //관련상품용 동일 카테고리 정렬기준별 상위 9개 상품 조회 (현재 상품 제외 후 8개를 보장하기 위해)
+    List<Product> findTop9ByCategoryIdAndActiveTrueOrderByLikedDesc(int categoryId);
+    List<Product> findTop9ByCategoryIdAndActiveTrueOrderByPriceAsc(int categoryId);
+    List<Product> findTop9ByCategoryIdAndActiveTrueOrderByPriceDesc(int categoryId);
+    List<Product> findTop9ByCategoryIdAndActiveTrueOrderByIdDesc(int categoryId);
 }
