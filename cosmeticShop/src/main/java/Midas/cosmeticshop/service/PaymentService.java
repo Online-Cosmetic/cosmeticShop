@@ -6,6 +6,7 @@ import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import Midas.cosmeticshop.entity.PaymentHistory;
 import Midas.cosmeticshop.repository.PaymentHistoryRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,10 +24,16 @@ public class PaymentService {
 
     private final IamportClient iamportClient;
     private final PaymentHistoryRepository paymentHistoryRepository;
+    private final String iamportApiKey;
 
-    public PaymentService(IamportClient iamportClient, PaymentHistoryRepository paymentHistoryRepository) {
+    public PaymentService(
+            IamportClient iamportClient,
+            PaymentHistoryRepository paymentHistoryRepository,
+            @Value("${iamport.api.key}") String iamportApiKey
+    ) {
         this.iamportClient = iamportClient;
         this.paymentHistoryRepository = paymentHistoryRepository;
+        this.iamportApiKey = iamportApiKey;
     }
 
     @Transactional
@@ -123,6 +130,11 @@ public class PaymentService {
     }
 
     private void verifyPayment(String impUid, Long amount) {
+        // ✅ 테스트 모드: 결제 검증 스킵
+        if ("dummy-key".equals(iamportApiKey)) {
+            System.out.println("[TEST] verifyPayment SKIP - impUid=" + impUid + ", amount=" + amount);
+            return;
+        }
         try {
             IamportResponse<Payment> iamportResponse = iamportClient.paymentByImpUid(impUid);
             Payment payment = iamportResponse.getResponse();
