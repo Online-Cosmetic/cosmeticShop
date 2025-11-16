@@ -88,4 +88,134 @@ Long findTotalQuantityByCompany(
     @Param("companyName") String companyName,
     @Param("startDate") LocalDateTime startDate
 );
+
+    /* 일별 판매액 통계 - 특정 날짜 */
+    @Query(value = """
+        SELECT DATE(p.created_at) as date, 
+               SUM(p.amount) as total
+        FROM payment_history p
+        INNER JOIN orders o ON p.order_id = o.id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products prod ON oi.product_id = prod.id
+        INNER JOIN companies c ON prod.company_id = c.id
+        WHERE c.company_name = :companyName
+        AND DATE(p.created_at) = :selectedDate
+        AND p.status = 'COMPLETED'
+        AND prod.active = true
+        GROUP BY DATE(p.created_at)
+        ORDER BY date DESC
+    """, nativeQuery = true)
+    List<Object[]> findDailySalesByCompany(
+        @Param("companyName") String companyName,
+        @Param("selectedDate") java.time.LocalDate selectedDate
+    );
+
+    /* 일별 판매수량 통계 - 특정 날짜 */
+    @Query(value = """
+        SELECT DATE(p.created_at) as date, 
+               SUM(oi.quantity) as total_quantity
+        FROM payment_history p
+        INNER JOIN orders o ON p.order_id = o.id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products prod ON oi.product_id = prod.id
+        INNER JOIN companies c ON prod.company_id = c.id
+        WHERE c.company_name = :companyName
+        AND DATE(p.created_at) = :selectedDate
+        AND p.status = 'COMPLETED'
+        AND prod.active = true
+        GROUP BY DATE(p.created_at)
+        ORDER BY date DESC
+    """, nativeQuery = true)
+    List<Object[]> findDailyQuantityByCompany(
+        @Param("companyName") String companyName,
+        @Param("selectedDate") java.time.LocalDate selectedDate
+    );
+
+    /* 월별 판매액 통계 - 특정 년도/월 */
+    @Query(value = """
+        SELECT TO_CHAR(p.created_at, 'YYYY-MM') as month, 
+               SUM(p.amount) as total
+        FROM payment_history p
+        INNER JOIN orders o ON p.order_id = o.id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products prod ON oi.product_id = prod.id
+        INNER JOIN companies c ON prod.company_id = c.id
+        WHERE c.company_name = :companyName
+        AND EXTRACT(YEAR FROM p.created_at) = :year
+        AND EXTRACT(MONTH FROM p.created_at) = :month
+        AND p.status = 'COMPLETED'
+        AND prod.active = true
+        GROUP BY TO_CHAR(p.created_at, 'YYYY-MM')
+        ORDER BY month DESC
+    """, nativeQuery = true)
+    List<Object[]> findMonthlySalesByCompany(
+        @Param("companyName") String companyName,
+        @Param("year") int year,
+        @Param("month") int month
+    );
+
+    /* 월별 판매수량 통계 - 특정 년도/월 */
+    @Query(value = """
+        SELECT TO_CHAR(p.created_at, 'YYYY-MM') as month, 
+               SUM(oi.quantity) as total_quantity
+        FROM payment_history p
+        INNER JOIN orders o ON p.order_id = o.id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products prod ON oi.product_id = prod.id
+        INNER JOIN companies c ON prod.company_id = c.id
+        WHERE c.company_name = :companyName
+        AND EXTRACT(YEAR FROM p.created_at) = :year
+        AND EXTRACT(MONTH FROM p.created_at) = :month
+        AND p.status = 'COMPLETED'
+        AND prod.active = true
+        GROUP BY TO_CHAR(p.created_at, 'YYYY-MM')
+        ORDER BY month DESC
+    """, nativeQuery = true)
+    List<Object[]> findMonthlyQuantityByCompany(
+        @Param("companyName") String companyName,
+        @Param("year") int year,
+        @Param("month") int month
+    );
+
+    /* 연도별 판매액 통계 - 특정 년도 */
+    @Query(value = """
+        SELECT EXTRACT(YEAR FROM p.created_at) as year, 
+               SUM(p.amount) as total
+        FROM payment_history p
+        INNER JOIN orders o ON p.order_id = o.id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products prod ON oi.product_id = prod.id
+        INNER JOIN companies c ON prod.company_id = c.id
+        WHERE c.company_name = :companyName
+        AND EXTRACT(YEAR FROM p.created_at) = :year
+        AND p.status = 'COMPLETED'
+        AND prod.active = true
+        GROUP BY EXTRACT(YEAR FROM p.created_at)
+        ORDER BY year DESC
+    """, nativeQuery = true)
+    List<Object[]> findYearlySalesByCompany(
+        @Param("companyName") String companyName,
+        @Param("year") int year
+    );
+
+    /* 연도별 판매수량 통계 - 특정 년도 */
+    @Query(value = """
+        SELECT EXTRACT(YEAR FROM p.created_at) as year, 
+               SUM(oi.quantity) as total_quantity
+        FROM payment_history p
+        INNER JOIN orders o ON p.order_id = o.id
+        INNER JOIN order_items oi ON o.id = oi.order_id
+        INNER JOIN products prod ON oi.product_id = prod.id
+        INNER JOIN companies c ON prod.company_id = c.id
+        WHERE c.company_name = :companyName
+        AND EXTRACT(YEAR FROM p.created_at) = :year
+        AND p.status = 'COMPLETED'
+        AND prod.active = true
+        GROUP BY EXTRACT(YEAR FROM p.created_at)
+        ORDER BY year DESC
+    """, nativeQuery = true)
+    List<Object[]> findYearlyQuantityByCompany(
+        @Param("companyName") String companyName,
+        @Param("year") int year
+    );
 }
