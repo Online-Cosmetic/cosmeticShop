@@ -109,7 +109,7 @@ const EnterpriseMain = () => {
     const prepareChartData = () => {
         if (!salesData || Object.keys(salesData).length === 0) return [];
 
-        const dates = Object.keys(salesData).sort().reverse(); // 최근 날짜순
+        const dates = Object.keys(salesData).sort();
         const maxValue = Math.max(...Object.values(salesData));
         const chartHeight = 200; // 차트 높이
 
