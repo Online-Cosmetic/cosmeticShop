@@ -154,7 +154,7 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    /* 특정기업 최근 1주일간 판매 금액 통계 반환 */
+    /* 특정기업 최근 1주일간 총 판매액 통계 반환 */
     @GetMapping("/statistics/weekly/{companyName}")
     public ResponseEntity<Map<String, Integer>> getWeeklySalesStatistics(
         @PathVariable String companyName) {
@@ -162,6 +162,13 @@ public class PaymentController {
         return ResponseEntity.ok(statistics);
     }
 
+    /* 특정 기업 최근 1주일간 총 판매 수량 반환 */
+    @GetMapping("/statistics/weekly-quantity/{companyName}")
+    public ResponseEntity<Long> getWeeklyTotalQuantity(
+        @PathVariable String companyName) {
+        Long totalQuantity = paymentService.getWeeklyTotalQuantity(companyName);
+        return ResponseEntity.ok(totalQuantity);
+    }
     /* 특정 기업 가장 많이 팔린 제품 top 5 정보 반환 */
     @GetMapping("/statistics/top-products/{companyName}")
     public ResponseEntity<List<TopProductDTO>> getTop5Products(

@@ -176,6 +176,14 @@ public class PaymentService {
         ).collect(Collectors.toList());
     }
 
+    /* 지난 1주일간 특정 기업의 전체 판매 수량 반환 */
+    @Transactional(readOnly = true)
+    public Long getWeeklyTotalQuantity(String companyName) {
+        LocalDateTime startDate = LocalDateTime.now().minusDays(7);
+        Long totalQuantity = paymentHistoryRepository.findTotalQuantityByCompany(companyName, startDate);
+        return totalQuantity != null ? totalQuantity : 0L;
+    }
+
     /* 특정 기업의 최신순 payment 트랜잭션 기록 반환 */
     @Transactional(readOnly = true)
     public List<TransactionDTO> getLatestTransactionsByCompany(String companyName, int page, int size) {

@@ -351,6 +351,7 @@ export const companyAPI = {
 
         // 새로 추가하는 API 함수들
         getWeeklySalesData: (companyName) => customAxios.get(`/api/payments/statistics/weekly/${companyName}`),
+        getWeeklyTotalQuantity: (companyName) => customAxios.get(`/api/payments/statistics/weekly-quantity/${companyName}`),
         getTopProducts: (companyName) => customAxios.get(`/api/payments/statistics/top-products/${companyName}`),
         getTransactions: (companyName, page, size) => customAxios.get(`/api/payments/transactions/${companyName}`, {
             params: {page, size}

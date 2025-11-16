@@ -12,7 +12,8 @@ const EnterpriseMain = () => {
     const companyName = localStorage.getItem('userName') || 'TestCompany';
     const [transactionPage, setTransactionPage] = useState(0);
     const [isLastPage, setIsLastPage] = useState(false);
-
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    
     // 페이지 데이터 새로고침 함수
     const refreshData = useCallback(() => {
         // 강제로 쿼리 무효화하고 다시 가져오기
@@ -105,6 +106,27 @@ const EnterpriseMain = () => {
         staleTime: 60000 // 1 minute
     });
 
+    // 3. 주간 전체 판매 수량 쿼리 (새로 추가)
+const {
+    data: totalQuantity = 0,
+    isLoading: quantityLoading,
+    isError: quantityError,
+    refetch: refetchTotalQuantity
+} = useQuery({
+    queryKey: ['weeklyTotalQuantity', companyName],
+    queryFn: async () => {
+        try {
+            const response = await companyAPI.product.getWeeklyTotalQuantity(companyName);
+            return response.data || 0;  // API가 Long을 반환하므로 그대로 사용
+        } catch (error) {
+            console.error("Error fetching weekly total quantity:", error);
+            throw error;
+        }
+    },
+    retry: 1,
+    staleTime: 60000 // 1 minute
+});
+
     // 차트 데이터 준비 (주간 판매 통계)
     const prepareChartData = () => {
         if (!salesData || Object.keys(salesData).length === 0) return [];
@@ -132,7 +154,7 @@ const EnterpriseMain = () => {
     const totalSales = Object.values(salesData).reduce((sum, value) => sum + value, 0);
 
     // 총 판매 수량 계산 (예시 데이터)
-    const totalQuantity = topProducts.reduce((sum, product) => sum + (product.totalQuantity || 0), 0);
+    // const totalQuantity = topProducts.reduce((sum, product) => sum + (product.totalQuantity || 0), 0);
 
     return (
         <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-6">
@@ -151,13 +173,18 @@ const EnterpriseMain = () => {
                     <h2 className="text-xl font-bold text-neutral-800">지난 1주일 통계</h2>
                     <button
                         onClick={() => {
+                            setIsRefreshing(true);
                             refetchSalesData();
                             refetchTopProducts();
+                            refetchTotalQuantity();
+                            setTimeout(() => setIsRefreshing(false), 500);  // 0.5초 후 정지
                         }}
                         className="ml-auto p-2 text-gray-500 rounded-lg hover:text-indigo-600 hover:bg-gray-100 transition-all"
                         aria-label="통계 데이터 새로고침"
                     >
-                        <ArrowPathIcon className="w-5 h-5" />
+                        <ArrowPathIcon 
+                            className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} 
+                        />
                     </button>
                 </div>
 

@@ -71,4 +71,21 @@ public interface PaymentHistoryRepository extends JpaRepository<PaymentHistory, 
         @Param("limit") int limit,
         @Param("offset") int offset
     );
+
+    @Query(value = """
+    SELECT SUM(oi.quantity) as total_quantity
+    FROM payment_history p
+    INNER JOIN orders o ON p.order_id = o.id
+    INNER JOIN order_items oi ON o.id = oi.order_id
+    INNER JOIN products prod ON oi.product_id = prod.id
+    INNER JOIN companies c ON prod.company_id = c.id
+    WHERE c.company_name = :companyName
+    AND p.created_at >= :startDate
+    AND p.status = 'COMPLETED'
+    AND prod.active = true
+    """, nativeQuery = true)
+Long findTotalQuantityByCompany(
+    @Param("companyName") String companyName,
+    @Param("startDate") LocalDateTime startDate
+);
 }
