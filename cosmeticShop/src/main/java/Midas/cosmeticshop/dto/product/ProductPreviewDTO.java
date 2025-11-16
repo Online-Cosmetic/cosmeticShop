@@ -15,6 +15,7 @@ public class ProductPreviewDTO { // 여러 상품 나와있을때 최소한의 �
     private int price;
     private int discountRate; // 할인율 필드 추가
     private String ThumbImgUrl;
+    private String companyName;
 
     public static ProductPreviewDTO from(Product product) {
         String imageUrl = null;
@@ -33,7 +34,8 @@ public class ProductPreviewDTO { // 여러 상품 나와있을때 최소한의 �
             product.getDescription(),
             product.getPrice(),
             product.getDiscountRate(),
-            imageUrl
+            imageUrl,
+            product.getCompany().getCompanyName()
         );
     }
 }
