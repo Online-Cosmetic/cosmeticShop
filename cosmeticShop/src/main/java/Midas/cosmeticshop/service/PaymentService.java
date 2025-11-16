@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -217,6 +218,128 @@ public class PaymentService {
                 .orderId(((Number) result[9]).longValue())
                 .build()
         ).collect(Collectors.toList());
+    }
+
+    /* 일별 판매액 통계 - 특정 날짜 */
+    @Transactional(readOnly = true)
+    public Map<String, Integer> getDailySalesStatistics(String companyName, LocalDate selectedDate) {
+        List<Object[]> results = paymentHistoryRepository.findDailySalesByCompany(companyName, selectedDate);
+        
+        Map<String, Integer> salesMap = new HashMap<>();
+        for (Object[] result : results) {
+            String date = ((Date) result[0]).toLocalDate().toString();
+            Integer total = ((Number) result[1]).intValue();
+            salesMap.put(date, total);
+        }
+        
+        // 데이터가 없으면 0으로 설정
+        if (salesMap.isEmpty()) {
+            salesMap.put(selectedDate.toString(), 0);
+        }
+        
+        return salesMap;
+    }
+
+    /* 일별 판매수량 통계 - 특정 날짜 */
+    @Transactional(readOnly = true)
+    public Map<String, Long> getDailyQuantityStatistics(String companyName, LocalDate selectedDate) {
+        List<Object[]> results = paymentHistoryRepository.findDailyQuantityByCompany(companyName, selectedDate);
+        
+        Map<String, Long> quantityMap = new HashMap<>();
+        for (Object[] result : results) {
+            String date = ((Date) result[0]).toLocalDate().toString();
+            Long total = ((Number) result[1]).longValue();
+            quantityMap.put(date, total);
+        }
+        
+        // 데이터가 없으면 0으로 설정
+        if (quantityMap.isEmpty()) {
+            quantityMap.put(selectedDate.toString(), 0L);
+        }
+        
+        return quantityMap;
+    }
+
+    /* 월별 판매액 통계 - 특정 년도/월 */
+    @Transactional(readOnly = true)
+    public Map<String, Integer> getMonthlySalesStatistics(String companyName, int year, int month) {
+        List<Object[]> results = paymentHistoryRepository.findMonthlySalesByCompany(companyName, year, month);
+        
+        Map<String, Integer> salesMap = new HashMap<>();
+        for (Object[] result : results) {
+            String monthKey = (String) result[0]; // "YYYY-MM" 형식
+            Integer total = ((Number) result[1]).intValue();
+            salesMap.put(monthKey, total);
+        }
+        
+        // 데이터가 없으면 0으로 설정
+        if (salesMap.isEmpty()) {
+            String monthKey = String.format("%d-%02d", year, month);
+            salesMap.put(monthKey, 0);
+        }
+        
+        return salesMap;
+    }
+
+    /* 월별 판매수량 통계 - 특정 년도/월 */
+    @Transactional(readOnly = true)
+    public Map<String, Long> getMonthlyQuantityStatistics(String companyName, int year, int month) {
+        List<Object[]> results = paymentHistoryRepository.findMonthlyQuantityByCompany(companyName, year, month);
+        
+        Map<String, Long> quantityMap = new HashMap<>();
+        for (Object[] result : results) {
+            String monthKey = (String) result[0]; // "YYYY-MM" 형식
+            Long total = ((Number) result[1]).longValue();
+            quantityMap.put(monthKey, total);
+        }
+        
+        // 데이터가 없으면 0으로 설정
+        if (quantityMap.isEmpty()) {
+            String monthKey = String.format("%d-%02d", year, month);
+            quantityMap.put(monthKey, 0L);
+        }
+        
+        return quantityMap;
+    }
+
+    /* 연도별 판매액 통계 - 특정 년도 */
+    @Transactional(readOnly = true)
+    public Map<String, Integer> getYearlySalesStatistics(String companyName, int year) {
+        List<Object[]> results = paymentHistoryRepository.findYearlySalesByCompany(companyName, year);
+        
+        Map<String, Integer> salesMap = new HashMap<>();
+        for (Object[] result : results) {
+            Integer yearValue = ((Number) result[0]).intValue();
+            Integer total = ((Number) result[1]).intValue();
+            salesMap.put(String.valueOf(yearValue), total);
+        }
+        
+        // 데이터가 없으면 0으로 설정
+        if (salesMap.isEmpty()) {
+            salesMap.put(String.valueOf(year), 0);
+        }
+        
+        return salesMap;
+    }
+
+    /* 연도별 판매수량 통계 - 특정 년도 */
+    @Transactional(readOnly = true)
+    public Map<String, Long> getYearlyQuantityStatistics(String companyName, int year) {
+        List<Object[]> results = paymentHistoryRepository.findYearlyQuantityByCompany(companyName, year);
+        
+        Map<String, Long> quantityMap = new HashMap<>();
+        for (Object[] result : results) {
+            Integer yearValue = ((Number) result[0]).intValue();
+            Long total = ((Number) result[1]).longValue();
+            quantityMap.put(String.valueOf(yearValue), total);
+        }
+        
+        // 데이터가 없으면 0으로 설정
+        if (quantityMap.isEmpty()) {
+            quantityMap.put(String.valueOf(year), 0L);
+        }
+        
+        return quantityMap;
     }
 
 }
