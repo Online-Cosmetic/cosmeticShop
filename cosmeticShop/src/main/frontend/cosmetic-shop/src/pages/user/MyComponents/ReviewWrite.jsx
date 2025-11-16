@@ -238,34 +238,37 @@ export default function ReviewWrite({ onCancel, reviewData }) {
           )}
         </div>
 
-        <div className="flex items-center mb-6">
-          <img
-              src={product.thumbnailImageUrl ? getImageUrl(product.thumbnailImageUrl) : "https://via.placeholder.com/80"}
-              alt={product.productName}
-              className="w-20 h-20 rounded-lg object-cover mr-4"
-              onError={(e) => {
-                e.target.src = "https://via.placeholder.com/80x80.png?text=No+Image";
-              }}
-          />
-          <div className="flex-1">
-            <p className="font-semibold">{product.productName}</p>
-            <p className="text-gray-600">{product.description?.substring(0, 50)}{product.description?.length > 50 ? '...' : ''}</p>
-            <p>{product.price.toLocaleString()}원</p>
+        <div className="mb-6">
+          <div className="flex items-start mb-4">
+            <img
+                src={product.thumbnailImageUrl ? getImageUrl(product.thumbnailImageUrl) : "https://via.placeholder.com/80"}
+                alt={product.productName}
+                className="w-20 h-20 rounded-lg object-cover mr-4 flex-shrink-0"
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/80x80.png?text=No+Image";
+                }}
+            />
+            <div className="flex-1">
+              <p className="font-semibold text-lg mb-1">{product.productName}</p>
+              <p className="text-gray-600 text-sm mb-2">{product.description?.substring(0, 50)}{product.description?.length > 50 ? '...' : ''}</p>
+              <p className="text-emerald-600 font-semibold">{product.price.toLocaleString()}원</p>
+            </div>
           </div>
-          <div className="flex items-center space-x-1 text-2xl">
+          <div className="flex items-center space-x-1 text-2xl border-t pt-4">
+            <span className="text-sm text-gray-700 mr-2">별점:</span>
             {[1,2,3,4,5].map(i => (
                 <button
                     key={i}
                     type="button"
-                    className="focus:outline-none text-yellow-400 hover:text-yellow-500"
+                    className="focus:outline-none text-yellow-400 hover:text-yellow-500 transition-colors"
                     onClick={() => setRating(rating === i ? i - 0.5 : i)}
-                    onMouseEnter={() => setHover(i - 0.5)}
+                    onMouseEnter={() => setHover(i)}
                     onMouseLeave={() => setHover(0)}
                 >
                   {renderStar(i)}
                 </button>
             ))}
-            <span className="ml-2 text-base text-gray-600">{rating.toFixed(1)}</span>
+            <span className="ml-2 text-base text-gray-600 font-medium">{rating.toFixed(1)}</span>
           </div>
         </div>
 
@@ -341,12 +344,27 @@ export default function ReviewWrite({ onCancel, reviewData }) {
           />
         </div>
 
+        <div className="mb-4">
+          {content.length < 20 && (
+            <div className="mb-2 text-sm text-orange-600">
+              리뷰 내용을 20자 이상 입력해주세요. (현재: {content.length}자)
+            </div>
+          )}
+          {!rating && (
+            <div className="mb-2 text-sm text-orange-600">
+              별점을 선택해주세요.
+            </div>
+          )}
+        </div>
+
         <button
             type="button"
             onClick={handleSubmit}
             disabled={content.length < 20 || !rating || submitting || sizeError !== null}
-            className={`w-full py-3 rounded-md text-white ${
-                content.length < 20 || !rating || submitting || sizeError !== null ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800'
+            className={`w-full py-4 rounded-lg text-white font-semibold text-lg shadow-lg transition-all ${
+                content.length < 20 || !rating || submitting || sizeError !== null 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800'
             }`}
         >
           {submitting ? (
@@ -358,7 +376,7 @@ export default function ReviewWrite({ onCancel, reviewData }) {
             제출 중...
           </span>
           ) : (
-              '등록'
+              '리뷰 작성하기'
           )}
         </button>
       </section>

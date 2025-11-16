@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { userAPI } from '../../../utils/customAxios.js';
 import { getImageUrl } from '../../../utils/imageUtils.js';
 import customAxios from '../../../utils/customAxios.js';
 
 export default function OrderHistory() {
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -148,6 +150,14 @@ export default function OrderHistory() {
                                                 </div>
                                             </div>
                                             <div className="mt-6 md:mt-0 flex flex-col md:flex-row gap-3">
+                                                {item.deliveryStatus === 'COMP' && (
+                                                    <button
+                                                        onClick={() => navigate(`/user/review/write/${item.productId}`)}
+                                                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                                                    >
+                                                        리뷰 작성하기
+                                                    </button>
+                                                )}
                                                 {item.deliveryStatus !== 'COMP' && item.deliveryStatus !== 'CANC' && (
                                                     <button
                                                         onClick={() => handleCancelOrder(item.orderItemId, order.id)}
