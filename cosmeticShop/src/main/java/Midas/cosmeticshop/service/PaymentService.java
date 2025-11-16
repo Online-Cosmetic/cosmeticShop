@@ -227,8 +227,15 @@ public class PaymentService {
         
         Map<String, Integer> salesMap = new HashMap<>();
         for (Object[] result : results) {
-            String date = ((Date) result[0]).toLocalDate().toString();
-            Integer total = ((Number) result[1]).intValue();
+            String date;
+            if (result[0] instanceof Date) {
+                date = ((Date) result[0]).toLocalDate().toString();
+            } else if (result[0] instanceof LocalDate) {
+                date = ((LocalDate) result[0]).toString();
+            } else {
+                date = result[0].toString();
+            }
+            Integer total = result[1] != null ? ((Number) result[1]).intValue() : 0;
             salesMap.put(date, total);
         }
         
@@ -247,8 +254,15 @@ public class PaymentService {
         
         Map<String, Long> quantityMap = new HashMap<>();
         for (Object[] result : results) {
-            String date = ((Date) result[0]).toLocalDate().toString();
-            Long total = ((Number) result[1]).longValue();
+            String date;
+            if (result[0] instanceof Date) {
+                date = ((Date) result[0]).toLocalDate().toString();
+            } else if (result[0] instanceof LocalDate) {
+                date = ((LocalDate) result[0]).toString();
+            } else {
+                date = result[0].toString();
+            }
+            Long total = result[1] != null ? ((Number) result[1]).longValue() : 0L;
             quantityMap.put(date, total);
         }
         
@@ -309,8 +323,14 @@ public class PaymentService {
         
         Map<String, Integer> salesMap = new HashMap<>();
         for (Object[] result : results) {
-            Integer yearValue = ((Number) result[0]).intValue();
-            Integer total = ((Number) result[1]).intValue();
+            // EXTRACT는 Double을 반환할 수 있음
+            Integer yearValue;
+            if (result[0] instanceof Number) {
+                yearValue = ((Number) result[0]).intValue();
+            } else {
+                yearValue = Integer.parseInt(result[0].toString());
+            }
+            Integer total = result[1] != null ? ((Number) result[1]).intValue() : 0;
             salesMap.put(String.valueOf(yearValue), total);
         }
         
@@ -329,8 +349,14 @@ public class PaymentService {
         
         Map<String, Long> quantityMap = new HashMap<>();
         for (Object[] result : results) {
-            Integer yearValue = ((Number) result[0]).intValue();
-            Long total = ((Number) result[1]).longValue();
+            // EXTRACT는 Double을 반환할 수 있음
+            Integer yearValue;
+            if (result[0] instanceof Number) {
+                yearValue = ((Number) result[0]).intValue();
+            } else {
+                yearValue = Integer.parseInt(result[0].toString());
+            }
+            Long total = result[1] != null ? ((Number) result[1]).longValue() : 0L;
             quantityMap.put(String.valueOf(yearValue), total);
         }
         

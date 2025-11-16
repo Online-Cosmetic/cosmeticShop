@@ -355,6 +355,25 @@ export const companyAPI = {
         getTopProducts: (companyName) => customAxios.get(`/api/payments/statistics/top-products/${companyName}`),
         getTransactions: (companyName, page, size) => customAxios.get(`/api/payments/transactions/${companyName}`, {
             params: {page, size}
+        }),
+        // 기간별 통계 API
+        getDailySales: (companyName, date) => customAxios.get(`/api/payments/statistics/daily/sales/${companyName}`, {
+            params: { date }
+        }),
+        getDailyQuantity: (companyName, date) => customAxios.get(`/api/payments/statistics/daily/quantity/${companyName}`, {
+            params: { date }
+        }),
+        getMonthlySales: (companyName, year, month) => customAxios.get(`/api/payments/statistics/monthly/sales/${companyName}`, {
+            params: { year, month }
+        }),
+        getMonthlyQuantity: (companyName, year, month) => customAxios.get(`/api/payments/statistics/monthly/quantity/${companyName}`, {
+            params: { year, month }
+        }),
+        getYearlySales: (companyName, year) => customAxios.get(`/api/payments/statistics/yearly/sales/${companyName}`, {
+            params: { year }
+        }),
+        getYearlyQuantity: (companyName, year) => customAxios.get(`/api/payments/statistics/yearly/quantity/${companyName}`, {
+            params: { year }
         })
     },
 

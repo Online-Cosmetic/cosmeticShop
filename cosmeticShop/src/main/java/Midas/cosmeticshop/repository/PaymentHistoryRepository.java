@@ -91,7 +91,7 @@ Long findTotalQuantityByCompany(
 
     /* 일별 판매액 통계 - 특정 날짜 */
     @Query(value = """
-        SELECT DATE(p.created_at) as date, 
+        SELECT CAST(p.created_at AS DATE) as date, 
                SUM(p.amount) as total
         FROM payment_history p
         INNER JOIN orders o ON p.order_id = o.id
@@ -99,10 +99,10 @@ Long findTotalQuantityByCompany(
         INNER JOIN products prod ON oi.product_id = prod.id
         INNER JOIN companies c ON prod.company_id = c.id
         WHERE c.company_name = :companyName
-        AND DATE(p.created_at) = :selectedDate
+        AND CAST(p.created_at AS DATE) = CAST(:selectedDate AS DATE)
         AND p.status = 'COMPLETED'
         AND prod.active = true
-        GROUP BY DATE(p.created_at)
+        GROUP BY CAST(p.created_at AS DATE)
         ORDER BY date DESC
     """, nativeQuery = true)
     List<Object[]> findDailySalesByCompany(
@@ -112,7 +112,7 @@ Long findTotalQuantityByCompany(
 
     /* 일별 판매수량 통계 - 특정 날짜 */
     @Query(value = """
-        SELECT DATE(p.created_at) as date, 
+        SELECT CAST(p.created_at AS DATE) as date, 
                SUM(oi.quantity) as total_quantity
         FROM payment_history p
         INNER JOIN orders o ON p.order_id = o.id
@@ -120,10 +120,10 @@ Long findTotalQuantityByCompany(
         INNER JOIN products prod ON oi.product_id = prod.id
         INNER JOIN companies c ON prod.company_id = c.id
         WHERE c.company_name = :companyName
-        AND DATE(p.created_at) = :selectedDate
+        AND CAST(p.created_at AS DATE) = CAST(:selectedDate AS DATE)
         AND p.status = 'COMPLETED'
         AND prod.active = true
-        GROUP BY DATE(p.created_at)
+        GROUP BY CAST(p.created_at AS DATE)
         ORDER BY date DESC
     """, nativeQuery = true)
     List<Object[]> findDailyQuantityByCompany(
