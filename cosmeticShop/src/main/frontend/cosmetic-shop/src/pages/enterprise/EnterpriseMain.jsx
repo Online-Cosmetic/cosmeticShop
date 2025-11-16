@@ -14,6 +14,12 @@ const EnterpriseMain = () => {
     const [isLastPage, setIsLastPage] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     
+    // 기간별 통계 관련 상태
+    const [periodType, setPeriodType] = useState('daily'); // 'daily', 'monthly', 'yearly'
+    const [selectedDate, setSelectedDate] = useState(''); // 일별: 날짜
+    const [selectedYear, setSelectedYear] = useState(''); // 월별/연도별: 년도
+    const [selectedMonth, setSelectedMonth] = useState(''); // 월별: 월
+    
     // 페이지 데이터 새로고침 함수
     const refreshData = useCallback(() => {
         // 강제로 쿼리 무효화하고 다시 가져오기
@@ -308,6 +314,197 @@ const {
                             ))}
                         </div>
                     )}
+                </div>
+            </div>
+            
+            {/* 기간별 통계 섹션 */}
+            <div className="bg-white border rounded-xl shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-6">
+                    <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                    <h2 className="text-xl font-bold text-neutral-800">기간별 통계</h2>
+                </div>
+
+                {/* 탭 메뉴 */}
+                <div className="flex gap-2 mb-6 border-b border-gray-200">
+                    <button
+                        onClick={() => setPeriodType('daily')}
+                        className={`px-4 py-2 font-medium transition-colors ${
+                            periodType === 'daily'
+                                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        일별
+                    </button>
+                    <button
+                        onClick={() => setPeriodType('monthly')}
+                        className={`px-4 py-2 font-medium transition-colors ${
+                            periodType === 'monthly'
+                                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        월별
+                    </button>
+                    <button
+                        onClick={() => setPeriodType('yearly')}
+                        className={`px-4 py-2 font-medium transition-colors ${
+                            periodType === 'yearly'
+                                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        연도별
+                    </button>
+                </div>
+
+                {/* 기간 선택 */}
+                <div className="mb-6 flex items-center gap-4">
+                    {periodType === 'daily' && (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">날짜:</label>
+                                <input
+                                    type="date"
+                                    value={selectedDate}
+                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                        </>
+                    )}
+                    
+                    {periodType === 'monthly' && (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">년도:</label>
+                                <input
+                                    type="number"
+                                    min="2000"
+                                    max="2100"
+                                    value={selectedYear}
+                                    onChange={(e) => setSelectedYear(e.target.value)}
+                                    placeholder="2025"
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-24"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">월:</label>
+                                <select
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                >
+                                    <option value="">선택</option>
+                                    {Array.from({length: 12}, (_, i) => i + 1).map(month => (
+                                        <option key={month} value={String(month).padStart(2, '0')}>
+                                            {month}월
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </>
+                    )}
+                    
+                    {periodType === 'yearly' && (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">년도:</label>
+                                <input
+                                    type="number"
+                                    min="2000"
+                                    max="2100"
+                                    value={selectedYear}
+                                    onChange={(e) => setSelectedYear(e.target.value)}
+                                    placeholder="2025"
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-24"
+                                />
+                            </div>
+                        </>
+                    )}
+                    
+                    <button
+                        className="ml-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                    >
+                        조회
+                    </button>
+                </div>
+
+                {/* 통계 카드 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="bg-emerald-50 p-6 rounded-xl shadow-sm border border-emerald-100 flex items-center">
+                        <div className="bg-emerald-100 p-3 rounded-lg mr-4">
+                            <CurrencyDollarIcon className="h-8 w-8 text-emerald-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-emerald-800">총 판매액</h3>
+                            <p className="text-3xl font-bold text-emerald-600 mt-1">₩0</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-blue-50 p-6 rounded-xl shadow-sm border border-blue-100 flex items-center">
+                        <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                            <ShoppingBagIcon className="h-8 w-8 text-blue-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-blue-800">총 판매 수량</h3>
+                            <p className="text-3xl font-bold text-blue-600 mt-1">0개</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 판매액 테이블 */}
+                <div className="mb-6">
+                    <h3 className="text-lg font-bold text-neutral-800 mb-4 flex items-center gap-2">
+                        <CurrencyDollarIcon className="h-5 w-5 text-emerald-600" />
+                        판매액 내역
+                    </h3>
+                    <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                                        {periodType === 'daily' ? '날짜' : periodType === 'monthly' ? '월' : '연도'}
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">판매액</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                <tr>
+                                    <td colSpan="2" className="px-4 py-8 text-center text-gray-500">
+                                        데이터가 없습니다. 기간을 선택하고 조회 버튼을 클릭하세요.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* 판매수량 테이블 */}
+                <div>
+                    <h3 className="text-lg font-bold text-neutral-800 mb-4 flex items-center gap-2">
+                        <ShoppingBagIcon className="h-5 w-5 text-blue-600" />
+                        판매 수량 내역
+                    </h3>
+                    <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                                        {periodType === 'daily' ? '날짜' : periodType === 'monthly' ? '월' : '연도'}
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">판매 수량</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                <tr>
+                                    <td colSpan="2" className="px-4 py-8 text-center text-gray-500">
+                                        데이터가 없습니다. 기간을 선택하고 조회 버튼을 클릭하세요.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
