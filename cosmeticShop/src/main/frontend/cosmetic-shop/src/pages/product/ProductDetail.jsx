@@ -21,6 +21,7 @@ function Detail({title}) {
     const [isLiked, setIsLiked] = useState(false);
     const [likedRelatedProducts, setLikedRelatedProducts] = useState({});
     const [isLikeLoading, setIsLikeLoading] = useState(false);
+    const [relatedProductLikedCounts, setRelatedProductLikedCounts] = useState({}); // 관련 상품의 찜한 사람 수 관리
 
     // 이미지 슬라이더 관련 상태 추가
     const [imageUrls, setImageUrls] = useState([]);
@@ -130,8 +131,18 @@ function Detail({title}) {
                         content: item.description,
                         price: item.price,
                         discountRate: item.discountRate || 0,
-                        imageUrl: item.thumbImgUrl ? getImageUrl(item.thumbImgUrl) : null
+                        imageUrl: item.thumbImgUrl ? getImageUrl(item.thumbImgUrl) : null,
+                        liked: item.liked || 0 // 찜한 사람 수 추가
                     }));
+
+                // 관련 상품의 찜한 사람 수 초기화
+                const likedCountsMap = {};
+                formattedProducts.forEach(product => {
+                    if (product.liked !== undefined) {
+                        likedCountsMap[product.id] = product.liked;
+                    }
+                });
+                setRelatedProductLikedCounts(likedCountsMap);
 
                 setRelatedProducts(formattedProducts);
             } catch (err) {
@@ -244,6 +255,29 @@ function Detail({title}) {
         }
 
         setIsLikeLoading(true);
+        const previousLiked = productId === product.productId 
+            ? isLiked 
+            : (likedRelatedProducts[productId] || false);
+        const currentLikedCount = productId === product.productId
+            ? (product.liked || 0)
+            : (relatedProductLikedCounts[productId] !== undefined 
+                ? relatedProductLikedCounts[productId] 
+                : (relatedProducts.find(p => p.id === productId)?.liked || 0));
+        
+        // 낙관적 업데이트: 즉시 UI 업데이트
+        if (productId === product.productId) {
+            setIsLiked(!previousLiked);
+        } else {
+            setLikedRelatedProducts(prev => ({
+                ...prev,
+                [productId]: !previousLiked
+            }));
+            setRelatedProductLikedCounts(prev => ({
+                ...prev,
+                [productId]: currentLikedCount + (previousLiked ? -1 : 1)
+            }));
+        }
+        
         try {
             const response = await userAPI.product.likes.toggleLike(productId);
             const newLikeStatus = response.data; // 토글 후 좋아요 상태 (true/false)
@@ -258,11 +292,39 @@ function Detail({title}) {
                     ...prev,
                     [productId]: newLikeStatus
                 }));
+                
+                // 서버에서 정확한 값 다시 가져오기
+                try {
+                    const productResponse = await userAPI.product.getById(productId);
+                    const updatedLiked = productResponse.data?.productDTO?.liked;
+                    if (updatedLiked !== undefined) {
+                        setRelatedProductLikedCounts(prev => ({
+                            ...prev,
+                            [productId]: updatedLiked
+                        }));
+                    }
+                } catch (fetchError) {
+                    console.error("상품 정보를 다시 가져오는데 실패했습니다:", fetchError);
+                    // 실패해도 낙관적 업데이트 값은 유지
+                }
             }
 
             toast.success(newLikeStatus ? "상품을 찜 목록에 추가했습니다." : "상품을 찜 목록에서 제거했습니다.");
         } catch (error) {
             console.error("좋아요 토글에 실패했습니다:", error);
+            // 실패 시 이전 상태로 롤백
+            if (productId === product.productId) {
+                setIsLiked(previousLiked);
+            } else {
+                setLikedRelatedProducts(prev => ({
+                    ...prev,
+                    [productId]: previousLiked
+                }));
+                setRelatedProductLikedCounts(prev => ({
+                    ...prev,
+                    [productId]: currentLikedCount
+                }));
+            }
             toast.error("찜하기에 실패했습니다.");
         } finally {
             setIsLikeLoading(false);
@@ -815,33 +877,47 @@ function Detail({title}) {
                                                 </div>
                                             )}
 
-                                            {/* 하트 버튼 */}
-                                            <button
-                                                className={`absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-full shadow-sm transition-all duration-300 ${
-                                                    likedRelatedProducts[relatedProduct.id] ? 'text-rose-500' : 'text-gray-400 hover:text-rose-500'
-                                                } hover:bg-white`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // 부모 요소의 클릭 이벤트 전파 방지
-                                                    handleToggleLike(relatedProduct.id);
-                                                }}
-                                                disabled={isLikeLoading}
-                                            >
-                                                {likedRelatedProducts[relatedProduct.id] ? (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5"
-                                                         viewBox="0 0 24 24" fill="currentColor">
-                                                        <path fillRule="evenodd"
-                                                              d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                                                              clipRule="evenodd"/>
+                                            {/* 찜한 사람 수 및 하트 버튼 */}
+                                            <div className="absolute top-2 right-2 flex items-center gap-2">
+                                                {/* 찜한 사람 수 */}
+                                                <div className="bg-white bg-opacity-90 rounded-full px-2.5 py-1 flex items-center gap-1 shadow-sm">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-rose-500" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"/>
                                                     </svg>
-                                                ) : (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5"
-                                                         fill="none"
-                                                         viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round"
-                                                              d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z"/>
-                                                    </svg>
-                                                )}
-                                            </button>
+                                                    <span className="text-xs font-medium text-gray-700">
+                                                        {relatedProductLikedCounts[relatedProduct.id] !== undefined 
+                                                            ? relatedProductLikedCounts[relatedProduct.id] 
+                                                            : (relatedProduct.liked || 0)}
+                                                    </span>
+                                                </div>
+                                                {/* 하트 버튼 */}
+                                                <button
+                                                    className={`p-2 bg-white bg-opacity-80 rounded-full shadow-sm transition-all duration-300 ${
+                                                        likedRelatedProducts[relatedProduct.id] ? 'text-rose-500' : 'text-gray-400 hover:text-rose-500'
+                                                    } hover:bg-white`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // 부모 요소의 클릭 이벤트 전파 방지
+                                                        handleToggleLike(relatedProduct.id);
+                                                    }}
+                                                    disabled={isLikeLoading}
+                                                >
+                                                    {likedRelatedProducts[relatedProduct.id] ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5"
+                                                             viewBox="0 0 24 24" fill="currentColor">
+                                                            <path fillRule="evenodd"
+                                                                  d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                                                                  clipRule="evenodd"/>
+                                                        </svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5"
+                                                             fill="none"
+                                                             viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round"
+                                                                  d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z"/>
+                                                        </svg>
+                                                    )}
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="p-5">
                                             <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors duration-200">{relatedProduct.title}</h3>
