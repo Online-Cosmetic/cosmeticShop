@@ -24,7 +24,7 @@ function EnterpriseQnAList() {
                 console.error("기업 QnA 데이터를 가져오는 중 오류 발생:", error);
                 setLoading(false);
             });
-    }, []);
+    }, []); // 컴포넌트 마운트 시 데이터 불러오기
 
     const formatDate = (iso) => {
         const date = new Date(iso);
@@ -126,11 +126,11 @@ function EnterpriseQnAList() {
                                         <td className="py-3 px-4 text-gray-600">{startIndex + index + 1}</td>
                                         <td className="py-3 px-4">
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                item.isAnswered 
+                                                (item.isAnswered || item.answered) 
                                                     ? 'bg-green-100 text-green-800' 
                                                     : 'bg-yellow-100 text-yellow-800'
                                             }`}>
-                                                {item.isAnswered ? '답변완료' : '대기중'}
+                                                {(item.isAnswered || item.answered) ? '답변완료' : '대기중'}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4">

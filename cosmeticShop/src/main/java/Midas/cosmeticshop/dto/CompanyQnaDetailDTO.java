@@ -1,6 +1,7 @@
 package Midas.cosmeticshop.dto;
 
 import Midas.cosmeticshop.entity.CompanyQna;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,8 @@ public class CompanyQnaDetailDTO {
     private LocalDateTime questionedAt;
     private LocalDateTime answeredAt;
     private boolean answered;
+    @JsonProperty("isAnswered")
+    private boolean isAnswered; // 프론트엔드 호환성을 위한 필드
 
     public CompanyQnaDetailDTO(CompanyQna companyQna) {
         this.id = companyQna.getId();
@@ -31,6 +34,7 @@ public class CompanyQnaDetailDTO {
         this.questionedAt = companyQna.getQuestionedAt();
         this.answeredAt = companyQna.getAnsweredAt();
         this.answered = companyQna.getAnswer() != null;
+        this.isAnswered = companyQna.getAnswer() != null; // answered와 동일한 값
     }
 }
 

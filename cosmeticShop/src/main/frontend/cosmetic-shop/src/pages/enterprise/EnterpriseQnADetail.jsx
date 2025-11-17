@@ -1,11 +1,12 @@
 // src/pages/enterprise/EnterpriseQnADetail.jsx
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { companyAPI } from '../../utils/customAxios';
 
 function EnterpriseQnADetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [qna, setQna] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,19 +39,23 @@ function EnterpriseQnADetail() {
   useEffect(() => {
     if (!id) return;
 
-    companyAPI.qna.getDetail(id)
-      .then((res) => {
+    const fetchQnaDetail = async () => {
+      try {
+        setLoading(true);
+        const res = await companyAPI.qna.getDetail(id);
         setQna(res.data);
         setEditedTitle(res.data.questionTitle);
         setEditedContent(res.data.content);
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("QnA 불러오기 실패:", err);
         setError('QnA 정보를 불러오는 데 실패했습니다.');
         setLoading(false);
-      });
-  }, [id]);
+      }
+    };
+
+    fetchQnaDetail();
+  }, [id, location.key]); // id나 location.key가 변경될 때마다 데이터 불러오기
 
   // 수정 모드 활성화 및 텍스트 영역에 포커스
   useEffect(() => {
@@ -180,8 +185,8 @@ function EnterpriseQnADetail() {
         {/* 답변 섹션 */}
         <div className="border-t pt-6 mb-8">
           <h4 className="text-lg font-semibold text-gray-800 mb-2">답변</h4>
-          {qna.isAnswered ? (
-            <p className="text-gray-700 whitespace-pre-wrap">{qna.answer}</p>
+          {(qna.isAnswered || qna.answered || qna.answer) ? (
+            <p className="text-gray-700 whitespace-pre-wrap">{qna.answer || '답변이 등록되었습니다.'}</p>
           ) : (
             <p className="text-gray-400 italic">아직 답변이 등록되지 않았습니다.</p>
           )}

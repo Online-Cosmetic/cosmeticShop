@@ -71,7 +71,7 @@ export default function AdminCompanyQnAResponse() {
         try {
             await adminAPI.companyQna.answerQna(id, answer);
             alert("답변이 성공적으로 저장되었습니다.");
-            navigate("/admin/company-qna");
+            navigate("/admin/company-qna", { state: { refresh: true } });
         } catch (error) {
             console.error("Error submitting answer:", error);
             alert("답변 저장에 실패했습니다. 다시 시도해주세요.");
@@ -137,13 +137,13 @@ export default function AdminCompanyQnAResponse() {
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-2">
                                 <span className="text-gray-500 font-medium">상태:</span>
-                                {qna.isAnswered ? (
+                                {(qna.isAnswered || qna.answered || qna.answer) ? (
                                     <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-medium rounded-full text-sm">답변완료</span>
                                 ) : (
                                     <span className="px-3 py-1 bg-red-100 text-red-800 font-medium rounded-full text-sm">미답변</span>
                                 )}
                             </div>
-                            {qna.isAnswered && (
+                            {(qna.isAnswered || qna.answered || qna.answer) && qna.answeredAt && (
                                 <div className="flex items-center gap-2">
                                     <span className="text-gray-500 font-medium">답변일시:</span>
                                     <span className="text-neutral-800">{formatDateTime(qna.answeredAt)}</span>

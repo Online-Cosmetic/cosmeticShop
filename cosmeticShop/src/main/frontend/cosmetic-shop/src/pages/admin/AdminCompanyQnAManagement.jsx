@@ -1,11 +1,12 @@
 // src/pages/admin/AdminCompanyQnAManagement.jsx
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { adminAPI } from "../../utils/customAxios";
 
 export default function AdminCompanyQnAManagement() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [qnaList, setQnaList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("all"); // "all", "answered", "unanswered"
@@ -17,6 +18,15 @@ export default function AdminCompanyQnAManagement() {
     useEffect(() => {
         fetchQnAs();
     }, [filter]);
+
+    // 답변 제출 후 목록으로 돌아올 때 데이터 다시 불러오기
+    useEffect(() => {
+        if (location.state?.refresh) {
+            fetchQnAs();
+            // state 초기화
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state]);
 
     const fetchQnAs = async () => {
         setLoading(true);
@@ -184,11 +194,13 @@ export default function AdminCompanyQnAManagement() {
                         >
                             <div className="w-28 text-center">{item.id}</div>
                             <div className="w-32 text-center">
-                                {item.isAnswered ? (
-                                    <span className="text-emerald-600 font-medium">Answered</span>
-                                ) : (
-                                    <span className="text-red-500 font-medium">Pending</span>
-                                )}
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    (item.isAnswered || item.answered) 
+                                        ? 'bg-green-100 text-green-800' 
+                                        : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                    {(item.isAnswered || item.answered) ? '답변완료' : '대기중'}
+                                </span>
                             </div>
                             <div className="flex-1 text-center">{item.questionTitle}</div>
                             <div className="w-32 text-center">{item.companyName || '기업명'}</div>
