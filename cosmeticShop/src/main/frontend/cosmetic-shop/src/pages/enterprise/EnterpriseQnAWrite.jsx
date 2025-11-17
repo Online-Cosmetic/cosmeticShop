@@ -1,6 +1,7 @@
 // src/pages/enterprise/EnterpriseQnAWrite.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { companyAPI } from '../../utils/customAxios';
 
 function EnterpriseQnAWrite() {
   const [title, setTitle] = useState('');
@@ -16,13 +17,11 @@ function EnterpriseQnAWrite() {
 
     setLoading(true);
     try {
-      // TODO: 기업용 QnA 작성 API 호출 (백엔드 구현 후 연결)
-      // await companyAPI.qna.create({
-      //   questionTitle: title,
-      //   content,
-      // });
+      await companyAPI.qna.create({
+        questionTitle: title,
+        content,
+      });
       
-      // 임시로 성공 처리
       alert('QnA가 등록되었습니다.');
       navigate('/enterprise/qna');
     } catch (error) {

@@ -1,6 +1,7 @@
 // src/pages/enterprise/EnterpriseQnADetail.jsx
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { companyAPI } from '../../utils/customAxios';
 
 function EnterpriseQnADetail() {
   const { id } = useParams();
@@ -10,6 +11,7 @@ function EnterpriseQnADetail() {
   const [error, setError] = useState(null);
   const [currentCompany, setCurrentCompany] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
   const contentRef = useRef(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -20,13 +22,8 @@ function EnterpriseQnADetail() {
     const fetchCurrentCompany = async () => {
       try {
         setUserLoading(true);
-        // TODO: 기업 정보 API 호출 (백엔드 구현 후 연결)
-        // const response = await companyAPI.profile.getProfile();
-        // setCurrentCompany(response.data);
-        
-        // 임시로 로컬스토리지에서 기업명 가져오기
-        const companyName = localStorage.getItem('userName');
-        setCurrentCompany({ companyName });
+        const response = await companyAPI.profile.getProfile();
+        setCurrentCompany(response.data);
         setUserLoading(false);
       } catch (err) {
         console.error("기업 정보 불러오기 실패:", err);
@@ -41,21 +38,18 @@ function EnterpriseQnADetail() {
   useEffect(() => {
     if (!id) return;
 
-    // TODO: 기업용 QnA 상세 API 호출 (백엔드 구현 후 연결)
-    // companyAPI.qna.getDetail(id)
-    //   .then((res) => {
-    //     setQna(res.data);
-    //     setEditedContent(res.data.content);
-    //     setLoading(false);
-    //   })
-    //   .catch((err) => {
-    //     console.error("QnA 불러오기 실패:", err);
-    //     setError('QnA 정보를 불러오는 데 실패했습니다.');
-    //     setLoading(false);
-    //   });
-    
-    // 임시로 빈 상태 설정
-    setLoading(false);
+    companyAPI.qna.getDetail(id)
+      .then((res) => {
+        setQna(res.data);
+        setEditedTitle(res.data.questionTitle);
+        setEditedContent(res.data.content);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("QnA 불러오기 실패:", err);
+        setError('QnA 정보를 불러오는 데 실패했습니다.');
+        setLoading(false);
+      });
   }, [id]);
 
   // 수정 모드 활성화 및 텍스트 영역에 포커스
@@ -77,6 +71,7 @@ function EnterpriseQnADetail() {
   const handleCancelEdit = () => {
     setIsEditing(false);
     if (qna) {
+      setEditedTitle(qna.questionTitle);
       setEditedContent(qna.content);
     }
   };
@@ -84,16 +79,16 @@ function EnterpriseQnADetail() {
   // 수정 내용 저장
   const handleSaveEdit = async () => {
     try {
-      // TODO: 기업용 QnA 수정 API 호출 (백엔드 구현 후 연결)
-      // await companyAPI.qna.update(id, {
-      //   questionTitle: qna.questionTitle,
-      //   content: editedContent
-      // });
+      await companyAPI.qna.update(id, {
+        questionTitle: editedTitle,
+        content: editedContent
+      });
 
       // 상태 업데이트
       if (qna) {
         setQna({
           ...qna,
+          questionTitle: editedTitle,
           content: editedContent
         });
       }
@@ -113,8 +108,7 @@ function EnterpriseQnADetail() {
     }
 
     try {
-      // TODO: 기업용 QnA 삭제 API 호출 (백엔드 구현 후 연결)
-      // await companyAPI.qna.delete(id);
+      await companyAPI.qna.delete(id);
       alert('질문이 성공적으로 삭제되었습니다.');
       navigate('/enterprise/qna');
     } catch (err) {
@@ -153,7 +147,16 @@ function EnterpriseQnADetail() {
       <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-6">
         {/* 헤더 */}
         <div className="border-b pb-4 mb-6">
-          <h2 className="text-3xl font-bold mb-2 text-neutral-800">{qna.questionTitle}</h2>
+          {isEditing ? (
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              className="w-full text-3xl font-bold mb-2 text-neutral-800 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+          ) : (
+            <h2 className="text-3xl font-bold mb-2 text-neutral-800">{qna.questionTitle}</h2>
+          )}
           <div className="flex justify-between text-sm text-gray-500">
             <span>{qna.companyName || '기업명'}</span>
             <span>{new Date(qna.questionedAt).toLocaleDateString('ko-KR')}</span>
@@ -177,7 +180,7 @@ function EnterpriseQnADetail() {
         {/* 답변 섹션 */}
         <div className="border-t pt-6 mb-8">
           <h4 className="text-lg font-semibold text-gray-800 mb-2">답변</h4>
-          {qna.answered ? (
+          {qna.isAnswered ? (
             <p className="text-gray-700 whitespace-pre-wrap">{qna.answer}</p>
           ) : (
             <p className="text-gray-400 italic">아직 답변이 등록되지 않았습니다.</p>

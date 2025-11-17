@@ -21,22 +21,18 @@ export default function AdminCompanyQnAManagement() {
     const fetchQnAs = async () => {
         setLoading(true);
         try {
-            // TODO: 기업용 QnA API 호출 (백엔드 구현 후 연결)
-            // let response;
-            // if (filter === "all") {
-            //     const unansweredResponse = await adminAPI.companyQna.getUnansweredQnas();
-            //     const answeredResponse = await adminAPI.companyQna.getAnsweredQnas();
-            //     setQnaList([...unansweredResponse.data, ...answeredResponse.data]);
-            // } else if (filter === "answered") {
-            //     response = await adminAPI.companyQna.getAnsweredQnas();
-            //     setQnaList(response.data);
-            // } else if (filter === "unanswered") {
-            //     response = await adminAPI.companyQna.getUnansweredQnas();
-            //     setQnaList(response.data);
-            // }
-            
-            // 임시로 빈 배열 설정
-            setQnaList([]);
+            let response;
+            if (filter === "all") {
+                const unansweredResponse = await adminAPI.companyQna.getUnansweredQnas();
+                const answeredResponse = await adminAPI.companyQna.getAnsweredQnas();
+                setQnaList([...unansweredResponse.data, ...answeredResponse.data]);
+            } else if (filter === "answered") {
+                response = await adminAPI.companyQna.getAnsweredQnas();
+                setQnaList(response.data);
+            } else if (filter === "unanswered") {
+                response = await adminAPI.companyQna.getUnansweredQnas();
+                setQnaList(response.data);
+            }
         } catch (error) {
             console.error("Error fetching Company QnAs:", error);
         } finally {
@@ -53,19 +49,18 @@ export default function AdminCompanyQnAManagement() {
 
         setLoading(true);
         try {
-            // TODO: 기업용 QnA 검색 API 호출 (백엔드 구현 후 연결)
-            // let response;
-            // if (filter === "all") {
-            //     const answeredResponse = await adminAPI.companyQna.searchAnsweredQnasByTitle(searchTerm);
-            //     const unansweredResponse = await adminAPI.companyQna.searchUnansweredQnasByTitle(searchTerm);
-            //     setQnaList([...answeredResponse.data, ...unansweredResponse.data]);
-            // } else if (filter === "answered") {
-            //     response = await adminAPI.companyQna.searchAnsweredQnasByTitle(searchTerm);
-            //     setQnaList(response.data);
-            // } else if (filter === "unanswered") {
-            //     response = await adminAPI.companyQna.searchUnansweredQnasByTitle(searchTerm);
-            //     setQnaList(response.data);
-            // }
+            let response;
+            if (filter === "all") {
+                const answeredResponse = await adminAPI.companyQna.searchAnsweredQnasByTitle(searchTerm);
+                const unansweredResponse = await adminAPI.companyQna.searchUnansweredQnasByTitle(searchTerm);
+                setQnaList([...answeredResponse.data, ...unansweredResponse.data]);
+            } else if (filter === "answered") {
+                response = await adminAPI.companyQna.searchAnsweredQnasByTitle(searchTerm);
+                setQnaList(response.data);
+            } else if (filter === "unanswered") {
+                response = await adminAPI.companyQna.searchUnansweredQnasByTitle(searchTerm);
+                setQnaList(response.data);
+            }
         } catch (error) {
             console.error("Error searching Company QnAs:", error);
         } finally {
@@ -79,8 +74,7 @@ export default function AdminCompanyQnAManagement() {
 
         if (window.confirm("이 기업 QnA를 삭제하시겠습니까?")) {
             try {
-                // TODO: 기업용 QnA 삭제 API 호출 (백엔드 구현 후 연결)
-                // await adminAPI.companyQna.adminDeleteQna(qnaId);
+                await adminAPI.companyQna.adminDeleteQna(qnaId);
                 // Refresh the list after deletion
                 fetchQnAs();
             } catch (error) {
@@ -190,7 +184,7 @@ export default function AdminCompanyQnAManagement() {
                         >
                             <div className="w-28 text-center">{item.id}</div>
                             <div className="w-32 text-center">
-                                {item.answered ? (
+                                {item.isAnswered ? (
                                     <span className="text-emerald-600 font-medium">Answered</span>
                                 ) : (
                                     <span className="text-red-500 font-medium">Pending</span>

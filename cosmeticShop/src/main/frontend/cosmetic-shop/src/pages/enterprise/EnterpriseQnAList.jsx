@@ -1,6 +1,7 @@
 // src/pages/enterprise/EnterpriseQnAList.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
+import { companyAPI } from '../../utils/customAxios';
 
 function EnterpriseQnAList() {
     const [qnaData, setQnaData] = useState([]);
@@ -14,20 +15,15 @@ function EnterpriseQnAList() {
     const currentData = qnaData.slice(startIndex, startIndex + itemsPerPage);
 
     useEffect(() => {
-        // TODO: 기업용 QnA API 호출 (백엔드 구현 후 연결)
-        // companyAPI.qna.getAllCompanyQnas()
-        //     .then((response) => {
-        //         setQnaData(response.data);
-        //         setLoading(false);
-        //     })
-        //     .catch((error) => {
-        //         console.error("기업 QnA 데이터를 가져오는 중 오류 발생:", error);
-        //         setLoading(false);
-        //     });
-        
-        // 임시로 빈 배열 설정
-        setQnaData([]);
-        setLoading(false);
+        companyAPI.qna.getAllCompanyQnas()
+            .then((response) => {
+                setQnaData(response.data);
+                setLoading(false);
+            })
+            .catch((error) => {
+                console.error("기업 QnA 데이터를 가져오는 중 오류 발생:", error);
+                setLoading(false);
+            });
     }, []);
 
     const formatDate = (iso) => {
@@ -48,19 +44,18 @@ function EnterpriseQnAList() {
     };
 
     const handleSearch = () => {
-        // TODO: 기업용 QnA 검색 API 호출 (백엔드 구현 후 연결)
-        // if (searchTerm.trim() === '') {
-        //     companyAPI.qna.getAllCompanyQnas()
-        //         .then((response) => setQnaData(response.data))
-        //         .catch((error) => console.error("전체 QnA 불러오기 오류:", error));
-        // } else {
-        //     companyAPI.qna.searchCompanyQnasByTitle(searchTerm)
-        //         .then((response) => {
-        //             setQnaData(response.data);
-        //             setCurrentPage(1);
-        //         })
-        //         .catch((error) => console.error("검색 오류:", error));
-        // }
+        if (searchTerm.trim() === '') {
+            companyAPI.qna.getAllCompanyQnas()
+                .then((response) => setQnaData(response.data))
+                .catch((error) => console.error("전체 QnA 불러오기 오류:", error));
+        } else {
+            companyAPI.qna.searchByTitle(searchTerm)
+                .then((response) => {
+                    setQnaData(response.data);
+                    setCurrentPage(1);
+                })
+                .catch((error) => console.error("검색 오류:", error));
+        }
     };
 
     return (
@@ -131,11 +126,11 @@ function EnterpriseQnAList() {
                                         <td className="py-3 px-4 text-gray-600">{startIndex + index + 1}</td>
                                         <td className="py-3 px-4">
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                item.answered 
+                                                item.isAnswered 
                                                     ? 'bg-green-100 text-green-800' 
                                                     : 'bg-yellow-100 text-yellow-800'
                                             }`}>
-                                                {item.answered ? '답변완료' : '대기중'}
+                                                {item.isAnswered ? '답변완료' : '대기중'}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4">

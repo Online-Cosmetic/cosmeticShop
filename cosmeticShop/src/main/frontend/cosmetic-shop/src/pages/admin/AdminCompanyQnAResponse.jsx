@@ -19,16 +19,12 @@ export default function AdminCompanyQnAResponse() {
             setLoading(true);
             setError(null);
             try {
-                // TODO: 기업용 QnA 상세 API 호출 (백엔드 구현 후 연결)
-                // const response = await adminAPI.companyQna.getDetail(id);
-                // setQna(response.data);
-                // // If there's already an answer, pre-fill the answer field
-                // if (response.data.answer) {
-                //     setAnswer(response.data.answer);
-                // }
-                
-                // 임시로 빈 상태 설정
-                setQna(null);
+                const response = await adminAPI.companyQna.getDetail(id);
+                setQna(response.data);
+                // If there's already an answer, pre-fill the answer field
+                if (response.data.answer) {
+                    setAnswer(response.data.answer);
+                }
             } catch (error) {
                 console.error("Error fetching Company QnA details:", error);
                 setError("기업 QnA 정보를 불러오는데 실패했습니다. 다시 시도해주세요.");
@@ -73,8 +69,7 @@ export default function AdminCompanyQnAResponse() {
 
         setSubmitting(true);
         try {
-            // TODO: 기업용 QnA 답변 작성 API 호출 (백엔드 구현 후 연결)
-            // await adminAPI.companyQna.answerQna(id, answer);
+            await adminAPI.companyQna.answerQna(id, answer);
             alert("답변이 성공적으로 저장되었습니다.");
             navigate("/admin/company-qna");
         } catch (error) {
@@ -142,13 +137,13 @@ export default function AdminCompanyQnAResponse() {
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-2">
                                 <span className="text-gray-500 font-medium">상태:</span>
-                                {qna.answered ? (
+                                {qna.isAnswered ? (
                                     <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-medium rounded-full text-sm">답변완료</span>
                                 ) : (
                                     <span className="px-3 py-1 bg-red-100 text-red-800 font-medium rounded-full text-sm">미답변</span>
                                 )}
                             </div>
-                            {qna.answered && (
+                            {qna.isAnswered && (
                                 <div className="flex items-center gap-2">
                                     <span className="text-gray-500 font-medium">답변일시:</span>
                                     <span className="text-neutral-800">{formatDateTime(qna.answeredAt)}</span>
