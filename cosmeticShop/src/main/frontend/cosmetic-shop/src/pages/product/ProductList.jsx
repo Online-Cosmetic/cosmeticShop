@@ -10,7 +10,19 @@ function ProductList({ products, title, onSortChange }) {
     const { isAuthenticated } = useAuth();
     // 좋아요 상태 관리
     const [likedProducts, setLikedProducts] = useState({}); // 개별 상품 상태 저장
+    const [productLikedCounts, setProductLikedCounts] = useState({}); // 각 상품의 찜한 사람 수 관리
     const [isLoading, setIsLoading] = useState(false);
+    
+    // 초기 찜한 사람 수 설정
+    useEffect(() => {
+        const initialCounts = {};
+        products.forEach(product => {
+            if (product.liked !== undefined) {
+                initialCounts[product.id] = product.liked;
+            }
+        });
+        setProductLikedCounts(prev => ({ ...prev, ...initialCounts }));
+    }, [products]);
 
     // 로그인한 사용자의 좋아요 상품 목록 가져오기
     useEffect(() => {
@@ -39,16 +51,58 @@ function ProductList({ products, title, onSortChange }) {
         }
 
         setIsLoading(true);
+        const previousLiked = likedProducts[productId] || false;
+        const currentLikedCount = productLikedCounts[productId] !== undefined 
+            ? productLikedCounts[productId] 
+            : (products.find(p => p.id === productId)?.liked || 0);
+        
+        // 낙관적 업데이트: 즉시 UI 업데이트
+        setLikedProducts(prev => ({
+            ...prev,
+            [productId]: !previousLiked
+        }));
+        
+        // 찜한 사람 수도 즉시 업데이트 (현재 값 기준으로 정확하게 계산)
+        setProductLikedCounts(prev => ({
+            ...prev,
+            [productId]: currentLikedCount + (previousLiked ? -1 : 1)
+        }));
+        
         try {
             const response = await userAPI.product.likes.toggleLike(productId);
             const isLiked = response.data; // 토글 후 좋아요 상태 (true/false)
 
+            // 서버 응답으로 최종 상태 동기화
             setLikedProducts(prev => ({
                 ...prev,
                 [productId]: isLiked
             }));
+            
+            // 찜 토글 후 상품 정보를 다시 가져와서 정확한 liked 값 동기화
+            try {
+                const productResponse = await userAPI.product.getById(productId);
+                const updatedLiked = productResponse.data?.productDTO?.liked;
+                if (updatedLiked !== undefined) {
+                    setProductLikedCounts(prev => ({
+                        ...prev,
+                        [productId]: updatedLiked
+                    }));
+                }
+            } catch (fetchError) {
+                console.error("상품 정보를 다시 가져오는데 실패했습니다:", fetchError);
+                // 실패해도 낙관적 업데이트 값은 유지
+            }
         } catch (error) {
             console.error("좋아요 토글에 실패했습니다:", error);
+            // 실패 시 이전 상태로 롤백
+            setLikedProducts(prev => ({
+                ...prev,
+                [productId]: previousLiked
+            }));
+            setProductLikedCounts(prev => ({
+                ...prev,
+                [productId]: currentLikedCount
+            }));
         } finally {
             setIsLoading(false);
         }
@@ -98,20 +152,34 @@ function ProductList({ products, title, onSortChange }) {
                                      </div>
                                  )}
 
-                                 {/* 하트 버튼 */}
-                                 <button
-                                     className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 rounded-full text-gray-400 hover:text-rose-500 hover:bg-white transition-all duration-300 shadow-sm"
-                                     onClick={(e) => {
-                                         e.stopPropagation();
-                                         toggleLike(product.id);
-                                     }}
-                                 >
-                                     {isLiked ? (
-                                         <SolidHeartIcon className="h-5 w-5 text-rose-500" />
-                                     ) : (
-                                         <HeartIcon className="h-5 w-5 text-gray-400 hover:text-rose-500" />
-                                     )}
-                                 </button>
+                                 {/* 찜한 사람 수 및 하트 버튼 */}
+                                 <div className="absolute top-2 right-2 flex items-center gap-2">
+                                     {/* 찜한 사람 수 */}
+                                     <div className="bg-white bg-opacity-90 rounded-full px-2.5 py-1 flex items-center gap-1 shadow-sm">
+                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-rose-500" viewBox="0 0 24 24" fill="currentColor">
+                                             <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"/>
+                                         </svg>
+                                         <span className="text-xs font-medium text-gray-700">
+                                             {productLikedCounts[product.id] !== undefined 
+                                                 ? productLikedCounts[product.id] 
+                                                 : (product.liked || 0)}
+                                         </span>
+                                     </div>
+                                     {/* 하트 버튼 */}
+                                     <button
+                                         className="p-2 bg-white bg-opacity-80 rounded-full text-gray-400 hover:text-rose-500 hover:bg-white transition-all duration-300 shadow-sm"
+                                         onClick={(e) => {
+                                             e.stopPropagation();
+                                             toggleLike(product.id);
+                                         }}
+                                     >
+                                         {isLiked ? (
+                                             <SolidHeartIcon className="h-5 w-5 text-rose-500" />
+                                         ) : (
+                                             <HeartIcon className="h-5 w-5 text-gray-400 hover:text-rose-500" />
+                                         )}
+                                     </button>
+                                 </div>
                              </div>
 
                              <div className="p-5 space-y-2">

@@ -15,6 +15,7 @@ public class ProductPreviewDTO { // 여러 상품 나와있을때 최소한의 �
     private int price;
     private int discountRate; // 할인율 필드 추가
     private String ThumbImgUrl;
+    private int liked; // 찜한 사람 수
 
     public static ProductPreviewDTO from(Product product) {
         return new ProductPreviewDTO(
@@ -23,7 +24,8 @@ public class ProductPreviewDTO { // 여러 상품 나와있을때 최소한의 �
             product.getDescription(),
             product.getPrice(),
             product.getDiscountRate(), // 할인율 값 추가
-            product.getThumbnailImage() != null ? product.getThumbnailImage().getImageUrl() : null
+            product.getThumbnailImage() != null ? product.getThumbnailImage().getImageUrl() : null,
+            product.getLiked() // 찜한 사람 수 추가
         );
     }
 }

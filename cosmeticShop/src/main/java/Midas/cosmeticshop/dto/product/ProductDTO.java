@@ -18,6 +18,7 @@ public class ProductDTO {
     private int stock;
     private Long companyId;
     private String thumbnailImageUrl;
+    private int liked; // 찜한 사람 수
 
 
     public static ProductDTO from(Product product) {
@@ -35,7 +36,8 @@ public class ProductDTO {
             product.getDiscountRate(), // 할인율 값 추가
             product.getStock(),
             product.getCompany().getId(),
-            thumbnailImageUrl
+            thumbnailImageUrl,
+            product.getLiked() // 찜한 사람 수 추가
         );
     }
 

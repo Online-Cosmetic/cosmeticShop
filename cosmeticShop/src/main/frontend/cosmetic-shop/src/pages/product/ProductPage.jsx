@@ -122,7 +122,8 @@ function ProductPage() {
                 content: product.description,
                 price: product.price,
                 discountRate: product.discountRate || 0,
-                imageUrl: product.thumbImgUrl ? getImageUrl(product.thumbImgUrl) : null
+                imageUrl: product.thumbImgUrl ? getImageUrl(product.thumbImgUrl) : null,
+                liked: product.liked || 0 // 찜한 사람 수 추가
             }));
 
             const batchUnique = [];
