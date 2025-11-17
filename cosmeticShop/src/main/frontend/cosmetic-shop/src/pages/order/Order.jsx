@@ -38,6 +38,8 @@ function Order() {
     const addressesLoadedRef = useRef(false);
     // 장바구니 아이템 로딩 상태 참조
     const cartItemsLoadedRef = useRef(false);
+    // 주문 생성 중인지 추적하는 ref
+    const isCreatingOrderRef = useRef(false);
 
     // Cart.jsx에서 전달받은 선택된 장바구니 아이템 ID 배열
     const selectedCartIds = location.state?.selectedCartIds || [];
@@ -367,6 +369,19 @@ function Order() {
     // Order.jsx - handleProceedOrder 함수에서 할인가를 고려한 주문 생성
     const handleProceedOrder = async () => {
         setErrorMsg("");
+        
+        // 이미 주문이 생성되어 있으면 주문을 다시 생성하지 않음
+        if (orderId) {
+            setShowPayment(true);
+            return;
+        }
+
+        // 주문 생성 중이면 중복 호출 방지
+        if (isCreatingOrderRef.current) {
+            console.log("주문 생성 중입니다. 중복 호출을 방지합니다.");
+            return;
+        }
+
         setShowPayment(false);
 
         if (!selectedAddress) {
@@ -381,6 +396,7 @@ function Order() {
             return;
         }
 
+        isCreatingOrderRef.current = true;
         try {
             // 주문 상품 정보에 할인가 적용
             const orderItems = cartItems.map(item => {
@@ -436,6 +452,8 @@ function Order() {
         } catch (e) {
             setErrorMsg('주문 생성에 실패했습니다.');
             console.error('주문 생성 오류:', e);
+        } finally {
+            isCreatingOrderRef.current = false;
         }
     };
 
