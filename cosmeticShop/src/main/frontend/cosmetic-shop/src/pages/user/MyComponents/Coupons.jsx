@@ -26,7 +26,6 @@ const Coupons = () => {
 
   //  쿠폰코드 등록
   const handleAddCoupon = async () => {
-    // 先去掉前后空格，得到真正要用的代码
     const trimmed = couponCode.trim();
 
     if (!trimmed) {
