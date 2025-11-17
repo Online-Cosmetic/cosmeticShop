@@ -19,6 +19,11 @@ const customAxios = axios.create({
 // 요청 인터셉터에 중복 요청 방지 로직 추가
 customAxios.interceptors.request.use(
     config => {
+        // baseURL이 '/api'이고 요청 URL이 '/api'로 시작하면 '/api' 제거 (중복 방지)
+        if (BACKEND_URL === '/api' && config.url?.startsWith('/api/')) {
+            config.url = config.url.replace(/^\/api/, '');
+        }
+        
         // FormData 객체인 경우 Content-Type 헤더 제거 (브라우저가 자동으로 multipart/form-data 설정)
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];
