@@ -4,6 +4,8 @@ import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
 import { userAPI } from "../../utils/customAxios";
 import { useAuth } from "../../contexts/AuthContext";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ProductList({ products, title, onSortChange }) {
     const navigate = useNavigate();
@@ -45,7 +47,7 @@ function ProductList({ products, title, onSortChange }) {
 
     const toggleLike = async (productId) => {
         if (!isAuthenticated) {
-            alert("로그인이 필요한 서비스입니다.");
+            toast.error("로그인이 필요한 서비스입니다.");
             navigate("/login");
             return;
         }
@@ -92,6 +94,8 @@ function ProductList({ products, title, onSortChange }) {
                 console.error("상품 정보를 다시 가져오는데 실패했습니다:", fetchError);
                 // 실패해도 낙관적 업데이트 값은 유지
             }
+            
+            toast.success(isLiked ? "상품을 찜 목록에 추가했습니다." : "상품을 찜 목록에서 제거했습니다.");
         } catch (error) {
             console.error("좋아요 토글에 실패했습니다:", error);
             // 실패 시 이전 상태로 롤백
@@ -103,6 +107,7 @@ function ProductList({ products, title, onSortChange }) {
                 ...prev,
                 [productId]: currentLikedCount
             }));
+            toast.error("찜하기에 실패했습니다.");
         } finally {
             setIsLoading(false);
         }
@@ -116,6 +121,7 @@ function ProductList({ products, title, onSortChange }) {
 
     return (
         <div>
+            <ToastContainer position="top-right" autoClose={3000} />
             <div className="flex justify-between items-center mb-8">
                 {/*<h2 className="text-3xl font-bold capitalize">{title}</h2>*/}
             </div>
