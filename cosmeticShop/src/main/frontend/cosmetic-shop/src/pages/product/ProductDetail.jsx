@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import {FaStar, FaRegStar, FaThumbsUp} from 'react-icons/fa';
 import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
+import {addRecentProduct} from "../../utils/recentProducts";
 
 function Detail({title}) {
     const {id} = useParams();
@@ -118,6 +119,15 @@ function Detail({title}) {
 
                 setImageUrls(imagesArray);
                 setCurrentImageIndex(0); // 항상 첫 번째 이미지부터 시작
+
+                // 최근 본 상품에 추가
+                addRecentProduct({
+                    productId: productData.productId,
+                    productName: productData.productName,
+                    thumbnailImageUrl: productData.thumbnailImageUrl,
+                    price: productData.price,
+                    discountRate: productData.discountRate || 0
+                });
 
                 // 관련 상품 가져오기 (같은 카테고리 상품 가정)
                 const categoryName = getCategoryNameById(productData.categoryId);

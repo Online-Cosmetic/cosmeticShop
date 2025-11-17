@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { userAPI } from "../../utils/customAxios.js";
 import { Link } from "react-router-dom";
-import { StarIcon, SparklesIcon, TrophyIcon, ShoppingBagIcon } from "@heroicons/react/24/solid";
+import { StarIcon, SparklesIcon, TrophyIcon, ShoppingBagIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { getImageUrl } from "@/utils/imageUtils";
+import RecentProducts from "../../components/product/RecentProducts.jsx";
 
 const HomePage = () => {
     const { user } = useAuth();
@@ -311,6 +312,20 @@ const HomePage = () => {
                             <p className="text-lg text-gray-500 product-description">추천상품이 없습니다.</p>
                         </div>
                     )}
+                </div>
+
+                {/* 최근 본 상품 */}
+                <div className="flex flex-col gap-8">
+                    <div className="flex items-center gap-2">
+                        <ClockIcon className="w-6 h-6 text-blue-500" />
+                        <h2 className="text-2xl font-bold text-gray-800 product-name">
+                            최근 본 상품
+                        </h2>
+                    </div>
+
+                    <div className="relative">
+                        <RecentProducts maxItems={10} showRemoveButton={true} />
+                    </div>
                 </div>
             </div>
         </div>
