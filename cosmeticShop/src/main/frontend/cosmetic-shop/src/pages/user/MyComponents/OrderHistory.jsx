@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { userAPI } from '../../../utils/customAxios.js';
 import { getImageUrl } from '../../../utils/imageUtils.js';
 import customAxios from '../../../utils/customAxios.js';
 
 export default function OrderHistory() {
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -127,7 +129,10 @@ export default function OrderHistory() {
                                             key={item.orderItemId || `${order.id}-${item.productId}`}
                                             className="p-6 flex flex-col md:flex-row md:items-center justify-between hover:bg-gray-50 transition-colors"
                                         >
-                                            <div className="flex items-center gap-6">
+                                            <div 
+                                                className="flex items-center gap-6 cursor-pointer flex-1"
+                                                onClick={() => navigate(`/detail/${item.productId}`)}
+                                            >
                                                 <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
                                                     <img
                                                         src={getImageUrl(item.mainImageUrl)}
@@ -137,7 +142,7 @@ export default function OrderHistory() {
                                                 </div>
                                                 <div className="flex flex-col gap-1">
                                                     <div className="text-sm text-gray-600">{item.brand}</div>
-                                                    <div className="font-medium text-lg text-neutral-800">{item.productName}</div>
+                                                    <div className="font-medium text-lg text-neutral-800 hover:text-emerald-600 transition-colors">{item.productName}</div>
                                                     <div className="text-emerald-600 font-semibold">₩{formatPrice(item.price)}</div>
                                                     <div className="text-sm text-gray-500">수량: {item.quantity || 1}개</div>
                                                     <div className="text-sm text-gray-500 mt-1">
@@ -150,7 +155,10 @@ export default function OrderHistory() {
                                             <div className="mt-6 md:mt-0 flex flex-col md:flex-row gap-3">
                                                 {item.deliveryStatus !== 'COMP' && item.deliveryStatus !== 'CANC' && (
                                                     <button
-                                                        onClick={() => handleCancelOrder(item.orderItemId, order.id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleCancelOrder(item.orderItemId, order.id);
+                                                        }}
                                                         className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
                                                     >
                                                         주문취소

@@ -67,7 +67,15 @@ export default function Review() {
           {reviews.map(review => (
             <div key={review.id} className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
               <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center">
+                <div 
+                  className="flex items-center cursor-pointer flex-1"
+                  onClick={() => {
+                    const productId = review.product?.productId || review.product?.id;
+                    if (productId) {
+                      navigate(`/detail/${productId}`);
+                    }
+                  }}
+                >
                   <img
                     src={review.product.thumbnailImageUrl ? getImageUrl(review.product.thumbnailImageUrl) : "https://via.placeholder.com/80"}
                     alt={review.product.productName}
@@ -77,7 +85,7 @@ export default function Review() {
                     }}
                   />
                   <div>
-                    <h3 className="font-semibold text-lg">{review.product.productName}</h3>
+                    <h3 className="font-semibold text-lg hover:text-emerald-600 transition-colors">{review.product.productName}</h3>
                     <div className="flex text-yellow-400 my-1">
                       {[...Array(5)].map((_, i) => (
                         <span key={i}>
@@ -91,7 +99,10 @@ export default function Review() {
 
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => handleDeleteReview(review.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteReview(review.id);
+                    }}
                     className={`p-2 ${confirmDelete === review.id ? 'text-red-600' : 'text-gray-500 hover:text-red-600'} transition-colors`}
                     title={confirmDelete === review.id ? "삭제 확인" : "리뷰 삭제"}
                   >

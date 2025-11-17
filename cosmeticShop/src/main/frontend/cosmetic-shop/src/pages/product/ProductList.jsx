@@ -173,7 +173,7 @@ function ProductList({ products, title, onSortChange }) {
                                      </div>
                                      {/* 하트 버튼 */}
                                      <button
-                                         className="p-2 bg-white bg-opacity-80 rounded-full text-gray-400 hover:text-rose-500 hover:bg-white transition-all duration-300 shadow-sm"
+                                         className="p-2 bg-white bg-opacity-80 rounded-full text-gray-400 hover:text-rose-500 hover:bg-white transition-all duration-300 shadow-sm flex items-center justify-center"
                                          onClick={(e) => {
                                              e.stopPropagation();
                                              toggleLike(product.id);

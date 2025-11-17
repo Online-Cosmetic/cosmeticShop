@@ -6,6 +6,8 @@ import {useAuth} from "../../contexts/AuthContext";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {FaStar, FaRegStar, FaThumbsUp} from 'react-icons/fa';
+import { HeartIcon } from "@heroicons/react/24/outline";
+import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
 
 function Detail({title}) {
     const {id} = useParams();
@@ -637,23 +639,14 @@ function Detail({title}) {
                                 <button
                                     onClick={() => handleToggleLike(product.productId)}
                                     disabled={isLikeLoading}
-                                    className={`transition-all duration-300 transform hover:scale-110 p-2 rounded-full ${
+                                    className={`transition-all duration-300 transform hover:scale-110 p-2 rounded-full flex items-center justify-center ${
                                         isLiked ? 'text-rose-500 bg-rose-50' : 'text-gray-400 hover:text-rose-500 hover:bg-rose-50'
                                     }`}
                                 >
                                     {isLiked ? (
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24"
-                                             fill="currentColor">
-                                            <path fillRule="evenodd"
-                                                  d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                                                  clipRule="evenodd"/>
-                                        </svg>
+                                        <SolidHeartIcon className="h-7 w-7 text-rose-500" />
                                     ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round"
-                                                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                                        </svg>
+                                        <HeartIcon className="h-7 w-7 text-gray-400 hover:text-rose-500" />
                                     )}
                                 </button>
                             </div>
@@ -892,7 +885,7 @@ function Detail({title}) {
                                                 </div>
                                                 {/* 하트 버튼 */}
                                                 <button
-                                                    className={`p-2 bg-white bg-opacity-80 rounded-full shadow-sm transition-all duration-300 ${
+                                                    className={`p-2 bg-white bg-opacity-80 rounded-full shadow-sm transition-all duration-300 flex items-center justify-center ${
                                                         likedRelatedProducts[relatedProduct.id] ? 'text-rose-500' : 'text-gray-400 hover:text-rose-500'
                                                     } hover:bg-white`}
                                                     onClick={(e) => {
@@ -902,19 +895,9 @@ function Detail({title}) {
                                                     disabled={isLikeLoading}
                                                 >
                                                     {likedRelatedProducts[relatedProduct.id] ? (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5"
-                                                             viewBox="0 0 24 24" fill="currentColor">
-                                                            <path fillRule="evenodd"
-                                                                  d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                                                                  clipRule="evenodd"/>
-                                                        </svg>
+                                                        <SolidHeartIcon className="h-5 w-5 text-rose-500" />
                                                     ) : (
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5"
-                                                             fill="none"
-                                                             viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round"
-                                                                  d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z"/>
-                                                        </svg>
+                                                        <HeartIcon className="h-5 w-5 text-gray-400 hover:text-rose-500" />
                                                     )}
                                                 </button>
                                             </div>
