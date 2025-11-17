@@ -26,16 +26,19 @@ const Coupons = () => {
 
   //  쿠폰코드 등록
   const handleAddCoupon = async () => {
-    if (!couponCode.trim()) {
+    // 先去掉前后空格，得到真正要用的代码
+    const trimmed = couponCode.trim();
+
+    if (!trimmed) {
       alert('쿠폰 코드를 입력해주세요.');
       return;
     }
 
     try {
+
       await userAPI.coupon.receiveCoupon(trimmed);
       alert('쿠폰이 성공적으로 등록되었습니다!');
 
-      // 최신 데이터 다시 불러오기（API 수정!!!!!)
       const refreshed = await userAPI.coupon.getMyCoupons();
       setCoupons(refreshed.data);
 
@@ -46,6 +49,7 @@ const Coupons = () => {
       alert('유효하지 않은 쿠폰 코드입니다.');
     }
   };
+
 
   // 남은 일수 계산
   const calculateDaysLeft = (expirationDate) => {
