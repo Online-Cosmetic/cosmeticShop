@@ -53,6 +53,8 @@ import AdminQnAManagement from "./pages/admin/AdminQnAManagement.jsx";
 import AdminQnAResponse from "./pages/admin/AdminQnAResponse.jsx";
 import AdminCouponIssuance from "./pages/admin/AdminCouponIssuance.jsx";
 import AdminBadKeywordManagement from "./pages/admin/AdminBadKeywordManagement.jsx";
+import AdminUserManagement from "./pages/admin/AdminUserManagement.jsx";
+import AdminUserDetail from "./pages/admin/AdminUserDetail.jsx";
 import AdminSidebar from "./components/admin/AdminSidebar.jsx";
 import AdminHeader from "./components/admin/AdminHeader.jsx";
 
@@ -320,6 +322,8 @@ const App = () => {
                                     <Route path="qna/:id/response" element={<AdminQnAResponse />} />
                                     <Route path="coupon" element={<AdminCouponIssuance />} />
                                     <Route path="badkeyword" element={<AdminBadKeywordManagement />} />
+                                    <Route path="users" element={<AdminUserManagement />} />
+                                    <Route path="users/:id" element={<AdminUserDetail />} />
                                 </Routes>
                             </AdminLayout>
                         </ProtectedRoute>

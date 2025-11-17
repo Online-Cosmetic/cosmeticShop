@@ -495,6 +495,26 @@ export const adminAPI = {
 
         // Get dashboard statistics including total orders, active users, active coupons, and total sales
         getDashboardCounts: () => customAxios.get('/api/admin/order_stats/dashboard')
+    },
+
+    // User Management
+    user: {
+        // Get user list with pagination and search
+        getUserList: (keyword, page = 0, size = 10) => customAxios.get('/api/admin/users', {
+            params: { keyword, page, size }
+        }),
+
+        // Get user detail by ID
+        getUserDetail: (userId) => customAxios.get(`/api/admin/users/${userId}`),
+
+        // Update user information
+        updateUser: (userId, updateData) => customAxios.put(`/api/admin/users/${userId}`, updateData),
+
+        // Get user orders
+        getUserOrders: (userId) => customAxios.get(`/api/admin/users/${userId}/orders`),
+
+        // Get user reviews
+        getUserReviews: (userId) => customAxios.get(`/api/admin/users/${userId}/reviews`)
     }
 };
 
