@@ -8,6 +8,7 @@ export default function AdminSidebar() {
 
     const menuItems = [
         { label: "Q&A 관리", path: "/admin/qna" },
+        { label: "기업 Q&A 관리", path: "/admin/company-qna" },
         { label: "쿠폰 발급", path: "/admin/coupon" },
         { label: "유해 키워드 관리", path: "/admin/badkeyword" }
     ];

@@ -45,6 +45,9 @@ import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
 import ProductManagement from "./pages/product/ProductManagement.jsx";
 import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
 import ThanksForEnterpriseSignUp from './pages/enterprise/ThanksForEnterpriseSignUp';
+import EnterpriseQnAList from "./pages/enterprise/EnterpriseQnAList.jsx";
+import EnterpriseQnAWrite from "./pages/enterprise/EnterpriseQnAWrite.jsx";
+import EnterpriseQnADetail from "./pages/enterprise/EnterpriseQnADetail.jsx";
 
 // 관리자 페이지
 import AdminLogin from "./pages/admin/AdminLogin.jsx";
@@ -292,6 +295,9 @@ const App = () => {
                                 <Route path="product/register" element={<ProductRegister />} />
                                 <Route path="product/manage" element={<ProductManagement />} />
                                 <Route path="orders" element={<OrderManagement />} />
+                                <Route path="qna" element={<EnterpriseQnAList />} />
+                                <Route path="qna/write" element={<EnterpriseQnAWrite />} />
+                                <Route path="qna/:id" element={<EnterpriseQnADetail />} />
                             </Routes>
                         </EnterpriseLayout>
                     }
