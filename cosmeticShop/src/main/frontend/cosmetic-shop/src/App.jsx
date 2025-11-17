@@ -54,6 +54,8 @@ import AdminLogin from "./pages/admin/AdminLogin.jsx";
 import AdminMain from "./pages/admin/AdminMain.jsx";
 import AdminQnAManagement from "./pages/admin/AdminQnAManagement.jsx";
 import AdminQnAResponse from "./pages/admin/AdminQnAResponse.jsx";
+import AdminCompanyQnAManagement from "./pages/admin/AdminCompanyQnAManagement.jsx";
+import AdminCompanyQnAResponse from "./pages/admin/AdminCompanyQnAResponse.jsx";
 import AdminCouponIssuance from "./pages/admin/AdminCouponIssuance.jsx";
 import AdminBadKeywordManagement from "./pages/admin/AdminBadKeywordManagement.jsx";
 import AdminSidebar from "./components/admin/AdminSidebar.jsx";
@@ -324,6 +326,8 @@ const App = () => {
                                     } />
                                     <Route path="qna" element={<AdminQnAManagement />} />
                                     <Route path="qna/:id/response" element={<AdminQnAResponse />} />
+                                    <Route path="company-qna" element={<AdminCompanyQnAManagement />} />
+                                    <Route path="company-qna/:id/response" element={<AdminCompanyQnAResponse />} />
                                     <Route path="coupon" element={<AdminCouponIssuance />} />
                                     <Route path="badkeyword" element={<AdminBadKeywordManagement />} />
                                 </Routes>
