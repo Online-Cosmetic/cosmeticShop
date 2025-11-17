@@ -20,6 +20,7 @@ public class CouponController {
 
     /**
      * Get the total number of coupons in the system
+     * 
      * @return The total count of coupons
      */
     @GetMapping("/count")
