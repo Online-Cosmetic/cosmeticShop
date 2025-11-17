@@ -22,6 +22,7 @@ public class CartGetDTO {
     private int price;
     private int discountRate; // 할인율 추가
     private String productImage;
+    private int stock; // 재고 정보 추가
 
     public CartGetDTO(Cart cart) {
         this.id = cart.getId();
@@ -40,5 +41,6 @@ public class CartGetDTO {
             }
         }
         this.quantity = cart.getQuantity();
+        this.stock = cart.getProduct().getStock(); // 재고 정보 추가
     }
 }

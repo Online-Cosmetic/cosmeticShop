@@ -47,15 +47,38 @@ function ProductCard({
     const handleQuantityChange = async (newQuantity) => {
         if (newQuantity < 1) return;
 
+        // 재고 확인
+        const stock = product.stock || 0;
+        if (newQuantity > stock) {
+            alert(`재고가 부족합니다. 현재 재고: ${stock}개`);
+            return;
+        }
+
         try {
             await userAPI.cart.updateQuantity(product.id, newQuantity);
-            onQuantityChange();
+            // 수량 변경 후 콜백 호출 (새 수량 전달)
+            if (onQuantityChange) {
+                onQuantityChange(product.id, newQuantity);
+            }
         } catch (error) {
             console.error(`수량 변경 실패: ${error.message}`);
+            // 백엔드에서 재고 부족 에러인 경우
+            if (error.response?.data?.message || error.message?.includes('재고')) {
+                alert(error.response?.data?.message || error.message || '재고가 부족합니다.');
+            } else {
+                alert('수량 변경에 실패했습니다.');
+            }
         }
     };
 
-    const handleIncrease = () => handleQuantityChange(product.quantity + 1);
+    const handleIncrease = () => {
+        const stock = product.stock || 0;
+        if (product.quantity >= stock) {
+            alert(`재고가 부족합니다. 현재 재고: ${stock}개`);
+            return;
+        }
+        handleQuantityChange(product.quantity + 1);
+    };
     const handleDecrease = () => handleQuantityChange(product.quantity - 1);
 
     // 할인된 가격 계산 (할인율이 없으면 0으로 설정)
@@ -160,7 +183,8 @@ function ProductCard({
                             <span className="px-3 py-1.5 min-w-[2.5rem] text-center font-medium">{product.quantity}</span>
                             <button
                                 onClick={handleIncrease}
-                                className="px-3 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200 focus:outline-none"
+                                disabled={product.quantity >= (product.stock || 0)}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
