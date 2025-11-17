@@ -12,6 +12,7 @@ export default function EnterpriseSidebar() {
         { label: "상품 등록", path: "/enterprise/product/register" },
         { label: "상품 관리", path: "/enterprise/product/manage" },
         { label: "주문상품 내역", path: "/enterprise/orders" },
+        { label: "Q&A", path: "/enterprise/qna" },
     ];
 
     if (user?.role !== 'ROLE_COMPANY') return null;
