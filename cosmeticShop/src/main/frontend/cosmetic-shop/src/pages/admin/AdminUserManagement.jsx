@@ -28,11 +28,45 @@ export default function AdminUserManagement() {
         setLoading(true);
         try {
             const response = await adminAPI.user.getUserList(searchTerm, currentPage, pageSize);
-            setUserList(response.data.content || []);
-            setTotalPages(response.data.totalPages || 0);
-            setTotalElements(response.data.totalElements || 0);
+            const pageData = response.data;
+            
+            if (pageData && typeof pageData === 'object') {
+                const content = Array.isArray(pageData.content) ? pageData.content : [];
+                
+                // API 응답 구조: { content: [...], page: { totalElements: 4, totalPages: 1, ... } }
+                const pageInfo = pageData.page || {};
+                
+                const totalElementsValue = typeof pageInfo.totalElements === 'number' 
+                    ? pageInfo.totalElements 
+                    : (typeof pageInfo.totalElements === 'string' 
+                        ? parseInt(pageInfo.totalElements, 10) || 0 
+                        : (typeof pageData.totalElements === 'number'
+                            ? pageData.totalElements
+                            : 0));
+                        
+                const totalPagesValue = typeof pageInfo.totalPages === 'number'
+                    ? pageInfo.totalPages
+                    : (typeof pageInfo.totalPages === 'string'
+                        ? parseInt(pageInfo.totalPages, 10) || 0
+                        : (typeof pageData.totalPages === 'number'
+                            ? pageData.totalPages
+                            : 0));
+                
+                setUserList(content);
+                setTotalPages(totalPagesValue);
+                setTotalElements(totalElementsValue);
+            } else {
+                console.warn("Unexpected response structure:", pageData);
+                setUserList([]);
+                setTotalPages(0);
+                setTotalElements(0);
+            }
         } catch (error) {
             console.error("Error fetching users:", error);
+            if (error.response) {
+                console.error("Error response data:", error.response.data);
+                console.error("Error response status:", error.response.status);
+            }
             setUserList([]);
             setTotalPages(0);
             setTotalElements(0);

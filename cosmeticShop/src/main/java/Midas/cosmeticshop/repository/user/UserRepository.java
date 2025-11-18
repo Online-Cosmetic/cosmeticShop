@@ -18,11 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUserIdAndEmailAddress(String userId, String email);
 
     // 관리자용: 사용자 목록 조회 (검색, 페이징)
-    @Query("SELECT u FROM User u WHERE " +
-           "(:keyword IS NULL OR :keyword = '' OR " +
-           "LOWER(u.userId) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(u.nickName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(u.emailAddress) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "ORDER BY u.createdAt DESC")
+    @Query(value = "SELECT u FROM User u WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(u.userId) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(u.nickName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(u.emailAddress) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY u.createdAt DESC")
     Page<User> findAllWithSearch(@Param("keyword") String keyword, Pageable pageable);
 }

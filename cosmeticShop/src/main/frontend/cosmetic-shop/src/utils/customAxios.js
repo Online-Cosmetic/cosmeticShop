@@ -504,9 +504,13 @@ export const adminAPI = {
     // User Management
     user: {
         // Get user list with pagination and search
-        getUserList: (keyword, page = 0, size = 10) => customAxios.get('/api/admin/users', {
-            params: { keyword, page, size }
-        }),
+        getUserList: (keyword, page = 0, size = 10) => {
+            const params = { page, size };
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
+            return customAxios.get('/api/admin/users', { params });
+        },
 
         // Get user detail by ID
         getUserDetail: (userId) => customAxios.get(`/api/admin/users/${userId}`),
@@ -523,9 +527,15 @@ export const adminAPI = {
 
     // Company Management
     company: {
-        // Get all companies with optional approval status filter
-        getAllCompanies: (approved = null) => {
-            const params = approved !== null ? { approved } : {};
+        // Get all companies with optional approval status filter, pagination and search
+        getAllCompanies: (approved = null, keyword = null, page = 0, size = 10) => {
+            const params = { page, size };
+            if (approved !== null) {
+                params.approved = approved;
+            }
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
             return customAxios.get('/api/admin/companies', { params });
         },
 

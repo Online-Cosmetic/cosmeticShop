@@ -4,16 +4,25 @@ import { adminAPI } from '../../utils/customAxios';
 
 function AdminCompanyManagement() {
     const navigate = useNavigate();
-    const [allCompanies, setAllCompanies] = useState([]); // 서버에서 가져온 전체 데이터
-    const [companies, setCompanies] = useState([]); // 필터링된 데이터
+    const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [filter, setFilter] = useState('all'); // 'all', 'pending', 'approved'
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const pageSize = 10;
 
+    // Reset to first page when filter or search term changes
+    useEffect(() => {
+        setCurrentPage(0);
+    }, [filter, searchTerm]);
+
+    // Fetch company data
     useEffect(() => {
         fetchCompanies();
-    }, [filter]);
+    }, [currentPage, filter, searchTerm]);
 
     const fetchCompanies = async () => {
         try {
@@ -26,35 +35,50 @@ function AdminCompanyManagement() {
                 approved = true;
             }
             
-            const response = await adminAPI.company.getAllCompanies(approved);
-            setAllCompanies(response.data || []);
+            const response = await adminAPI.company.getAllCompanies(approved, searchTerm, currentPage, pageSize);
+            const pageData = response.data;
+            
+            if (pageData && typeof pageData === 'object') {
+                const content = Array.isArray(pageData.content) ? pageData.content : [];
+                
+                // API 응답 구조: { content: [...], page: { totalElements: 4, totalPages: 1, ... } }
+                const pageInfo = pageData.page || {};
+                
+                const totalElementsValue = typeof pageInfo.totalElements === 'number' 
+                    ? pageInfo.totalElements 
+                    : (typeof pageInfo.totalElements === 'string' 
+                        ? parseInt(pageInfo.totalElements, 10) || 0 
+                        : (typeof pageData.totalElements === 'number'
+                            ? pageData.totalElements
+                            : 0));
+                        
+                const totalPagesValue = typeof pageInfo.totalPages === 'number'
+                    ? pageInfo.totalPages
+                    : (typeof pageInfo.totalPages === 'string'
+                        ? parseInt(pageInfo.totalPages, 10) || 0
+                        : (typeof pageData.totalPages === 'number'
+                            ? pageData.totalPages
+                            : 0));
+                
+                setCompanies(content);
+                setTotalPages(totalPagesValue);
+                setTotalElements(totalElementsValue);
+            } else {
+                setCompanies([]);
+                setTotalPages(0);
+                setTotalElements(0);
+            }
         } catch (err) {
             console.error('Failed to fetch companies:', err);
             const errorMessage = err.response?.data?.message || err.message || '기업 회원 목록을 불러오는데 실패했습니다.';
             setError(errorMessage);
-            setAllCompanies([]);
+            setCompanies([]);
+            setTotalPages(0);
+            setTotalElements(0);
         } finally {
             setLoading(false);
         }
     };
-
-    // 검색어나 전체 데이터 변경 시 목록 필터링
-    useEffect(() => {
-        let filtered = [...allCompanies];
-        
-        // 검색 필터링
-        if (searchTerm) {
-            const searchLower = searchTerm.toLowerCase();
-            filtered = filtered.filter(company => 
-                (company.companyName || '').toLowerCase().includes(searchLower) ||
-                (company.representativeName || '').toLowerCase().includes(searchLower) ||
-                (company.businessRegistrationNumber || '').includes(searchTerm) ||
-                (company.email || '').toLowerCase().includes(searchLower)
-            );
-        }
-        
-        setCompanies(filtered);
-    }, [allCompanies, searchTerm]);
 
 
     const handleApprove = async (companyId, e) => {
@@ -93,14 +117,6 @@ function AdminCompanyManagement() {
         navigate(`/admin/companies/${companyId}`);
     };
 
-    if (loading) {
-        return (
-            <div className="p-8">
-                <div className="text-center">로딩 중...</div>
-            </div>
-        );
-    }
-
     return (
         <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-4">
             <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-2">
@@ -108,7 +124,7 @@ function AdminCompanyManagement() {
                 <div className="flex justify-between items-center">
                     <h2 className="text-3xl font-bold text-neutral-800">기업 회원 관리</h2>
                     <div className="text-sm text-gray-500">
-                        총 {companies.length}개
+                        총 {totalElements}개
                     </div>
                 </div>
 
@@ -187,7 +203,9 @@ function AdminCompanyManagement() {
                 </div>
 
                 {/* 목록 */}
-                {error ? (
+                {loading ? (
+                    <div className="w-full py-8 text-center text-gray-500 mt-4">Loading...</div>
+                ) : error ? (
                     <div className="text-red-500 text-center mt-4">{error}</div>
                 ) : companies.length === 0 ? (
                     <div className="text-center py-12 text-gray-500 mt-4">
@@ -291,6 +309,29 @@ function AdminCompanyManagement() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* 페이지네이션 */}
+                {!loading && totalPages > 0 && (
+                    <div className="flex justify-center items-center gap-5 mt-4">
+                        <button 
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
+                            disabled={currentPage === 0}
+                            className={`text-2xl ${currentPage === 0 ? 'text-gray-300' : 'text-neutral-600'} rotate-180`}
+                        >
+                            ▶
+                        </button>
+                        <div className="text-lg">
+                            Page {currentPage + 1} of {totalPages}
+                        </div>
+                        <button 
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))}
+                            disabled={currentPage >= totalPages - 1}
+                            className={`text-2xl ${currentPage >= totalPages - 1 ? 'text-gray-300' : 'text-neutral-600'}`}
+                        >
+                            ▶
+                        </button>
                     </div>
                 )}
             </div>

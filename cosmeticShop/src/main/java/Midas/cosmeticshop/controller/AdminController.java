@@ -17,7 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -156,18 +155,16 @@ public class AdminController {
     }
 
     /**
-     * 전체 기업 회원 목록 조회 (승인 상태 필터 옵션)
+     * 전체 기업 회원 목록 조회 (승인 상태 필터 옵션, 페이징, 검색)
      */
     @GetMapping("/companies")
-    public ResponseEntity<?> getAllCompanies(
+    public ResponseEntity<Page<CompanyApprovalDTO>> getAllCompanies(
             @RequestParam(value = "approved", required = false) Boolean approved,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @PageableDefault(size = 10) Pageable pageable,
             Authentication authentication) {
-        try {
-            List<CompanyApprovalDTO> companies = adminService.getAllCompanies(authentication.getName(), approved);
-            return ResponseEntity.ok(companies);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("message", "기업 회원 목록 조회 중 오류가 발생했습니다: " + e.getMessage()));
-        }
+        Page<CompanyApprovalDTO> companies = adminService.getAllCompanies(authentication.getName(), approved, keyword, pageable);
+        return ResponseEntity.ok(companies);
     }
 
     /**

@@ -163,8 +163,8 @@ public class AdminService {
      */
     public Page<UserListDTO> getUserList(String adminUserId, String keyword, Pageable pageable) {
         validateAdmin(adminUserId);
-        Page<User> users = userRepository.findAllWithSearch(keyword, pageable);
-        return users.map(UserListDTO::from);
+        return userRepository.findAllWithSearch(keyword, pageable)
+                .map(UserListDTO::from);
     }
 
     /**
@@ -307,31 +307,12 @@ public class AdminService {
     }
 
     /**
-     * 전체 기업 회원 목록 조회 (승인 상태 필터 옵션)
+     * 전체 기업 회원 목록 조회 (승인 상태 필터 옵션, 페이징, 검색)
      */
-    public List<CompanyApprovalDTO> getAllCompanies(String adminUserId, Boolean approved) {
+    public Page<CompanyApprovalDTO> getAllCompanies(String adminUserId, Boolean approved, String keyword, Pageable pageable) {
         validateAdmin(adminUserId);
-        List<Company> companies;
-        try {
-            if (approved == null) {
-                // 전체 조회 (JpaRepository의 기본 findAll() 사용)
-                companies = CompanyRepo.findAll();
-            } else if (approved) {
-                // 승인된 회원만
-                companies = CompanyRepo.findApprovedCompanies();
-            } else {
-                // 승인 대기 회원만
-                companies = CompanyRepo.findPendingApprovalCompanies();
-            }
-            
-            List<CompanyApprovalDTO> dtos = companies.stream()
-                    .map(this::convertToCompanyApprovalDTO)
-                    .collect(java.util.stream.Collectors.toList());
-            return sortByCreatedAtDesc(dtos);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("기업 회원 목록 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
-        }
+        Page<Company> companies = CompanyRepo.findAllWithSearch(approved, keyword, pageable);
+        return companies.map(this::convertToCompanyApprovalDTO);
     }
 
     /**
