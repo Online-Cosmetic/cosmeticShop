@@ -169,7 +169,7 @@ export const AuthProvider = ({children}) => {
             const response = await authAPI.signup.company(companyData);
             // 리다이렉트 경로 수정 - 기업용 로그인 페이지로 이동
             navigate('/enterpriseLogin', {
-                state: {message: '회원가입이 완료되었습니다. 로그인해주세요.'}
+                state: {message: '가입 신청이 완료되었습니다. 관리자 승인 후 로그인해주세요.'}
             });
             return response.data;
         } catch (err) {

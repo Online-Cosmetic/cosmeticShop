@@ -1,6 +1,7 @@
 package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.BadKeywordDTO;
+import Midas.cosmeticshop.dto.CompanyApprovalDTO;
 import Midas.cosmeticshop.dto.CouponPostDTO;
 import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.dto.UserInfo.UserDetailDTO;
@@ -260,6 +261,132 @@ public class AdminService {
         if (!admin.getRole().equals("ADMIN")) {
             throw new AccessDeniedException("관리자만 접근 가능합니다.");
         }
+    }
+
+    /* ===============================
+       기업 회원 승인 관리 기능
+       =============================== */
+
+    /**
+     * CompanyApprovalDTO 리스트 정렬 헬퍼 메서드
+     */
+    private List<CompanyApprovalDTO> sortByCreatedAtDesc(List<CompanyApprovalDTO> list) {
+        return list.stream()
+                .sorted((a, b) -> {
+                    // null 체크
+                    if (a.getCreatedAt() == null && b.getCreatedAt() == null) return 0;
+                    if (a.getCreatedAt() == null) return 1;
+                    if (b.getCreatedAt() == null) return -1;
+                    return b.getCreatedAt().compareTo(a.getCreatedAt()); // 최신순 정렬
+                })
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * 승인 대기 중인 기업 회원 목록 조회
+     */
+    public List<CompanyApprovalDTO> getPendingApprovalCompanies(String adminUserId) {
+        validateAdmin(adminUserId);
+        List<Company> companies = CompanyRepo.findPendingApprovalCompanies();
+        List<CompanyApprovalDTO> dtos = companies.stream()
+                .map(this::convertToCompanyApprovalDTO)
+                .collect(java.util.stream.Collectors.toList());
+        return sortByCreatedAtDesc(dtos);
+    }
+
+    /**
+     * 승인된 기업 회원 목록 조회
+     */
+    public List<CompanyApprovalDTO> getApprovedCompanies(String adminUserId) {
+        validateAdmin(adminUserId);
+        List<Company> companies = CompanyRepo.findApprovedCompanies();
+        List<CompanyApprovalDTO> dtos = companies.stream()
+                .map(this::convertToCompanyApprovalDTO)
+                .collect(java.util.stream.Collectors.toList());
+        return sortByCreatedAtDesc(dtos);
+    }
+
+    /**
+     * 전체 기업 회원 목록 조회 (승인 상태 필터 옵션)
+     */
+    public List<CompanyApprovalDTO> getAllCompanies(String adminUserId, Boolean approved) {
+        validateAdmin(adminUserId);
+        List<Company> companies;
+        try {
+            if (approved == null) {
+                // 전체 조회 (JpaRepository의 기본 findAll() 사용)
+                companies = CompanyRepo.findAll();
+            } else if (approved) {
+                // 승인된 회원만
+                companies = CompanyRepo.findApprovedCompanies();
+            } else {
+                // 승인 대기 회원만
+                companies = CompanyRepo.findPendingApprovalCompanies();
+            }
+            
+            List<CompanyApprovalDTO> dtos = companies.stream()
+                    .map(this::convertToCompanyApprovalDTO)
+                    .collect(java.util.stream.Collectors.toList());
+            return sortByCreatedAtDesc(dtos);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("기업 회원 목록 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 기업 회원 상세 정보 조회
+     */
+    public CompanyApprovalDTO getCompanyDetail(String adminUserId, Long companyId) {
+        validateAdmin(adminUserId);
+        Company company = CompanyRepo.findById(companyId)
+                .orElseThrow(() -> new EntityNotFoundException("기업 회원을 찾을 수 없습니다. id=" + companyId));
+        return convertToCompanyApprovalDTO(company);
+    }
+
+    /**
+     * 기업 회원 승인
+     */
+    @Transactional
+    public void approveCompany(String adminUserId, Long companyId) {
+        validateAdmin(adminUserId);
+        Company company = CompanyRepo.findById(companyId)
+                .orElseThrow(() -> new EntityNotFoundException("기업 회원을 찾을 수 없습니다. id=" + companyId));
+        company.setApproved(true);
+        CompanyRepo.save(company);
+    }
+
+    /**
+     * 기업 회원 거절 (삭제)
+     */
+    @Transactional
+    public void rejectCompany(String adminUserId, Long companyId) {
+        validateAdmin(adminUserId);
+        Company company = CompanyRepo.findById(companyId)
+                .orElseThrow(() -> new EntityNotFoundException("기업 회원을 찾을 수 없습니다. id=" + companyId));
+        CompanyRepo.delete(company);
+    }
+
+    /**
+     * Company 엔티티를 CompanyApprovalDTO로 변환
+     */
+    private CompanyApprovalDTO convertToCompanyApprovalDTO(Company company) {
+        CompanyApprovalDTO dto = new CompanyApprovalDTO();
+        dto.setId(company.getId());
+        dto.setUserId(company.getUserId());
+        dto.setCompanyName(company.getCompanyName());
+        dto.setEmail(company.getEmailAddress());
+        dto.setPhoneNumber(company.getPhoneNumber());
+        dto.setBusinessRegistrationNumber(company.getBusinessRegistrationNumber());
+        dto.setRepresentativeName(company.getRepresentativeName());
+        dto.setBusinessType(company.getBusinessType());
+        dto.setBusinessAddress(company.getBusinessAddress());
+        dto.setContactPersonName(company.getContactPersonName());
+        dto.setContactPhoneNumber(company.getContactPhoneNumber());
+        dto.setBusinessLicensePath(company.getBusinessLicensePath());
+        dto.setApproved(company.isApproved());
+        dto.setCreatedAt(company.getCreatedAt());
+        return dto;
     }
 
 }

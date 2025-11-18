@@ -1,6 +1,7 @@
 package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BadKeywordDTO;
+import Midas.cosmeticshop.dto.CompanyApprovalDTO;
 import Midas.cosmeticshop.dto.CouponPostDTO;
 import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.dto.UserInfo.UserDetailDTO;
@@ -16,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -137,5 +139,67 @@ public class AdminController {
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    /* ===============================
+       기업 회원 승인 관리 기능
+       =============================== */
+
+    /**
+     * 승인 대기 중인 기업 회원 목록 조회
+     */
+    @GetMapping("/companies/pending")
+    public ResponseEntity<List<CompanyApprovalDTO>> getPendingApprovalCompanies(
+            Authentication authentication) {
+        List<CompanyApprovalDTO> companies = adminService.getPendingApprovalCompanies(authentication.getName());
+        return ResponseEntity.ok(companies);
+    }
+
+    /**
+     * 전체 기업 회원 목록 조회 (승인 상태 필터 옵션)
+     */
+    @GetMapping("/companies")
+    public ResponseEntity<?> getAllCompanies(
+            @RequestParam(value = "approved", required = false) Boolean approved,
+            Authentication authentication) {
+        try {
+            List<CompanyApprovalDTO> companies = adminService.getAllCompanies(authentication.getName(), approved);
+            return ResponseEntity.ok(companies);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "기업 회원 목록 조회 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 기업 회원 상세 정보 조회
+     */
+    @GetMapping("/companies/{companyId}")
+    public ResponseEntity<CompanyApprovalDTO> getCompanyDetail(
+            @PathVariable Long companyId,
+            Authentication authentication) {
+        CompanyApprovalDTO company = adminService.getCompanyDetail(authentication.getName(), companyId);
+        return ResponseEntity.ok(company);
+    }
+
+    /**
+     * 기업 회원 승인
+     */
+    @PostMapping("/companies/{companyId}/approve")
+    public ResponseEntity<Void> approveCompany(
+            @PathVariable Long companyId,
+            Authentication authentication) {
+        adminService.approveCompany(authentication.getName(), companyId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 기업 회원 거절
+     */
+    @DeleteMapping("/companies/{companyId}")
+    public ResponseEntity<Void> rejectCompany(
+            @PathVariable Long companyId,
+            Authentication authentication) {
+        adminService.rejectCompany(authentication.getName(), companyId);
+        return ResponseEntity.ok().build();
     }
 }

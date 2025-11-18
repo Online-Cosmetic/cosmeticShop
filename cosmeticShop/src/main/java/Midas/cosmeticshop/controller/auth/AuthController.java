@@ -131,7 +131,8 @@ public class AuthController {
                     role,
                     accessToken,
                     company.getEmailAddress(),
-                    company.getCompanyName()
+                    company.getCompanyName(),
+                    company.isApproved()
                 );
             } else { // ADMIN
                 body = new LoginResponse(

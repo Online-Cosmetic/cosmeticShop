@@ -10,8 +10,16 @@ export default function AdminSidebar() {
         { label: "Q&A 관리", path: "/admin/qna" },
         { label: "쿠폰 발급", path: "/admin/coupon" },
         { label: "Bad Keyword 관리", path: "/admin/badkeyword" },
-        { label: "사용자 관리", path: "/admin/users" }
+        { label: "사용자 관리", path: "/admin/users" },
+        { label: "기업 회원 관리", path: "/admin/companies" }
     ];
+
+    const isActive = (path) => {
+        if (path === '/admin/companies') {
+            return pathname.startsWith('/admin/companies');
+        }
+        return pathname === path;
+    };
 
     return (
         <div className="min-w-[200px] max-w-[240px] w-full md:w-60 bg-white px-6 py-8 flex flex-col gap-4">
@@ -20,7 +28,7 @@ export default function AdminSidebar() {
                     key={item.path}
                     to={item.path}
                     className={`text-lg font-medium hover:text-emerald-600 ${
-                        pathname === item.path ? "text-emerald-600 font-semibold" : "text-gray-800"
+                        isActive(item.path) ? "text-emerald-600 font-semibold" : "text-gray-800"
                     }`}
                 >
                     {item.label}

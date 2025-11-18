@@ -65,6 +65,7 @@ customAxios.interceptors.response.use(
 
         if (err.response?.status === 401 &&
             !orig.url.includes('/api/auth/reissue') &&
+            !orig.url.includes('/api/auth/login') &&
             !orig._retry
         ) {
             orig._retry = true;
@@ -75,7 +76,10 @@ customAxios.interceptors.response.use(
                 return customAxios(orig);
             } catch (refreshErr) {
                 // 인터셉터 안에서 직접 리다이렉트 하지 말고, App 에 이벤트 전달
-                emitter.emit('logout');
+                // 로그인 API 호출 시에는 로그아웃 이벤트를 발생시키지 않음
+                if (!orig.url.includes('/api/auth/login')) {
+                    emitter.emit('logout');
+                }
                 return Promise.reject(refreshErr);
             }
         }
@@ -515,6 +519,27 @@ export const adminAPI = {
 
         // Get user reviews
         getUserReviews: (userId) => customAxios.get(`/api/admin/users/${userId}/reviews`)
+    },
+
+    // Company Management
+    company: {
+        // Get all companies with optional approval status filter
+        getAllCompanies: (approved = null) => {
+            const params = approved !== null ? { approved } : {};
+            return customAxios.get('/api/admin/companies', { params });
+        },
+
+        // Get pending approval companies (deprecated, use getAllCompanies(false))
+        getPendingApprovalCompanies: () => customAxios.get('/api/admin/companies/pending'),
+
+        // Get company detail
+        getCompanyDetail: (companyId) => customAxios.get(`/api/admin/companies/${companyId}`),
+
+        // Approve company
+        approveCompany: (companyId) => customAxios.post(`/api/admin/companies/${companyId}/approve`),
+
+        // Reject company
+        rejectCompany: (companyId) => customAxios.delete(`/api/admin/companies/${companyId}`)
     }
 };
 

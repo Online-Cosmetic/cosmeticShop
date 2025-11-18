@@ -22,21 +22,38 @@ export default function EnterpriseLogin() {
     try {
       // 직접 API 호출 대신 authAPI 사용 (리다이렉트 방지)
       const response = await authAPI.login(creds);
-      const { userId, role, accessToken, email, username } = response.data;
+      const { userId, role, accessToken, email, username, approved } = response.data;
 
       if (response.data.errorMessage) {
         setError(response.data.errorMessage);
+        setLoading(false);
         return;
       }
 
       // 역할 검증
       if (role !== 'ROLE_COMPANY') {
         setError('기업 회원 전용 로그인 페이지입니다. 일반 회원은 일반 로그인을 이용해주세요.');
+        setLoading(false);
+        return;
+      }
+
+      // 승인 상태 확인
+      if (approved === false) {
+        // 사용자 정보 로컬 스토리지에 저장 (승인 대기 페이지에서도 사용)
+        const userData = { userId, role, email, username, approved };
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('userName', username);
+        
+        // 승인 대기 페이지로 이동
+        navigate('/enterprise/waiting-approval');
+        setLoading(false);
         return;
       }
 
       // 사용자 정보 로컬 스토리지에 저장
-      const userData = { userId, role, email, username };
+      const userData = { userId, role, email, username, approved };
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('userEmail', email);
