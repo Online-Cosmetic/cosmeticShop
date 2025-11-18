@@ -45,6 +45,7 @@ public class AdminService {
     private final CouponRepository CouponRepo;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final EmailService emailService;
 
     public AdminService (ReviewRepository ReviewRepo,
                          BadKeywordRepository BadKeywordRepo,
@@ -52,7 +53,8 @@ public class AdminService {
                          CompanyRepository CompanyRepo,
                          CouponRepository CouponRepo,
                          UserRepository userRepository,
-                         OrderRepository orderRepository) {
+                         OrderRepository orderRepository,
+                         EmailService emailService) {
         this.ReviewRepo = ReviewRepo;
         this.BadKeywordRepo = BadKeywordRepo;
         this.adminRepo = adminRepo;
@@ -60,6 +62,7 @@ public class AdminService {
         this.CouponRepo = CouponRepo;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
+        this.emailService = emailService;
     }
 
     public List<BadKeywordDTO> getBadkeywords (String userId) {
@@ -335,6 +338,31 @@ public class AdminService {
                 .orElseThrow(() -> new EntityNotFoundException("기업 회원을 찾을 수 없습니다. id=" + companyId));
         company.setApproved(true);
         CompanyRepo.save(company);
+        
+        // 승인 완료 이메일 발송
+        try {
+            String to = company.getEmailAddress();
+            String subject = "[cosMall] 기업 회원 가입 승인 완료 안내";
+            String text = String.format(
+                "안녕하세요. %s님,\n\n" +
+                "cosMall 기업 회원 가입이 승인되었습니다.\n\n" +
+                "회사명: %s\n" +
+                "사업자등록번호: %s\n" +
+                "대표자명: %s\n\n" +
+                "이제 cosMall에서 상품을 등록하고 판매하실 수 있습니다.\n" +
+                "로그인 후 기업 관리 페이지에서 상품을 등록해주세요.\n\n" +
+                "감사합니다.\n" +
+                "cosMall 관리자",
+                company.getContactPersonName() != null ? company.getContactPersonName() : company.getRepresentativeName(),
+                company.getCompanyName(),
+                company.getBusinessRegistrationNumber(),
+                company.getRepresentativeName()
+            );
+            emailService.send(to, subject, text);
+        } catch (Exception e) {
+            // 이메일 발송 실패해도 승인은 처리되도록 예외를 로깅만 하고 계속 진행
+            // 로깅은 EmailService에서 이미 처리되므로 여기서는 추가 로깅 불필요
+        }
     }
 
     /**
