@@ -45,12 +45,17 @@ import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
 import ProductManagement from "./pages/product/ProductManagement.jsx";
 import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
 import ThanksForEnterpriseSignUp from './pages/enterprise/ThanksForEnterpriseSignUp';
+import EnterpriseQnAList from "./pages/enterprise/EnterpriseQnAList.jsx";
+import EnterpriseQnAWrite from "./pages/enterprise/EnterpriseQnAWrite.jsx";
+import EnterpriseQnADetail from "./pages/enterprise/EnterpriseQnADetail.jsx";
 
 // 관리자 페이지
 import AdminLogin from "./pages/admin/AdminLogin.jsx";
 import AdminMain from "./pages/admin/AdminMain.jsx";
 import AdminQnAManagement from "./pages/admin/AdminQnAManagement.jsx";
 import AdminQnAResponse from "./pages/admin/AdminQnAResponse.jsx";
+import AdminCompanyQnAManagement from "./pages/admin/AdminCompanyQnAManagement.jsx";
+import AdminCompanyQnAResponse from "./pages/admin/AdminCompanyQnAResponse.jsx";
 import AdminCouponIssuance from "./pages/admin/AdminCouponIssuance.jsx";
 import AdminBadKeywordManagement from "./pages/admin/AdminBadKeywordManagement.jsx";
 import AdminSidebar from "./components/admin/AdminSidebar.jsx";
@@ -292,6 +297,9 @@ const App = () => {
                                 <Route path="product/register" element={<ProductRegister />} />
                                 <Route path="product/manage" element={<ProductManagement />} />
                                 <Route path="orders" element={<OrderManagement />} />
+                                <Route path="qna" element={<EnterpriseQnAList />} />
+                                <Route path="qna/write" element={<EnterpriseQnAWrite />} />
+                                <Route path="qna/:id" element={<EnterpriseQnADetail />} />
                             </Routes>
                         </EnterpriseLayout>
                     }
@@ -318,6 +326,8 @@ const App = () => {
                                     } />
                                     <Route path="qna" element={<AdminQnAManagement />} />
                                     <Route path="qna/:id/response" element={<AdminQnAResponse />} />
+                                    <Route path="company-qna" element={<AdminCompanyQnAManagement />} />
+                                    <Route path="company-qna/:id/response" element={<AdminCompanyQnAResponse />} />
                                     <Route path="coupon" element={<AdminCouponIssuance />} />
                                     <Route path="badkeyword" element={<AdminBadKeywordManagement />} />
                                 </Routes>

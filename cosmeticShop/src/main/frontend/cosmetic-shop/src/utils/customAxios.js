@@ -385,6 +385,29 @@ export const companyAPI = {
     order: {
         getCompanyOrderItems: (companyName) => customAxios.get(`/api/orders/company/${companyName}`),
         updateDeliveryStatus: (orderItemId, statusData) => customAxios.patch(`/api/orders/${orderItemId}`, statusData),
+    },
+
+    // Company QnA Management
+    qna: {
+        // Get all my company QnAs
+        getAllCompanyQnas: () => customAxios.get('/api/company/qnas'),
+
+        // Get company QnA detail
+        getDetail: (id) => customAxios.get(`/api/company/qnas/${id}`),
+
+        // Create company QnA
+        create: (data) => customAxios.post('/api/company/qnas', data),
+
+        // Update company QnA
+        update: (id, data) => customAxios.put(`/api/company/qnas/${id}`, data),
+
+        // Delete company QnA
+        delete: (id) => customAxios.delete(`/api/company/qnas/${id}`),
+
+        // Search company QnAs by title
+        searchByTitle: (title) => customAxios.get('/api/company/qnas/search', {
+            params: { title }
+        })
     }
 };
 
@@ -468,6 +491,39 @@ export const adminAPI = {
 
         // Get dashboard statistics including total orders, active users, active coupons, and total sales
         getDashboardCounts: () => customAxios.get('/api/admin/order_stats/dashboard')
+    },
+
+    // Company QnA Management
+    companyQna: {
+        // Get all company QnAs
+        getAllCompanyQnas: () => customAxios.get('/api/admin/company-qnas'),
+
+        // Get answered company QnAs
+        getAnsweredQnas: () => customAxios.get('/api/admin/company-qnas/answered'),
+
+        // Get unanswered company QnAs
+        getUnansweredQnas: () => customAxios.get('/api/admin/company-qnas/unanswered'),
+
+        // Get company QnA detail
+        getDetail: (id) => customAxios.get(`/api/admin/company-qnas/${id}`),
+
+        // Answer company QnA
+        answerQna: (id, answer) => customAxios.put(`/api/admin/company-qnas/${id}/answers`, null, {
+            params: { answer }
+        }),
+
+        // Admin delete company QnA
+        adminDeleteQna: (id) => customAxios.delete(`/api/admin/company-qnas/${id}`),
+
+        // Search answered company QnAs by title
+        searchAnsweredQnasByTitle: (title) => customAxios.get('/api/admin/company-qnas/answered/search', {
+            params: { title }
+        }),
+
+        // Search unanswered company QnAs by title
+        searchUnansweredQnasByTitle: (title) => customAxios.get('/api/admin/company-qnas/unanswered/search', {
+            params: { title }
+        })
     }
 };
 
