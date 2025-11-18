@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { userAPI } from '../../../utils/customAxios.js';
 import { getImageUrl } from '../../../utils/imageUtils.js';
 import customAxios from '../../../utils/customAxios.js';
 
 export default function OrderHistory() {
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [reviewStatusMap, setReviewStatusMap] = useState({}); // { productId: { hasReview: boolean, reviewId: number } }
 
     useEffect(() => {
         setLoading(true);
@@ -15,6 +18,47 @@ export default function OrderHistory() {
             .then(res => {
                 console.log('주문 데이터:', res.data);
                 setOrders(res.data);
+                
+                // 각 주문 아이템에 대해 리뷰 작성 여부 확인
+                const productIds = new Set();
+                res.data.forEach(order => {
+                    order.orderItems?.forEach(item => {
+                        if (item.deliveryStatus === 'COMP' && item.productId) {
+                            productIds.add(item.productId);
+                        }
+                    });
+                });
+                
+                // 각 상품에 대해 리뷰 확인
+                const checkReviews = async () => {
+                    const statusMap = {};
+                    for (const productId of productIds) {
+                        try {
+                            const reviewResponse = await userAPI.review.getMyProductReviews(productId);
+                            const reviews = reviewResponse.data || [];
+                            if (reviews.length > 0) {
+                                statusMap[productId] = {
+                                    hasReview: true,
+                                    reviewId: reviews[0].id // 첫 번째 리뷰 ID 사용
+                                };
+                            } else {
+                                statusMap[productId] = {
+                                    hasReview: false,
+                                    reviewId: null
+                                };
+                            }
+                        } catch (err) {
+                            console.error(`상품 ${productId} 리뷰 확인 실패:`, err);
+                            statusMap[productId] = {
+                                hasReview: false,
+                                reviewId: null
+                            };
+                        }
+                    }
+                    setReviewStatusMap(statusMap);
+                };
+                
+                checkReviews();
                 setLoading(false);
             })
             .catch(err => {
@@ -148,6 +192,33 @@ export default function OrderHistory() {
                                                 </div>
                                             </div>
                                             <div className="mt-6 md:mt-0 flex flex-col md:flex-row gap-3">
+                                                {item.deliveryStatus === 'COMP' && (() => {
+                                                    const reviewStatus = reviewStatusMap[item.productId];
+                                                    const hasReview = reviewStatus?.hasReview;
+                                                    const reviewId = reviewStatus?.reviewId;
+                                                    
+                                                    if (hasReview && reviewId) {
+                                                        // 리뷰가 있으면 수정 버튼 표시
+                                                        return (
+                                                            <button
+                                                                onClick={() => navigate(`/user/review/edit/${reviewId}`)}
+                                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                                            >
+                                                                리뷰 수정
+                                                            </button>
+                                                        );
+                                                    } else {
+                                                        // 리뷰가 없으면 작성 버튼 표시
+                                                        return (
+                                                            <button
+                                                                onClick={() => navigate(`/user/review/write/${item.productId}`)}
+                                                                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                                                            >
+                                                                리뷰 작성하기
+                                                            </button>
+                                                        );
+                                                    }
+                                                })()}
                                                 {item.deliveryStatus !== 'COMP' && item.deliveryStatus !== 'CANC' && (
                                                     <button
                                                         onClick={() => handleCancelOrder(item.orderItemId, order.id)}

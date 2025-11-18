@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,7 +155,7 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    /* 특정기업 최근 1주일간 판매 금액 통계 반환 */
+    /* 특정기업 최근 1주일간 총 판매액 통계 반환 */
     @GetMapping("/statistics/weekly/{companyName}")
     public ResponseEntity<Map<String, Integer>> getWeeklySalesStatistics(
         @PathVariable String companyName) {
@@ -162,6 +163,13 @@ public class PaymentController {
         return ResponseEntity.ok(statistics);
     }
 
+    /* 특정 기업 최근 1주일간 총 판매 수량 반환 */
+    @GetMapping("/statistics/weekly-quantity/{companyName}")
+    public ResponseEntity<Long> getWeeklyTotalQuantity(
+        @PathVariable String companyName) {
+        Long totalQuantity = paymentService.getWeeklyTotalQuantity(companyName);
+        return ResponseEntity.ok(totalQuantity);
+    }
     /* 특정 기업 가장 많이 팔린 제품 top 5 정보 반환 */
     @GetMapping("/statistics/top-products/{companyName}")
     public ResponseEntity<List<TopProductDTO>> getTop5Products(
@@ -179,5 +187,63 @@ public class PaymentController {
         List<TransactionDTO> transactions = paymentService.getLatestTransactionsByCompany(
             companyName, page, size);
         return ResponseEntity.ok(transactions);
+    }
+
+    /* 일별 판매액 통계 - 특정 날짜 */
+    @GetMapping("/statistics/daily/sales/{companyName}")
+    public ResponseEntity<Map<String, Integer>> getDailySalesStatistics(
+        @PathVariable String companyName,
+        @RequestParam String date) {
+        LocalDate selectedDate = LocalDate.parse(date);
+        Map<String, Integer> statistics = paymentService.getDailySalesStatistics(companyName, selectedDate);
+        return ResponseEntity.ok(statistics);
+    }
+
+    /* 일별 판매수량 통계 - 특정 날짜 */
+    @GetMapping("/statistics/daily/quantity/{companyName}")
+    public ResponseEntity<Map<String, Long>> getDailyQuantityStatistics(
+        @PathVariable String companyName,
+        @RequestParam String date) {
+        LocalDate selectedDate = LocalDate.parse(date);
+        Map<String, Long> statistics = paymentService.getDailyQuantityStatistics(companyName, selectedDate);
+        return ResponseEntity.ok(statistics);
+    }
+
+    /* 월별 판매액 통계 - 특정 년도/월 */
+    @GetMapping("/statistics/monthly/sales/{companyName}")
+    public ResponseEntity<Map<String, Integer>> getMonthlySalesStatistics(
+        @PathVariable String companyName,
+        @RequestParam int year,
+        @RequestParam int month) {
+        Map<String, Integer> statistics = paymentService.getMonthlySalesStatistics(companyName, year, month);
+        return ResponseEntity.ok(statistics);
+    }
+
+    /* 월별 판매수량 통계 - 특정 년도/월 */
+    @GetMapping("/statistics/monthly/quantity/{companyName}")
+    public ResponseEntity<Map<String, Long>> getMonthlyQuantityStatistics(
+        @PathVariable String companyName,
+        @RequestParam int year,
+        @RequestParam int month) {
+        Map<String, Long> statistics = paymentService.getMonthlyQuantityStatistics(companyName, year, month);
+        return ResponseEntity.ok(statistics);
+    }
+
+    /* 연도별 판매액 통계 - 특정 년도 */
+    @GetMapping("/statistics/yearly/sales/{companyName}")
+    public ResponseEntity<Map<String, Integer>> getYearlySalesStatistics(
+        @PathVariable String companyName,
+        @RequestParam int year) {
+        Map<String, Integer> statistics = paymentService.getYearlySalesStatistics(companyName, year);
+        return ResponseEntity.ok(statistics);
+    }
+
+    /* 연도별 판매수량 통계 - 특정 년도 */
+    @GetMapping("/statistics/yearly/quantity/{companyName}")
+    public ResponseEntity<Map<String, Long>> getYearlyQuantityStatistics(
+        @PathVariable String companyName,
+        @RequestParam int year) {
+        Map<String, Long> statistics = paymentService.getYearlyQuantityStatistics(companyName, year);
+        return ResponseEntity.ok(statistics);
     }
 }

@@ -118,6 +118,10 @@ function ProductList({ products, title, onSortChange }) {
                                 </div>
 
                                 <div className="p-5 space-y-2">
+                                    {/* 회사 이름 */}
+                                    {product.companyName && (
+                                        <p className="text-xs text-gray-500 mb-1">{product.companyName}</p>
+                                    )}
                                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors duration-200">
                                         {product.title || product.productName}
                                     </h3>
