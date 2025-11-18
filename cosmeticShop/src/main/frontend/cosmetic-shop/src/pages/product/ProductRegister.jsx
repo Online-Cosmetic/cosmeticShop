@@ -410,6 +410,21 @@ function ZipUploadModal({ onClose, token }) {
   const handleZipDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setDragOver(true); };
   const handleZipDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); };
 
+  // CSV 양식 다운로드
+  const downloadCsvTemplate = () => {
+    const csvContent = '번호, 상품명, 설명, 가격, 재고, 상품이미지, 추가이미지\n';
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', '상품등록양식.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const uploadZip = async () => {
     if (!zipFile) {
       setZipError('먼저 .zip 파일을 선택하세요.');
@@ -477,19 +492,28 @@ function ZipUploadModal({ onClose, token }) {
         </div>
         <p className="text-gray-600 mb-4">csv + image 폴더를 포함한 .zip 1개를 업로드하세요.</p>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleZipPick}
+              className="px-4 py-2 rounded-2xl border shadow-sm hover:bg-gray-50 text-sm font-semibold"
+            >
+              파일 선택 (.zip)
+            </button>
+            {zipFile && (
+              <span className="text-xs text-gray-600 truncate">
+                선택됨: {zipFile.name}
+              </span>
+            )}
+          </div>
           <button
             type="button"
-            onClick={handleZipPick}
-            className="px-4 py-2 rounded-2xl border shadow-sm hover:bg-gray-50 text-sm font-semibold"
+            onClick={downloadCsvTemplate}
+            className="px-4 py-2 rounded-2xl border border-blue-500 text-blue-600 shadow-sm hover:bg-blue-50 text-sm font-semibold"
           >
-            파일 선택 (.zip)
+            CSV 양식 다운로드
           </button>
-          {zipFile && (
-            <span className="text-xs text-gray-600 truncate">
-              선택됨: {zipFile.name}
-            </span>
-          )}
         </div>
 
         <input
