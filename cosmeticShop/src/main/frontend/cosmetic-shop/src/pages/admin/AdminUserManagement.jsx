@@ -14,10 +14,15 @@ export default function AdminUserManagement() {
     const [totalElements, setTotalElements] = useState(0);
     const pageSize = 10;
 
+    // Reset to first page when search term changes
+    useEffect(() => {
+        setCurrentPage(0);
+    }, [searchTerm]);
+
     // Fetch user data
     useEffect(() => {
         fetchUsers();
-    }, [currentPage]);
+    }, [currentPage, searchTerm]);
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -28,31 +33,11 @@ export default function AdminUserManagement() {
             setTotalElements(response.data.totalElements || 0);
         } catch (error) {
             console.error("Error fetching users:", error);
+            setUserList([]);
+            setTotalPages(0);
+            setTotalElements(0);
         } finally {
             setLoading(false);
-        }
-    };
-
-    // Search users
-    const handleSearch = async () => {
-        setCurrentPage(0); // Reset to first page when searching
-        setLoading(true);
-        try {
-            const response = await adminAPI.user.getUserList(searchTerm, 0, pageSize);
-            setUserList(response.data.content || []);
-            setTotalPages(response.data.totalPages || 0);
-            setTotalElements(response.data.totalElements || 0);
-        } catch (error) {
-            console.error("Error searching users:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Handle Enter key in search input
-    const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
-            handleSearch();
         }
     };
 
@@ -80,33 +65,40 @@ export default function AdminUserManagement() {
 
                 {/* 검색 */}
                 <div className="flex justify-end items-center mt-4">
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            placeholder="아이디, 닉네임, 이메일로 검색..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            className="px-4 py-2 border rounded-md w-64"
-                        />
-                        <button
-                            onClick={handleSearch}
-                            className="px-4 py-2 bg-neutral-800 text-white rounded-md hover:bg-neutral-700 transition-colors"
-                        >
-                            검색
-                        </button>
-                        {searchTerm && (
-                            <button
-                                onClick={() => {
-                                    setSearchTerm("");
-                                    setCurrentPage(0);
-                                    fetchUsers();
-                                }}
-                                className="px-4 py-2 bg-gray-200 text-neutral-700 rounded-md hover:bg-gray-300 transition-colors"
+                    <div className="w-full max-w-xs flex-shrink-0">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="아이디, 닉네임, 이메일을 검색하세요"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                            />
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
                             >
-                                초기화
-                            </button>
-                        )}
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+                                />
+                            </svg>
+                            {searchTerm && (
+                                <button
+                                    onClick={() => {
+                                        setSearchTerm("");
+                                    }}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    ✕
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -125,7 +117,11 @@ export default function AdminUserManagement() {
                 {loading ? (
                     <div className="w-full py-8 text-center text-gray-500">Loading...</div>
                 ) : userList.length === 0 ? (
-                    <div className="w-full py-8 text-center text-gray-500">사용자가 없습니다.</div>
+                    <div className="w-full py-8 text-center text-gray-500">
+                        {searchTerm 
+                            ? `"${searchTerm}"에 대한 검색 결과가 없습니다.`
+                            : '사용자가 없습니다.'}
+                    </div>
                 ) : (
                     /* 테이블 항목 */
                     userList.map((user) => (
