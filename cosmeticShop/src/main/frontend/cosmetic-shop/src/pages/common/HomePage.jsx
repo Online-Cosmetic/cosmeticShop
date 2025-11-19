@@ -182,9 +182,6 @@ const HomePage = () => {
 
             <div className="w-full max-w-7xl flex flex-col gap-12 px-4 md:px-40 py-16">
 
-                {/* AI 개인화 추천 (맨 위로 이동, 항상 표시) */}
-                <RecommendationSection user={user} />
-
                 {/* 베스트셀러 - 컨베이어 벨트 스타일 */}
                 <div className="flex flex-col gap-8">
                     <div className="flex items-center gap-2">
@@ -359,6 +356,11 @@ const HomePage = () => {
                         </div>
                     )}
                 </div>
+
+                {/* AiTEMS 개인화 추천 (로그인 유저 전용) */}
+                {user && (
+                    <RecommendationSection user={user} />
+                )}
 
                 {/* 최근 본 상품 */}
                 <div className="flex flex-col gap-8">

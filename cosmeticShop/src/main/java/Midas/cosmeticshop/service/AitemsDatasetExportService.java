@@ -187,12 +187,20 @@ public class AitemsDatasetExportService {
 
             // 헤더 작성
             writer.write(header);
-            writer.write("\n");
-
-            // 데이터 행 작성
-            for (String row : rows) {
-                writer.write(row);
+            
+            // 빈 행 제거 및 데이터 행 작성
+            List<String> nonEmptyRows = rows.stream()
+                .filter(row -> row != null && !row.trim().isEmpty())
+                .collect(Collectors.toList());
+            
+            if (!nonEmptyRows.isEmpty()) {
                 writer.write("\n");
+                for (int i = 0; i < nonEmptyRows.size(); i++) {
+                    writer.write(nonEmptyRows.get(i));
+                    if (i < nonEmptyRows.size() - 1) {
+                        writer.write("\n");
+                    }
+                }
             }
 
             writer.flush();

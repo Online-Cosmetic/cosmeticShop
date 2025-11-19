@@ -12,12 +12,16 @@ export default function AdminSidebar() {
         { label: "쿠폰 발급", path: "/admin/coupon" },
         { label: "Bad Keyword 관리", path: "/admin/badkeyword" },
         { label: "사용자 관리", path: "/admin/users" },
-        { label: "기업 회원 관리", path: "/admin/companies" }
+        { label: "기업 회원 관리", path: "/admin/companies" },
+        { label: "AiTEMS 데이터셋", path: "/admin/aitems-dataset" }
     ];
 
     const isActive = (path) => {
         if (path === '/admin/companies') {
             return pathname.startsWith('/admin/companies');
+        }
+        if (path === '/admin/aitems-dataset') {
+            return pathname === '/admin/aitems-dataset';
         }
         return pathname === path;
     };

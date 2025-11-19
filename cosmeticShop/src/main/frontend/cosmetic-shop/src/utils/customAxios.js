@@ -638,6 +638,24 @@ export const adminAPI = {
         searchUnansweredQnasByTitle: (title) => customAxios.get('/api/admin/company-qnas/unanswered/search', {
             params: { title }
         })
+    },
+
+    // AiTEMS Dataset CSV Export
+    aitems: {
+        // Download User Dataset CSV
+        downloadUserDataset: () => customAxios.get('/api/admin/aitems/dataset/user', {
+            responseType: 'blob'
+        }),
+
+        // Download Item Dataset CSV
+        downloadItemDataset: () => customAxios.get('/api/admin/aitems/dataset/item', {
+            responseType: 'blob'
+        }),
+
+        // Download Interaction Dataset CSV
+        downloadInteractionDataset: () => customAxios.get('/api/admin/aitems/dataset/interaction', {
+            responseType: 'blob'
+        })
     }
 };
 

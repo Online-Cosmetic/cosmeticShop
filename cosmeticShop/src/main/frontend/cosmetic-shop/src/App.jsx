@@ -63,6 +63,7 @@ import AdminUserManagement from "./pages/admin/AdminUserManagement.jsx";
 import AdminUserDetail from "./pages/admin/AdminUserDetail.jsx";
 import AdminCompanyManagement from "./pages/admin/AdminCompanyManagement.jsx";
 import AdminCompanyDetail from "./pages/admin/AdminCompanyDetail.jsx";
+import AdminAitemsDataset from "./pages/admin/AdminAitemsDataset.jsx";
 import AdminSidebar from "./components/admin/AdminSidebar.jsx";
 import AdminHeader from "./components/admin/AdminHeader.jsx";
 
@@ -346,6 +347,7 @@ const App = () => {
                                     <Route path="users/:id" element={<AdminUserDetail />} />
                                     <Route path="companies" element={<AdminCompanyManagement />} />
                                     <Route path="companies/:companyId" element={<AdminCompanyDetail />} />
+                                    <Route path="aitems-dataset" element={<AdminAitemsDataset />} />
                                 </Routes>
                             </AdminLayout>
                         </ProtectedRoute>
