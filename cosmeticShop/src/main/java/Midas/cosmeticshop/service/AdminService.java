@@ -60,7 +60,7 @@ public class AdminService {
                          CouponRepository CouponRepo,
                          UserRepository userRepository,
                          OrderRepository orderRepository,
-                         EmailService emailService) {
+                         EmailService emailService,
                          CompanyQnaRepository CompanyQnaRepo) {
         this.ReviewRepo = ReviewRepo;
         this.BadKeywordRepo = BadKeywordRepo;
@@ -404,6 +404,8 @@ public class AdminService {
         dto.setApproved(company.isApproved());
         dto.setCreatedAt(company.getCreatedAt());
         return dto;
+    }
+
     /* 기업 QnA 관리 메서드들 */
 
     // 전체 기업 QnA 목록 조회

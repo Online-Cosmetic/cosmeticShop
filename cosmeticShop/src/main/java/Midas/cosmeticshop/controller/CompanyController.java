@@ -61,14 +61,6 @@ public class CompanyController {
         return ResponseEntity.ok(new CompanyNamesDTO(companyRepository.findAllCompanyNames()));
     }
 
-    /* 등록된 모든 기업 정보(ID, 이름)를 조회 (공개) */
-    @GetMapping("/infos/public")
-    public ResponseEntity<List<CompanyInfoDTO>> getAllCompanyInfosPublic() {
-        List<Company> companies = companyRepository.findAll(); // JpaRepository의 기본 findAll() 사용
-        List<CompanyInfoDTO> companyInfos = companies.stream()
-            .map(company -> new CompanyInfoDTO(company.getId(), company.getCompanyName()))
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(companyInfos);
     /* 등록된 모든 기업 정보(이름, ID)를 조회 (공개) */
     @GetMapping("/info/public")
     public ResponseEntity<List<CompanyInfoDTO>> getAllCompaniesInfoPublic() {

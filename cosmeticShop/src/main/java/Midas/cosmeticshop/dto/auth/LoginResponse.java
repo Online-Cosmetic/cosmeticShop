@@ -31,7 +31,7 @@ public class LoginResponse {
     }
 
     // USER
-    public LoginResponse(String userId, String role, String accessToken, String email, String username) {
+    public LoginResponse(String userId, String role, String accessToken, String email, String username, String nickname) {
         this.userId = userId;
         this.role = role;
         this.accessToken = accessToken;
@@ -39,6 +39,7 @@ public class LoginResponse {
         this.email = email;
         this.username = username;
         this.approved = null;
+        this.nickname = nickname;
     }
 
     // COMPANY
@@ -50,7 +51,7 @@ public class LoginResponse {
         this.email = email;
         this.username = username;
         this.approved = approved;
-        this.nickname = nickname;
+        this.nickname = null;
     }
 
     // ERROR

@@ -56,8 +56,8 @@ public class Company extends BaseUser {
     @Column(name = "business_type")
     private String businessType;                // 업종/업태
 
-    @Column(name = "business_address", nullable = false)
-    private String businessAddress;             // 사업장 주소
+    @Column(name = "business_address")
+    private String businessAddress;             // 사업장 주소 (nullable)
 
     @Column(name = "contact_person_name", nullable = false)
     private String contactPersonName;           // 담당자명

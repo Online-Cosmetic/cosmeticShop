@@ -35,9 +35,8 @@ public class ProductPreviewDTO { // 여러 상품 나와있을때 최소한의 �
             product.getDescription(),
             product.getPrice(),
             product.getDiscountRate(), // 할인율 값 추가
-            product.getLiked(), // 찜한 사람 수 추가
-            product.getDiscountRate(),
             imageUrl,
+            product.getLiked(), // 찜한 사람 수 추가
             product.getCompany().getCompanyName()
         );
     }

@@ -122,6 +122,7 @@ function ProductPage() {
                 content: product.description,
                 price: product.price,
                 discountRate: product.discountRate || 0,
+                companyName: product.companyName,
                 imageUrl: product.thumbImgUrl ? getImageUrl(product.thumbImgUrl) : null,
                 liked: product.liked || 0 // 찜한 사람 수 추가
             }));

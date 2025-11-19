@@ -23,11 +23,14 @@ public class ProductDTO {
 
 
     public static ProductDTO from(Product product) {
-        String imageUrl = product.getThumbnailImage().getImageUrl();
-
-        // S3 public URL로 변환
-        if (imageUrl.startsWith("/images/")) {
-            imageUrl = "https://cosmall-image-bucket.s3.ap-northeast-2.amazonaws.com" + imageUrl;
+        String thumbnailImageUrl = null;
+        if (product.getThumbnailImage() != null) {
+            thumbnailImageUrl = product.getThumbnailImage().getImageUrl();
+            
+            // S3 public URL로 변환
+            if (thumbnailImageUrl != null && thumbnailImageUrl.startsWith("/images/")) {
+                thumbnailImageUrl = "https://cosmall-image-bucket.s3.ap-northeast-2.amazonaws.com" + thumbnailImageUrl;
+            }
         }
 
         return new ProductDTO(
@@ -39,9 +42,9 @@ public class ProductDTO {
             product.getDiscountRate(), // 할인율 값 추가
             product.getStock(),
             product.getCompany().getId(),
-            product.getLiked(), // 찜한 사람 수 추가
             product.getCompany().getCompanyName(),
-            imageUrl
+            thumbnailImageUrl,
+            product.getLiked() // 찜한 사람 수 추가
         );
     }
 

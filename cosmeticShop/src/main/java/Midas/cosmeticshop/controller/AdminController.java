@@ -201,6 +201,8 @@ public class AdminController {
             Authentication authentication) {
         adminService.rejectCompany(authentication.getName(), companyId);
         return ResponseEntity.ok().build();
+    }
+    
     /* 기업 QnA 관리 엔드포인트 */
 
     // 전체 기업 QnA 목록 조회
