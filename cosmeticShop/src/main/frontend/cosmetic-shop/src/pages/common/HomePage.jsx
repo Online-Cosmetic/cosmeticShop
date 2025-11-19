@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { userAPI } from "../../utils/customAxios.js";
 import { Link } from "react-router-dom";
-import { StarIcon, SparklesIcon, TrophyIcon, ShoppingBagIcon } from "@heroicons/react/24/solid";
+import { StarIcon, SparklesIcon, TrophyIcon, ShoppingBagIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { getImageUrl } from "@/utils/imageUtils";
+import RecentProducts from "../../components/product/RecentProducts.jsx";
 
 const HomePage = () => {
     const { user } = useAuth();
@@ -30,14 +31,14 @@ const HomePage = () => {
         const fetchProducts = async () => {
             try {
                 // 인기 상품 가져오기
-                const popularResponse = await userAPI.product.getPopular();
+                const popularResponse = await userAPI.product.getBestsellers();
                 console.log("인기 상품 응답:", popularResponse.data);
                 if (popularResponse.data && popularResponse.data.batchesPreviews) {
                     setBestSellers(popularResponse.data.batchesPreviews);
                 }
 
                 // 최신 상품 가져오기 (추천 상품으로 사용)
-                const latestResponse = await userAPI.product.getLatest();
+                const latestResponse = await userAPI.product.getRecommendedProducts();
                 console.log("최신 상품 응답:", latestResponse.data);
                 if (latestResponse.data && latestResponse.data.batchesPreviews) {
                     setRecommended(latestResponse.data.batchesPreviews);
@@ -311,6 +312,20 @@ const HomePage = () => {
                             <p className="text-lg text-gray-500 product-description">추천상품이 없습니다.</p>
                         </div>
                     )}
+                </div>
+
+                {/* 최근 본 상품 */}
+                <div className="flex flex-col gap-8">
+                    <div className="flex items-center gap-2">
+                        <ClockIcon className="w-6 h-6 text-blue-500" />
+                        <h2 className="text-2xl font-bold text-gray-800 product-name">
+                            최근 본 상품
+                        </h2>
+                    </div>
+
+                    <div className="relative">
+                        <RecentProducts maxItems={10} showRemoveButton={true} />
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { userAPI } from '../../../utils/customAxios';
 import { getImageUrl } from '../../../utils/imageUtils';
 
 export default function Wishlist() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -126,56 +128,68 @@ export default function Wishlist() {
           
           {items.map(item => (
               <div key={item.id} className="border-b pb-4 flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 flex-1">
                   <input
                       type="checkbox"
                       checked={selectedIds.has(item.id)}
                       onChange={() => toggleSelect(item.id)}
+                      onClick={(e) => e.stopPropagation()}
                       className="form-checkbox h-5 w-5 text-primary"
                   />
-                  <div className="relative overflow-hidden rounded-lg shadow-sm group">
-                    <img
-                        src={item.imageUrl}
-                        alt={item.productName}
-                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
-                        onError={(e) => {
-                          console.error("이미지 로드 실패");
-                          e.target.src = "https://placehold.co/600x400";
-                        }}
-                    />
-                    {item.discountRate > 0 && (
-                      <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-br-md">
-                        {item.discountRate}%
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500 font-medium">{item.brand}</div>
-                    <div className="text-lg font-semibold text-gray-900">{item.productName}</div>
-                    <div className="mt-1">
-                      {item.discountRate > 0 ? (
-                        <div className="flex items-center mb-1">
-                          <span className="text-gray-500 text-sm line-through mr-2">{item.price.toLocaleString()}원</span>
-                          <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded font-medium">{item.discountRate}% 할인</span>
+                  <div 
+                    className="flex items-center space-x-4 cursor-pointer flex-1"
+                    onClick={() => navigate(`/detail/${item.id}`)}
+                  >
+                    <div className="relative overflow-hidden rounded-lg shadow-sm group">
+                      <img
+                          src={item.imageUrl}
+                          alt={item.productName}
+                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
+                          onError={(e) => {
+                            console.error("이미지 로드 실패");
+                            e.target.src = "https://placehold.co/600x400";
+                          }}
+                      />
+                      {item.discountRate > 0 && (
+                        <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-br-md">
+                          {item.discountRate}%
                         </div>
-                      ) : (
-                        <div className="h-5">{/* 할인이 없을 때 공간 유지 */}</div>
                       )}
-                      <p className={`font-bold text-xl ${item.discountRate > 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                        {Math.floor(item.price * (1 - item.discountRate / 100)).toLocaleString()}원
-                      </p>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500 font-medium">{item.brand}</div>
+                      <div className="text-lg font-semibold text-gray-900 hover:text-emerald-600 transition-colors">{item.productName}</div>
+                      <div className="mt-1">
+                        {item.discountRate > 0 ? (
+                          <div className="flex items-center mb-1">
+                            <span className="text-gray-500 text-sm line-through mr-2">{item.price.toLocaleString()}원</span>
+                            <span className="bg-red-50 text-red-500 text-xs px-1.5 py-0.5 rounded font-medium">{item.discountRate}% 할인</span>
+                          </div>
+                        ) : (
+                          <div className="h-5">{/* 할인이 없을 때 공간 유지 */}</div>
+                        )}
+                        <p className={`font-bold text-xl ${item.discountRate > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                          {Math.floor(item.price * (1 - item.discountRate / 100)).toLocaleString()}원
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div className="flex flex-col space-y-2">
                   <button
-                      onClick={() => handleAddToCart(item.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(item.id);
+                      }}
                       className="border px-4 py-2 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors duration-200"
                   >
                     장바구니에 담기
                   </button>
                   <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(item.id);
+                      }}
                       className="border px-4 py-2 rounded hover:bg-gray-100"
                   >
                     삭제

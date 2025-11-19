@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CartService {
@@ -72,6 +71,13 @@ public class CartService {
             throw new EntityNotFoundException("사용자가 존재하지 않습니다");
         Cart cart = CartRepo.findById(cartId)
                 .orElseThrow(() -> new EntityNotFoundException("장바구니가 존재하지 않습니다."));
+        
+        // 재고 확인
+        Product product = cart.getProduct();
+        if (product.getStock() < quantity) {
+            throw new RuntimeException("재고가 부족합니다. 상품: " + product.getProductName() + ", 현재 재고: " + product.getStock());
+        }
+        
         cart.setQuantity(quantity);
         CartRepo.save(cart);
     }

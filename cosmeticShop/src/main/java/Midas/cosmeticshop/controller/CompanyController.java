@@ -32,13 +32,15 @@ public class CompanyController {
     public ResponseEntity<Page<ProductListDTO>> getMyProducts(
         @AuthenticationPrincipal BaseUserDetails userDetails,
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption
     ) {
         // 현재 로그인한 기업 회원의 ID를 가져옴
         String userId = userDetails.getUsername();
         Long companyId = productService.getCompanyIdByUserId(userId);
 
-        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size);
+        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size, keyword, sortOption);
         return ResponseEntity.ok(products);
     }
 
@@ -59,6 +61,14 @@ public class CompanyController {
         return ResponseEntity.ok(new CompanyNamesDTO(companyRepository.findAllCompanyNames()));
     }
 
+    /* 등록된 모든 기업 정보(ID, 이름)를 조회 (공개) */
+    @GetMapping("/infos/public")
+    public ResponseEntity<List<CompanyInfoDTO>> getAllCompanyInfosPublic() {
+        List<Company> companies = companyRepository.findAll(); // JpaRepository의 기본 findAll() 사용
+        List<CompanyInfoDTO> companyInfos = companies.stream()
+            .map(company -> new CompanyInfoDTO(company.getId(), company.getCompanyName()))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(companyInfos);
     /* 등록된 모든 기업 정보(이름, ID)를 조회 (공개) */
     @GetMapping("/info/public")
     public ResponseEntity<List<CompanyInfoDTO>> getAllCompaniesInfoPublic() {

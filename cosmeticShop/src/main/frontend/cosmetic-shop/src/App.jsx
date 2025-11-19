@@ -45,6 +45,7 @@ import EnterpriseSignUp from "./pages/auth/EnterpriseSignUp.jsx";
 import ProductManagement from "./pages/product/ProductManagement.jsx";
 import OrderManagement from "./pages/enterprise/OrderManagement.jsx";
 import ThanksForEnterpriseSignUp from './pages/enterprise/ThanksForEnterpriseSignUp';
+import EnterpriseWaitingApproval from './pages/enterprise/EnterpriseWaitingApproval';
 import EnterpriseQnAList from "./pages/enterprise/EnterpriseQnAList.jsx";
 import EnterpriseQnAWrite from "./pages/enterprise/EnterpriseQnAWrite.jsx";
 import EnterpriseQnADetail from "./pages/enterprise/EnterpriseQnADetail.jsx";
@@ -58,6 +59,10 @@ import AdminCompanyQnAManagement from "./pages/admin/AdminCompanyQnAManagement.j
 import AdminCompanyQnAResponse from "./pages/admin/AdminCompanyQnAResponse.jsx";
 import AdminCouponIssuance from "./pages/admin/AdminCouponIssuance.jsx";
 import AdminBadKeywordManagement from "./pages/admin/AdminBadKeywordManagement.jsx";
+import AdminUserManagement from "./pages/admin/AdminUserManagement.jsx";
+import AdminUserDetail from "./pages/admin/AdminUserDetail.jsx";
+import AdminCompanyManagement from "./pages/admin/AdminCompanyManagement.jsx";
+import AdminCompanyDetail from "./pages/admin/AdminCompanyDetail.jsx";
 import AdminSidebar from "./components/admin/AdminSidebar.jsx";
 import AdminHeader from "./components/admin/AdminHeader.jsx";
 
@@ -141,7 +146,13 @@ const App = () => {
     useEffect(() => {
         emitter.on("logout", () => {
             localStorage.removeItem("accessToken");
-            navigate("/login", {replace: true});
+            // 현재 경로가 기업 관련 페이지인지 확인
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/enterprise') || currentPath.includes('/company')) {
+                navigate("/enterprise/login", {replace: true});
+            } else {
+                navigate("/login", {replace: true});
+            }
         });
     }, [navigate]);
 
@@ -287,6 +298,7 @@ const App = () => {
                 {/* 기업 회원 전용 페이지 */}
                 <Route path="/enterprise/login" element={<EnterpriseLogin />} />
                 <Route path="/enterprise/signup" element={<EnterpriseSignUp />} />
+                <Route path="/enterprise/waiting-approval" element={<EnterpriseWaitingApproval />} />
                     <Route
                         path="/enterprise/*"
                     element={
@@ -330,6 +342,10 @@ const App = () => {
                                     <Route path="company-qna/:id/response" element={<AdminCompanyQnAResponse />} />
                                     <Route path="coupon" element={<AdminCouponIssuance />} />
                                     <Route path="badkeyword" element={<AdminBadKeywordManagement />} />
+                                    <Route path="users" element={<AdminUserManagement />} />
+                                    <Route path="users/:id" element={<AdminUserDetail />} />
+                                    <Route path="companies" element={<AdminCompanyManagement />} />
+                                    <Route path="companies/:companyId" element={<AdminCompanyDetail />} />
                                 </Routes>
                             </AdminLayout>
                         </ProtectedRoute>

@@ -16,12 +16,13 @@ function ThanksForEnterpriseSignUp() {
         </div>
         
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          회원가입이 완료되었습니다!
+          가입 신청이 완료되었습니다!
         </h1>
         
         <p className="text-gray-600 mb-8">
-          cosMall Enterprise의 파트너가 되신 것을 환영합니다!<br />
-          cosMall과 함께 성공적인 비즈니스를 시작해보세요.
+          기업 회원 가입 신청이 완료되었습니다.<br />
+          관리자 승인 후 서비스를 이용하실 수 있습니다.<br />
+          승인 완료 시 등록하신 이메일로 알림을 드립니다.
         </p>
         
         <div className="flex flex-col space-y-3">

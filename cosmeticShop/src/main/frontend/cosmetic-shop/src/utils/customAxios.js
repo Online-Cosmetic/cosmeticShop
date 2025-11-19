@@ -70,6 +70,7 @@ customAxios.interceptors.response.use(
 
         if (err.response?.status === 401 &&
             !orig.url.includes('/api/auth/reissue') &&
+            !orig.url.includes('/api/auth/login') &&
             !orig._retry
         ) {
             orig._retry = true;
@@ -80,7 +81,10 @@ customAxios.interceptors.response.use(
                 return customAxios(orig);
             } catch (refreshErr) {
                 // 인터셉터 안에서 직접 리다이렉트 하지 말고, App 에 이벤트 전달
-                emitter.emit('logout');
+                // 로그인 API 호출 시에는 로그아웃 이벤트를 발생시키지 않음
+                if (!orig.url.includes('/api/auth/login')) {
+                    emitter.emit('logout');
+                }
                 return Promise.reject(refreshErr);
             }
         }
@@ -157,6 +161,26 @@ export const userAPI = {
         getAll: () => customAxios.get('/api/products'),
         getById: (id) => customAxios.get(`/api/products/${id}`),
         search: (query) => customAxios.get('/api/products/search', {params: {query}}),
+        // 베스트셀러 조회 (liked 순 10개)
+        getBestsellers: () => customAxios.get('/api/products/batch/bestsellers'),
+        // 추천상품 조회 (최신순 10개)
+        getRecommendedProducts: () => customAxios.get('/api/products/batch/recommended'),
+        // 관련상품 조회 (동일카테고리 8개)
+        getRelatedProducts: (categoryName, sortOption = 'latest', excludeProductId = null) => {
+                    // 카테고리 이름을 카테고리 ID로 변환
+                    const categoryMap = {
+                        // 전체 상품은 CategoryID 0으로 가정
+                        'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
+                    };
+                    const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
+                    const params = { sort: sortOption };
+                    if (excludeProductId) {
+                        params.excludeProductId = excludeProductId;
+                    }
+                    return customAxios.get(`/api/products/batch/related/${categoryId}`, {
+                        params
+                    });
+                },
         // 최신순으로 전체 상품 조회
         getLatest: () => customAxios.get('/api/products/batch/latest'),
         // 인기순(좋아요 순)으로 전체 상품 조회
@@ -166,33 +190,57 @@ export const userAPI = {
             params: { order } // asc 또는 desc
         }),
         // 카테고리별 상품 조회 (정렬 옵션 추가)
-        getByCategory: (categoryName, sortOption = 'latest') => {
+        getByCategory: (categoryName, sortOption = 'latest', page = 0, size = 9, keyword = '') => {
             // 카테고리 이름을 카테고리 ID로 변환
             const categoryMap = {
                 // 전체 상품은 CategoryID 0으로 가정
                 'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
             };
             const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
+            const params = {
+                sort: sortOption,
+                page,
+                size
+            };
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
             return customAxios.get(`/api/products/batch/${categoryId}`, {
-                params: { sort: sortOption }
+                params
             });
         },
         // 회사별 상품 조회 (정렬 옵션 추가)
-        getByCompany: (companyId, sortOption = 'latest') => {
+        getByCompany: (companyId, sortOption = 'latest', page = 0, size = 9, keyword = '') => {
+            const params = {
+                sort: sortOption,
+                page,
+                size
+            };
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
             return customAxios.get(`/api/products/batch/company/${companyId}`, {
-                params: { sort: sortOption }
+                params
             });
         },
         // 카테고리 및 회사별 상품 조회 (정렬 옵션 추가)
-        getByCategoryAndCompany: (categoryName, companyId, sortOption = 'latest') => {
+        getByCategoryAndCompany: (categoryName, companyId, sortOption = 'latest', page = 0, size = 9, keyword = '') => {
             // 카테고리 이름을 카테고리 ID로 변환
             const categoryMap = {
                 // 전체 상품은 CategoryID 0으로 가정
                 'all': 0, 'makeup': 1, 'skincare': 2, 'hair': 3, 'body': 4
             };
             const categoryId = categoryMap[categoryName.toLowerCase()] || 0;
+            const params = {
+                sort: sortOption,
+                page,
+                size
+            };
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
             return customAxios.get(`/api/products/batch/${categoryId}/company/${companyId}`, {
-                params: { sort: sortOption }
+                params
             });
         },
         // 상품 좋아요 관련 API
@@ -326,10 +374,20 @@ export const companyAPI = {
     // 모든 회사 정보(이름, ID) 조회 (공개)
     getAllCompaniesInfo: () => customAxios.get('/api/company/info/public'),
 
+    // 모든 회사 정보(ID, 이름) 조회 (공개)
+    getAllCompanyInfos: () => customAxios.get('/api/company/infos/public'),
+
     product: {
         // 회사 제품 목록 조회 (페이징)
-        getProducts: (page = 0, size = 10) =>
-            customAxios.get(`/api/company/products`, { params: { page, size }}),
+        getProducts: (page = 0, size = 10, keyword = null, sort = 'latest') =>
+            customAxios.get(`/api/company/products`, { 
+                params: { 
+                    page, 
+                    size,
+                    ...(keyword && { keyword }),
+                    sort
+                }
+            }),
 
         // 상품 정보 업데이트 (JSON)
         updateProduct: (productId, data) => {
@@ -493,6 +551,57 @@ export const adminAPI = {
         getDashboardCounts: () => customAxios.get('/api/admin/order_stats/dashboard')
     },
 
+    // User Management
+    user: {
+        // Get user list with pagination and search
+        getUserList: (keyword, page = 0, size = 10) => {
+            const params = { page, size };
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
+            return customAxios.get('/api/admin/users', { params });
+        },
+
+        // Get user detail by ID
+        getUserDetail: (userId) => customAxios.get(`/api/admin/users/${userId}`),
+
+        // Update user information
+        updateUser: (userId, updateData) => customAxios.put(`/api/admin/users/${userId}`, updateData),
+
+        // Get user orders
+        getUserOrders: (userId) => customAxios.get(`/api/admin/users/${userId}/orders`),
+
+        // Get user reviews
+        getUserReviews: (userId) => customAxios.get(`/api/admin/users/${userId}/reviews`)
+    },
+
+    // Company Management
+    company: {
+        // Get all companies with optional approval status filter, pagination and search
+        getAllCompanies: (approved = null, keyword = null, page = 0, size = 10) => {
+            const params = { page, size };
+            if (approved !== null) {
+                params.approved = approved;
+            }
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
+            return customAxios.get('/api/admin/companies', { params });
+        },
+
+        // Get pending approval companies (deprecated, use getAllCompanies(false))
+        getPendingApprovalCompanies: () => customAxios.get('/api/admin/companies/pending'),
+
+        // Get company detail
+        getCompanyDetail: (companyId) => customAxios.get(`/api/admin/companies/${companyId}`),
+
+        // Approve company
+        approveCompany: (companyId) => customAxios.post(`/api/admin/companies/${companyId}/approve`),
+
+        // Reject company
+        rejectCompany: (companyId) => customAxios.delete(`/api/admin/companies/${companyId}`)
+    },
+  
     // Company QnA Management
     companyQna: {
         // Get all company QnAs

@@ -33,11 +33,14 @@ function Order() {
     const [totalCouponDiscount, setTotalCouponDiscount] = useState(0); // 총 쿠폰 할인 금액
     // 쿠폰 적용 유도 상태 추가
     const [showCouponGuide, setShowCouponGuide] = useState(true);  // 쿠폰 적용 유도 메시지 표시 여부
+    const [stockWarningShown, setStockWarningShown] = useState(false); // 재고 경고 표시 여부
 
     // 주소 로딩 상태 참조 - useRef 사용하여 불필요한 리렌더링 방지
     const addressesLoadedRef = useRef(false);
     // 장바구니 아이템 로딩 상태 참조
     const cartItemsLoadedRef = useRef(false);
+    // 주문 생성 중인지 추적하는 ref
+    const isCreatingOrderRef = useRef(false);
 
     // Cart.jsx에서 전달받은 선택된 장바구니 아이템 ID 배열
     const selectedCartIds = location.state?.selectedCartIds || [];
@@ -316,6 +319,21 @@ function Order() {
 
                 // 상품 정보가 로드되면 각 상품별 쿠폰 정보 로드
                 if (productsLoaded && cartItems.length > 0) {
+                    // 재고 부족 상품 확인
+                    const stockIssues = cartItems.filter(item => {
+                        const stock = item.stock || 0;
+                        const quantity = item.quantity || 0;
+                        return quantity > stock;
+                    });
+
+                    if (stockIssues.length > 0 && !stockWarningShown) {
+                        const issueMessages = stockIssues.map(item => 
+                            `${item.productName || item.name}: 주문 수량 ${item.quantity}개, 현재 재고 ${item.stock || 0}개`
+                        ).join('\n');
+                        alert(`재고가 부족한 상품이 있습니다:\n${issueMessages}\n\n장바구니에서 수량을 조정해주세요.`);
+                        setStockWarningShown(true);
+                    }
+
                     for (const item of cartItems) {
                         // productId와 companyId가 있는 경우에만 쿠폰 정보 로드
                         const productId = item.productId || item.id;
@@ -364,9 +382,47 @@ function Order() {
         return true;
     };
 
+    // 재고 검증 함수
+    const validateStock = () => {
+        const stockIssues = [];
+        cartItems.forEach(item => {
+            const stock = item.stock || 0;
+            const quantity = item.quantity || 0;
+            if (quantity > stock) {
+                stockIssues.push({
+                    productName: item.productName || item.name,
+                    quantity: quantity,
+                    stock: stock
+                });
+            }
+        });
+
+        if (stockIssues.length > 0) {
+            const issueMessages = stockIssues.map(issue => 
+                `${issue.productName}: 주문 수량 ${issue.quantity}개, 현재 재고 ${issue.stock}개`
+            ).join('\n');
+            setErrorMsg(`재고가 부족한 상품이 있습니다:\n${issueMessages}`);
+            return false;
+        }
+        return true;
+    };
+
     // Order.jsx - handleProceedOrder 함수에서 할인가를 고려한 주문 생성
     const handleProceedOrder = async () => {
         setErrorMsg("");
+        
+        // 이미 주문이 생성되어 있으면 주문을 다시 생성하지 않음
+        if (orderId) {
+            setShowPayment(true);
+            return;
+        }
+
+        // 주문 생성 중이면 중복 호출 방지
+        if (isCreatingOrderRef.current) {
+            console.log("주문 생성 중입니다. 중복 호출을 방지합니다.");
+            return;
+        }
+
         setShowPayment(false);
 
         if (!selectedAddress) {
@@ -381,6 +437,12 @@ function Order() {
             return;
         }
 
+        // 재고 검증
+        if (!validateStock()) {
+            return;
+        }
+
+        isCreatingOrderRef.current = true;
         try {
             // 주문 상품 정보에 할인가 적용
             const orderItems = cartItems.map(item => {
@@ -434,8 +496,20 @@ function Order() {
             setOrderId(newOrderId);
             setShowPayment(true);
         } catch (e) {
-            setErrorMsg('주문 생성에 실패했습니다.');
             console.error('주문 생성 오류:', e);
+            // 재고 부족 에러 처리
+            if (e.response?.data?.message || e.message?.includes('재고')) {
+                const errorMessage = e.response?.data?.message || e.message || '재고가 부족합니다.';
+                setErrorMsg(errorMessage);
+                // 재고 부족 시 장바구니 새로고침하여 최신 재고 정보 가져오기
+                if (loadProductItems) {
+                    await loadProductItems();
+                }
+            } else {
+                setErrorMsg('주문 생성에 실패했습니다.');
+            }
+        } finally {
+            isCreatingOrderRef.current = false;
         }
     };
 
@@ -548,8 +622,23 @@ function Order() {
                                                 console.log(`상품 ${productId}의 쿠폰 목록:`, availableCoupons[productId]);
                                                 const productCoupons = availableCoupons[productId] || [];
 
+                                                // 재고 부족 확인
+                                                const stock = product.stock || 0;
+                                                const quantity = product.quantity || 0;
+                                                const isStockInsufficient = quantity > stock;
+
                                                 return (
-                                                    <div key={productId} className="border border-gray-200 rounded-lg overflow-hidden">
+                                                    <div key={productId} className={`border rounded-lg overflow-hidden ${isStockInsufficient ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}>
+                                                        {isStockInsufficient && (
+                                                            <div className="bg-red-100 border-b border-red-200 p-3 flex items-center">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                                                </svg>
+                                                                <span className="text-red-700 font-medium text-sm">
+                                                                    재고 부족: 주문 수량 {quantity}개, 현재 재고 {stock}개
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                         <ProductCard
                                                             key={productId}
                                                             product={product}
