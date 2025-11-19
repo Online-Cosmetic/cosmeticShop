@@ -149,4 +149,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     // 페이징 조회용: EntityGraph를 사용하여 company와 thumbnailImage를 함께 로드
     @EntityGraph(attributePaths = {"company", "thumbnailImage"})
     Page<Product> findAll(Specification<Product> spec, Pageable pageable);
+    
+    // AiTEMS용: 활성화된 모든 상품 조회
+    default List<Product> findAllActiveProductsForAitems() {
+        return findAllByActiveTrueOrderByIdDesc();
+    }
 }
