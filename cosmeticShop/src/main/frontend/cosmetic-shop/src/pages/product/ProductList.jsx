@@ -107,7 +107,13 @@ function ProductList({ products, title, onSortChange }) {
                 ...prev,
                 [productId]: currentLikedCount
             }));
-            toast.error("찜하기에 실패했습니다.");
+            
+            // 상세한 에러 메시지 표시
+            const errorMessage = error?.response?.data?.message 
+                || error?.response?.data?.error 
+                || error?.message 
+                || "찜하기에 실패했습니다.";
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -188,10 +194,14 @@ function ProductList({ products, title, onSortChange }) {
                                  </div>
                              </div>
 
-                             <div className="p-5 space-y-2">
-                                 <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors duration-200">
-                                     {product.title || product.productName}
-                                 </h3>
+                            <div className="p-5 space-y-2">
+                                {/* 기업명 표시 */}
+                                {product.companyName && (
+                                    <p className="text-xs text-gray-500 mb-1">{product.companyName}</p>
+                                )}
+                                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors duration-200">
+                                    {product.title || product.productName}
+                                </h3>
 
                                  <p className="text-sm text-gray-500 line-clamp-2">
                                      {product.content || product.description}

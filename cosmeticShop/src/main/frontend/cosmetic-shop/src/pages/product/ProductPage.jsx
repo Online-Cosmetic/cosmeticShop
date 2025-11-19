@@ -359,7 +359,7 @@ function ProductPage() {
                         onChange={(e) => setSortOption(e.target.value)}
                     >
                         <option value="latest">최신상품순</option>
-                        <option value="popular">인기순</option>
+                        <option value="popular">찜 많은 순</option>
                         <option value="priceAsc">낮은 가격순</option>
                         <option value="priceDesc">높은 가격순</option>
                     </select>

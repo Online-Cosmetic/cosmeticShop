@@ -25,6 +25,7 @@ function Detail({title}) {
     const [likedRelatedProducts, setLikedRelatedProducts] = useState({});
     const [isLikeLoading, setIsLikeLoading] = useState(false);
     const [relatedProductLikedCounts, setRelatedProductLikedCounts] = useState({}); // 관련 상품의 찜한 사람 수 관리
+    const [productLikedCount, setProductLikedCount] = useState(0); // 현재 상품의 찜한 사람 수 관리
 
     // 이미지 슬라이더 관련 상태 추가
     const [imageUrls, setImageUrls] = useState([]);
@@ -100,6 +101,11 @@ function Detail({title}) {
                 };
 
                 setProduct(productData);
+                
+                // 찜한 사람 수 초기화
+                if (productData.liked !== undefined) {
+                    setProductLikedCount(productData.liked);
+                }
 
                 // 썸네일 이미지 URL 가져오기
                 const thumbnailImageUrl = productData.thumbnailImageUrl ? getImageUrl(productData.thumbnailImageUrl) : null;
@@ -279,6 +285,8 @@ function Detail({title}) {
         // 낙관적 업데이트: 즉시 UI 업데이트
         if (productId === product.productId) {
             setIsLiked(!previousLiked);
+            // 현재 상품의 찜한 사람 수도 즉시 업데이트
+            setProductLikedCount(prev => prev + (previousLiked ? -1 : 1));
         } else {
             setLikedRelatedProducts(prev => ({
                 ...prev,
@@ -297,6 +305,22 @@ function Detail({title}) {
             // 현재 상품의 좋아요 상태 업데이트
             if (productId === product.productId) {
                 setIsLiked(newLikeStatus);
+                // 서버에서 정확한 찜한 사람 수 다시 가져오기
+                try {
+                    const productResponse = await userAPI.product.getById(productId);
+                    const updatedLiked = productResponse.data?.productDTO?.liked;
+                    if (updatedLiked !== undefined) {
+                        setProductLikedCount(updatedLiked);
+                        // product 상태도 업데이트
+                        setProduct(prev => ({
+                            ...prev,
+                            liked: updatedLiked
+                        }));
+                    }
+                } catch (fetchError) {
+                    console.error("상품 정보를 다시 가져오는데 실패했습니다:", fetchError);
+                    // 실패해도 낙관적 업데이트 값은 유지
+                }
             }
             // 관련 상품의 좋아요 상태 업데이트
             else {
@@ -327,6 +351,8 @@ function Detail({title}) {
             // 실패 시 이전 상태로 롤백
             if (productId === product.productId) {
                 setIsLiked(previousLiked);
+                // 찜한 사람 수도 롤백
+                setProductLikedCount(currentLikedCount);
             } else {
                 setLikedRelatedProducts(prev => ({
                     ...prev,
@@ -337,7 +363,13 @@ function Detail({title}) {
                     [productId]: currentLikedCount
                 }));
             }
-            toast.error("찜하기에 실패했습니다.");
+            
+            // 상세한 에러 메시지 표시
+            const errorMessage = error?.response?.data?.message 
+                || error?.response?.data?.error 
+                || error?.message 
+                || "찜하기에 실패했습니다.";
+            toast.error(errorMessage);
         } finally {
             setIsLikeLoading(false);
         }
@@ -651,20 +683,25 @@ function Detail({title}) {
                                         {product.productName}
                                     </h1>
                                 </div>
-                                {/* 하트 아이콘(찜) */}
-                                <button
-                                    onClick={() => handleToggleLike(product.productId)}
-                                    disabled={isLikeLoading}
-                                    className={`transition-all duration-300 transform hover:scale-110 p-2 rounded-full flex items-center justify-center ${
-                                        isLiked ? 'text-rose-500 bg-rose-50' : 'text-gray-400 hover:text-rose-500 hover:bg-rose-50'
-                                    }`}
-                                >
-                                    {isLiked ? (
-                                        <SolidHeartIcon className="h-7 w-7 text-rose-500" />
-                                    ) : (
-                                        <HeartIcon className="h-7 w-7 text-gray-400 hover:text-rose-500" />
-                                    )}
-                                </button>
+                                {/* 하트 아이콘(찜) 및 찜한 사람 수 */}
+                                <div className="flex flex-col items-center gap-1">
+                                    <button
+                                        onClick={() => handleToggleLike(product.productId)}
+                                        disabled={isLikeLoading}
+                                        className={`transition-all duration-300 transform hover:scale-110 p-2 rounded-full flex items-center justify-center ${
+                                            isLiked ? 'text-rose-500 bg-rose-50' : 'text-gray-400 hover:text-rose-500 hover:bg-rose-50'
+                                        }`}
+                                    >
+                                        {isLiked ? (
+                                            <SolidHeartIcon className="h-7 w-7 text-rose-500" />
+                                        ) : (
+                                            <HeartIcon className="h-7 w-7 text-gray-400 hover:text-rose-500" />
+                                        )}
+                                    </button>
+                                    <span className="text-xs text-gray-500">
+                                        찜 {productLikedCount}명
+                                    </span>
+                                </div>
                             </div>
 
                             {/* 가격 정보 - 할인율이 있는 경우 할인 전 가격 표시 */}
