@@ -79,3 +79,11 @@ aws:
     region: ${AWS_REGION:ap-northeast-2}
     access-key: ${AWS_ACCESS_KEY:}
     secret-key: ${AWS_SECRET_KEY:}
+
+aitems:
+  api:
+    endpoint: ${AITEMS_API_ENDPOINT:https://aitems.apigw.ntruss.com}
+    access-key: ${AITEMS_ACCESS_KEY:}
+    secret-key: ${AITEMS_SECRET_KEY:}
+    service-name: ${AITEMS_SERVICE_NAME:cosmetic-shop-recommend}
+    timeout: ${AITEMS_TIMEOUT:30000}  # 30초
