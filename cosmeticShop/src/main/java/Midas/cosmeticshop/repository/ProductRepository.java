@@ -75,4 +75,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<Product> findTop9ByCategoryIdAndActiveTrueOrderByPriceAsc(int categoryId);
     List<Product> findTop9ByCategoryIdAndActiveTrueOrderByPriceDesc(int categoryId);
     List<Product> findTop9ByCategoryIdAndActiveTrueOrderByIdDesc(int categoryId);
+
+    // AiTEMS용: 활성화된 모든 상품 조회
+    default List<Product> findAllActiveProductsForAitems() {
+        return findAllByActiveTrueOrderByIdDesc();
+    }
 }
