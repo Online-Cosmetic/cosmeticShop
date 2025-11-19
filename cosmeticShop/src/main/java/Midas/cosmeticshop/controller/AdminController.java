@@ -12,9 +12,12 @@ import Midas.cosmeticshop.dto.UserInfo.UserListDTO;
 import Midas.cosmeticshop.dto.UserInfo.UserUpdateDTO;
 import Midas.cosmeticshop.dto.order.OrderDTO;
 import Midas.cosmeticshop.service.AdminService;
+import Midas.cosmeticshop.service.AitemsDatasetExportService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -26,9 +29,11 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final AitemsDatasetExportService aitemsDatasetExportService;
 
-    public AdminController (AdminService adminService) {
+    public AdminController (AdminService adminService, AitemsDatasetExportService aitemsDatasetExportService) {
         this.adminService = adminService;
+        this.aitemsDatasetExportService = aitemsDatasetExportService;
     }
 
     @GetMapping
@@ -257,5 +262,60 @@ public class AdminController {
     public ResponseEntity<List<CompanyQnaListDTO>> searchUnansweredCompanyQnasByTitle(@RequestParam("title") String title,
                                                                                       Authentication authentication) {
         return ResponseEntity.ok().body(adminService.getUnansweredCompanyQnasByTitle(title, authentication.getName()));
+    }
+
+    /* ===============================
+       AiTEMS Dataset CSV Export 기능
+       =============================== */
+
+    /**
+     * User Dataset CSV 다운로드
+     */
+    @GetMapping("/aitems/dataset/user")
+    public ResponseEntity<byte[]> downloadUserDataset(Authentication authentication) {
+        byte[] csvData = aitemsDatasetExportService.exportUserDataset();
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", "user_dataset.csv");
+        headers.setContentLength(csvData.length);
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvData);
+    }
+
+    /**
+     * Item Dataset CSV 다운로드
+     */
+    @GetMapping("/aitems/dataset/item")
+    public ResponseEntity<byte[]> downloadItemDataset(Authentication authentication) {
+        byte[] csvData = aitemsDatasetExportService.exportItemDataset();
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", "item_dataset.csv");
+        headers.setContentLength(csvData.length);
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvData);
+    }
+
+    /**
+     * Interaction Dataset CSV 다운로드
+     */
+    @GetMapping("/aitems/dataset/interaction")
+    public ResponseEntity<byte[]> downloadInteractionDataset(Authentication authentication) {
+        byte[] csvData = aitemsDatasetExportService.exportInteractionDataset();
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", "interaction_dataset.csv");
+        headers.setContentLength(csvData.length);
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvData);
     }
 }

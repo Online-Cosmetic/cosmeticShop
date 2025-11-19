@@ -3,6 +3,13 @@ import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import FilterBar from "../../components/enterprise/FilterBar.jsx";
 import {companyAPI} from "../../utils/customAxios.js";
 import { getImageUrl } from "../../utils/imageUtils.js";
+import { 
+    ArrowPathIcon, 
+    CheckCircleIcon, 
+    XCircleIcon,
+    TruckIcon,
+    ClockIcon
+} from "@heroicons/react/24/outline";
 
 function OrderManagement() {
     const queryClient = useQueryClient();
@@ -125,52 +132,58 @@ function OrderManagement() {
         switch (status) {
             case 'READY':
                 return {
-                    class: 'bg-orange-100 text-orange-600',
+                    class: 'bg-orange-50 text-orange-700 border border-orange-200',
                     text: '배송준비',
                     nextStatus: 'PROG',
-                    nextText: 'Start Processing'
+                    nextText: '배송 시작',
+                    icon: ClockIcon
                 };
             case 'PROG':
                 return {
-                    class: 'bg-violet-100 text-violet-600',
+                    class: 'bg-blue-50 text-blue-700 border border-blue-200',
                     text: '배송중',
                     nextStatus: 'COMP',
-                    nextText: 'Complete'
+                    nextText: '배송 완료',
+                    icon: TruckIcon
                 };
             case 'COMP':
                 return {
-                    class: 'bg-teal-100 text-teal-600',
+                    class: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
                     text: '배송완료',
                     nextStatus: null,
-                    nextText: null
+                    nextText: null,
+                    icon: CheckCircleIcon
                 };
             case 'CANC':
                 return {
-                    class: 'bg-red-100 text-red-600',
+                    class: 'bg-red-50 text-red-700 border border-red-200',
                     text: '주문취소',
                     nextStatus: null,
-                    nextText: null
+                    nextText: null,
+                    icon: XCircleIcon
                 };
             default:
                 return {
-                    class: 'bg-gray-100 text-gray-600',
+                    class: 'bg-gray-50 text-gray-700 border border-gray-200',
                     text: status,
                     nextStatus: null,
-                    nextText: null
+                    nextText: null,
+                    icon: null
                 };
         }
     };
 
     return (
-        <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-4">
-            <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-12">
+        <div className="w-full max-w-[1262px] mx-auto p-6 flex flex-col gap-6">
+            <div className="w-full px-8 py-8 bg-white border rounded-2xl shadow flex flex-col gap-6">
                 <div className="flex justify-between items-center">
                     <h2 className="text-3xl font-bold text-neutral-800">주문상품 내역</h2>
                     <button
                         onClick={() => refetch()}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-sm hover:shadow-md font-medium"
                     >
-                        Refresh
+                        <ArrowPathIcon className="w-5 h-5" />
+                        새로고침
                     </button>
                 </div>
 
@@ -187,30 +200,31 @@ function OrderManagement() {
                     <>
                         {/* Table Header - 열 추가 */}
                         <div
-                            className="grid grid-cols-9 bg-neutral-50 p-4 border-b border-neutral-300 font-extrabold text-sm text-neutral-800 rounded-t-2xl">
-                            <div>주문ID</div>
-                            <div>이미지</div>
-                            <div>상품이름</div>
-                            <div>주문수량</div>
-                            <div>가격</div>
-                            <div>주소</div>
-                            <div>주문일</div>
-                            <div>고객이름</div>
-                            <div>상태</div>
-                            <div>작업</div>
+                            className="grid grid-cols-10 bg-neutral-50 px-4 py-3 border-b border-neutral-300 font-extrabold text-sm text-neutral-800 rounded-t-2xl gap-4">
+                            <div className="flex items-center">주문ID</div>
+                            <div className="flex items-center">이미지</div>
+                            <div className="flex items-center">상품이름</div>
+                            <div className="flex items-center">주문수량</div>
+                            <div className="flex items-center">가격</div>
+                            <div className="flex items-center">주소</div>
+                            <div className="flex items-center">주문일</div>
+                            <div className="flex items-center">고객이름</div>
+                            <div className="flex items-center">상태</div>
+                            <div className="flex items-center">작업</div>
                         </div>
 
                         {/* Table Rows */}
                         {paginatedOrders.length === 0 ? (
-                            <div className="text-center py-10 text-gray-500">필터와 일치하는 주문이 없습니다.</div>
+                            <div className="text-center py-12 text-gray-500">필터와 일치하는 주문이 없습니다.</div>
                         ) : (
                             paginatedOrders.map((order, i) => {
                                 const statusInfo = getStatusInfo(order.orderItemDTO.deliveryStatus);
+                                const StatusIcon = statusInfo.icon;
                                 return (
-                                    <div key={i} className="grid grid-cols-9 items-center py-3 border-b border-gray-100 text-sm">
-                                        <div className="text-neutral-800 font-semibold">#{order.orderId}</div>
+                                    <div key={i} className="grid grid-cols-10 items-center py-4 px-4 border-b border-gray-100 text-sm hover:bg-gray-50 transition-colors gap-4">
+                                        <div className="text-neutral-800 font-semibold whitespace-nowrap">#{order.orderId}</div>
                                         {/* 상품 이미지 추가 */}
-                                        <div className="h-12 w-12 overflow-hidden rounded">
+                                        <div className="h-14 w-14 overflow-hidden rounded-lg border border-gray-200 flex-shrink-0">
                                             {order.orderItemDTO.mainImageUrl ? (
                                                 <img
                                                     src={order.orderItemDTO.mainImageUrl ? getImageUrl(order.orderItemDTO.mainImageUrl) : "https://placehold.co/64x64"}
@@ -223,28 +237,31 @@ function OrderManagement() {
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="text-neutral-800 font-semibold">{order.orderItemDTO.productName}</div>
+                                        <div className="text-neutral-800 font-semibold min-w-0 truncate">{order.orderItemDTO.productName}</div>
                                         {/* 수량 추가 */}
-                                        <div className="text-neutral-800">{order.orderItemDTO.quantity}</div>
+                                        <div className="text-neutral-800 font-medium whitespace-nowrap">{order.orderItemDTO.quantity}개</div>
                                         {/* 가격 추가 */}
-                                        <div className="text-neutral-800 font-semibold">₩{order.orderItemDTO.price.toLocaleString()}</div>
-                                        <div className="text-gray-600">{order.address}</div>
-                                        <div className="text-neutral-800 font-semibold">
-                                            {new Date(order.orderDate).toLocaleDateString()}
+                                        <div className="text-neutral-800 font-semibold whitespace-nowrap">₩{order.orderItemDTO.price.toLocaleString()}</div>
+                                        <div className="text-gray-600 text-xs min-w-0 truncate">{order.address}</div>
+                                        <div className="text-neutral-800 font-medium text-xs whitespace-nowrap">
+                                            {new Date(order.orderDate).toLocaleDateString('ko-KR')}
                                         </div>
-                                        <div className="text-neutral-800 font-semibold">{order.buyerName}</div>
-                                        <div>
-                                            <span className={`inline-block px-3 py-1 rounded text-xs font-bold ${statusInfo.class}`}>
+                                        <div className="text-neutral-800 font-semibold whitespace-nowrap">{order.buyerName}</div>
+                                        <div className="flex items-center">
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap ${statusInfo.class}`}>
+                                                {StatusIcon && <StatusIcon className="w-4 h-4 flex-shrink-0" />}
                                                 {statusInfo.text}
                                             </span>
                                         </div>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-1.5 flex-wrap items-center">
                                             {statusInfo.nextStatus && (
                                                 <button
                                                     onClick={() => handleStatusChange(order.orderItemDTO.orderItemId, statusInfo.nextStatus)}
                                                     disabled={updateDeliveryStatus.isLoading}
-                                                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 disabled:bg-gray-300"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all whitespace-nowrap"
                                                 >
+                                                    {statusInfo.nextStatus === 'PROG' && <TruckIcon className="w-3.5 h-3.5 flex-shrink-0" />}
+                                                    {statusInfo.nextStatus === 'COMP' && <CheckCircleIcon className="w-3.5 h-3.5 flex-shrink-0" />}
                                                     {statusInfo.nextText}
                                                 </button>
                                             )}
@@ -253,8 +270,9 @@ function OrderManagement() {
                                                 <button
                                                     onClick={() => handleCancelOrder(order.orderItemDTO.orderItemId)}
                                                     disabled={updateDeliveryStatus.isLoading}
-                                                    className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:bg-gray-300"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 hover:border-red-300 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all whitespace-nowrap"
                                                 >
+                                                    <XCircleIcon className="w-3.5 h-3.5 flex-shrink-0" />
                                                     취소
                                                 </button>
                                             )}
@@ -266,7 +284,7 @@ function OrderManagement() {
 
                         {/* Pagination */}
                         {filteredOrders.length > 0 && (
-                            <div className="flex justify-between items-center mt-6 border-t pt-6 border-gray-300">
+                            <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
                                 <span className="text-sm text-gray-600">
                                     Showing {startIndex + 1}–{Math.min(startIndex + itemsPerPage, filteredOrders.length)} of {filteredOrders.length}
                                 </span>
@@ -274,14 +292,14 @@ function OrderManagement() {
                                     <button
                                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                         disabled={currentPage === 1}
-                                        className="px-2 py-1 border rounded disabled:opacity-50"
+                                        className="px-3 py-1.5 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         &lt;
                                     </button>
                                     <button
                                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                         disabled={currentPage === totalPages}
-                                        className="px-2 py-1 border rounded disabled:opacity-50"
+                                        className="px-3 py-1.5 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         &gt;
                                     </button>
@@ -290,22 +308,22 @@ function OrderManagement() {
                         )}
 
                         {/* Status Legend */}
-                        <div className="flex justify-center gap-4 pt-6">
+                        <div className="flex justify-center gap-6 pt-4 border-t border-gray-200">
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 bg-orange-400 rounded opacity-20"/>
-                                <span className="text-xs font-bold text-orange-400">배송준비</span>
+                                <div className="w-3 h-3 bg-orange-500 rounded-full"/>
+                                <span className="text-xs font-semibold text-gray-700">배송준비</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 bg-violet-600 rounded opacity-20"/>
-                                <span className="text-xs font-bold text-violet-600">배송중</span>
+                                <div className="w-3 h-3 bg-blue-500 rounded-full"/>
+                                <span className="text-xs font-semibold text-gray-700">배송중</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 bg-teal-600 rounded opacity-20"/>
-                                <span className="text-xs font-bold text-teal-600">배송완료</span>
+                                <div className="w-3 h-3 bg-emerald-500 rounded-full"/>
+                                <span className="text-xs font-semibold text-gray-700">배송완료</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 bg-red-600 rounded opacity-20"/>
-                                <span className="text-xs font-bold text-red-600">주문취소</span>
+                                <div className="w-3 h-3 bg-red-500 rounded-full"/>
+                                <span className="text-xs font-semibold text-gray-700">주문취소</span>
                             </div>
                         </div>
                     </>

@@ -44,4 +44,8 @@ List<HourlyProductOrderStatsBatchDTO> findProductOrderStatsBetween(
     @Param("end") LocalDateTime end);
 
     Optional<List<Order>> findAllByUser(User user);
+
+    // AiTEMS용: 모든 주문 아이템 조회 (User와 Product를 함께 로드)
+    @Query("SELECT o FROM Order o JOIN FETCH o.user JOIN FETCH o.orderItems oi JOIN FETCH oi.product")
+    List<Order> findAllOrderItemsForAitems();
 }
