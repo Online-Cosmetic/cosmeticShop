@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { StarIcon, SparklesIcon, TrophyIcon, ShoppingBagIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { getImageUrl } from "@/utils/imageUtils";
 import RecentProducts from "../../components/product/RecentProducts.jsx";
+import RecommendationSection from "../../components/recommendation/RecommendationSection.jsx";
 
 const HomePage = () => {
     const { user } = useAuth();
@@ -355,6 +356,11 @@ const HomePage = () => {
                         </div>
                     )}
                 </div>
+
+                {/* AiTEMS 개인화 추천 (로그인 유저 전용) */}
+                {user && (
+                    <RecommendationSection user={user} />
+                )}
 
                 {/* 최근 본 상품 */}
                 <div className="flex flex-col gap-8">

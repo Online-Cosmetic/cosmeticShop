@@ -1,10 +1,13 @@
 package Midas.cosmeticshop.controller;
 
+import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.product.ProductPreviewDTO;
+import Midas.cosmeticshop.dto.recommend.PersonalizedRecommendationResponse;
 import Midas.cosmeticshop.service.RecommendService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,6 +35,25 @@ public class RecommendController {
     @GetMapping("/category")
     public ResponseEntity<List<ProductPreviewDTO>> getRecommendByCategory (@RequestParam("categoryId") Long categoryId, Authentication authentication) {
         return ResponseEntity.ok().body(recommendService.getRecommendByCategory(authentication.getName(), categoryId));
+    }
+
+    /**
+     * AiTEMS 개인화 추천 (로그인 필수)
+     * @param principal 인증된 사용자 정보
+     * @return 추천 상품 리스트와 사용자 정보 (추천 이유 표시용)
+     */
+    @GetMapping("/personalized")
+    public ResponseEntity<PersonalizedRecommendationResponse> getPersonalizedRecommendations(
+        @AuthenticationPrincipal BaseUserDetails principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        // BaseUser.id를 String으로 변환 (AiTEMS USER_ID)
+        String userId = String.valueOf(principal.getDomain().getId());
+        
+        return ResponseEntity.ok().body(recommendService.getPersonalizedRecommendations(userId));
     }
 
 }
