@@ -1,10 +1,14 @@
 package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.product.ProductPreviewDTO;
+import Midas.cosmeticshop.dto.recommend.PersonalizedRecommendationResponse;
 import Midas.cosmeticshop.entity.product.Product;
+import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.repository.HourlyProductOrderStatsRepository;
 import Midas.cosmeticshop.repository.ProductRepository;
 import Midas.cosmeticshop.repository.user.UserRepository;
+import Midas.cosmeticshop.util.AgeGroupConverter;
+import Midas.cosmeticshop.util.GenderConverter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,27 +79,45 @@ public class RecommendService {
     /**
      * AiTEMS 개인화 추천 (배치 학습 기반, 로그인 유저 전용)
      * @param userId 사용자 ID (BaseUser.id를 String으로 변환한 값)
-     * @return 추천 상품 리스트 (10개)
+     * @return 추천 상품 리스트와 사용자 정보를 포함한 응답 (5개)
      */
-    public List<ProductPreviewDTO> getPersonalizedRecommendations(String userId) {
+    public PersonalizedRecommendationResponse getPersonalizedRecommendations(String userId) {
         log.info("개인화 추천 요청 - userId: {}", userId);
         
+        // 사용자 정보 조회 (추천 이유 표시용)
+        User user = userRepository.findById(Long.parseLong(userId))
+            .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+        
+        String ageGroup = AgeGroupConverter.toAgeGroup(user.getAge());
+        String gender = GenderConverter.toGender(user.getGenderType());
+        
         try {
-            // AiTEMS에서 추천 받기 (10개)
-            List<String> itemIds = aitemsClient.getPersonalizedRecommendations(userId, 10);
+            // AiTEMS에서 추천 받기 (5개)
+            List<String> itemIds = aitemsClient.getPersonalizedRecommendations(userId, 5);
             log.info("AiTEMS 개인화 추천 결과: {}개", itemIds.size());
             
             // ITEM_ID (String)를 Long productId로 변환하여 상품 조회
             List<Product> products = convertItemIdsToProducts(itemIds);
             
-            return products.stream()
+            List<ProductPreviewDTO> productDTOs = products.stream()
                 .map(ProductPreviewDTO::from)
                 .collect(Collectors.toList());
+            
+            return PersonalizedRecommendationResponse.builder()
+                .products(productDTOs)
+                .ageGroup(ageGroup)
+                .gender(gender)
+                .build();
                 
         } catch (Exception e) {
             log.warn("AiTEMS 개인화 추천 실패, Fallback으로 판매량 기반 추천 사용: {}", e.getMessage());
             // Fallback: 기존 판매량 기반 추천
-            return getRecommendBySales(userId);
+            List<ProductPreviewDTO> fallbackProducts = getRecommendBySales(userId);
+            return PersonalizedRecommendationResponse.builder()
+                .products(fallbackProducts)
+                .ageGroup(ageGroup)
+                .gender(gender)
+                .build();
         }
     }
 

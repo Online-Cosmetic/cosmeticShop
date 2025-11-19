@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { StarIcon, SparklesIcon, TrophyIcon, ShoppingBagIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { getImageUrl } from "@/utils/imageUtils";
 import RecentProducts from "../../components/product/RecentProducts.jsx";
+import RecommendationSection from "../../components/recommendation/RecommendationSection.jsx";
 
 const HomePage = () => {
     const { user } = useAuth();
@@ -180,6 +181,9 @@ const HomePage = () => {
             </div>
 
             <div className="w-full max-w-7xl flex flex-col gap-12 px-4 md:px-40 py-16">
+
+                {/* AI 개인화 추천 (맨 위로 이동, 항상 표시) */}
+                <RecommendationSection user={user} />
 
                 {/* 베스트셀러 - 컨베이어 벨트 스타일 */}
                 <div className="flex flex-col gap-8">

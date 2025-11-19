@@ -2,6 +2,7 @@ package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BaseUserDetails;
 import Midas.cosmeticshop.dto.product.ProductPreviewDTO;
+import Midas.cosmeticshop.dto.recommend.PersonalizedRecommendationResponse;
 import Midas.cosmeticshop.service.RecommendService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -39,10 +40,10 @@ public class RecommendController {
     /**
      * AiTEMS 개인화 추천 (로그인 필수)
      * @param principal 인증된 사용자 정보
-     * @return 추천 상품 리스트
+     * @return 추천 상품 리스트와 사용자 정보 (추천 이유 표시용)
      */
     @GetMapping("/personalized")
-    public ResponseEntity<List<ProductPreviewDTO>> getPersonalizedRecommendations(
+    public ResponseEntity<PersonalizedRecommendationResponse> getPersonalizedRecommendations(
         @AuthenticationPrincipal BaseUserDetails principal
     ) {
         if (principal == null) {

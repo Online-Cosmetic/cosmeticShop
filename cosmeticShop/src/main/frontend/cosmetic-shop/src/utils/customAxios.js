@@ -360,6 +360,11 @@ export const userAPI = {
         // 주문용 사용 가능한 쿠폰 조회
         getAvailableCouponsForOrder: (companyId) =>
             customAxios.get(`/api/coupons/available/order/${companyId}`)
+    },
+
+    recommend: {
+        // AiTEMS 개인화 추천 (로그인 필수)
+        personalized: () => customAxios.get('/api/recommend/personalized')
     }
 };
 
