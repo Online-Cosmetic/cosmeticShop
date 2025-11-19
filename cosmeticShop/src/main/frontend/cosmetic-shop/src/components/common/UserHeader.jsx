@@ -7,7 +7,7 @@ import { Bars3Icon } from "@heroicons/react/24/outline";
 
 
 export default function UserHeader() {
-    const {user} = useAuth();
+    const {user, isAuthenticated} = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -28,7 +28,7 @@ export default function UserHeader() {
 
     // 상단 메뉴 렌더링 (로그인/비로그인 상태에 따라 다른 메뉴 표시)
     const renderTopMenu = () => {
-        if (user) {
+        if (isAuthenticated) {
             if (user.role === "ROLE_COMPANY") {
                 // 기업 회원이 일반 페이지에 접근하면 기업 대시보드로 리다이렉트
                 navigate('/enterprise/dashboard');
@@ -99,7 +99,7 @@ export default function UserHeader() {
                     </div>
 
                     {/* 우측: 사용자 인사말 */}
-                    {user && (
+                    {isAuthenticated && user?.nickname && (
                         <div className="flex items-center">
                             <span className="text-gray-700 font-medium">안녕하세요, {user.nickname} 님</span>
                         </div>

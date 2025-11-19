@@ -15,6 +15,8 @@ const HomePage = () => {
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [fadeIn, setFadeIn] = useState(true);
+    const [bannerFadeIn, setBannerFadeIn] = useState(true);
+    const [bannerImagesLoaded, setBannerImagesLoaded] = useState(false);
 
     // 캐러셀 컨테이너 참조
     const bestSellerContainerRef = useRef(null);
@@ -26,6 +28,27 @@ const HomePage = () => {
         "/banner3.jpg",
         "/banner4.jpg"
     ];
+
+    // 배너 이미지 미리 로드
+    useEffect(() => {
+        const imagePromises = bannerImages.map((src) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = src;
+            });
+        });
+
+        Promise.all(imagePromises)
+            .then(() => {
+                setBannerImagesLoaded(true);
+            })
+            .catch((error) => {
+                console.error("배너 이미지 로드 실패:", error);
+                setBannerImagesLoaded(true); // 실패해도 계속 진행
+            });
+    }, []);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -98,22 +121,35 @@ const HomePage = () => {
 
     // 배너 이미지 자동 변경
     useEffect(() => {
+        if (!bannerImagesLoaded) return;
+
         const bannerInterval = setInterval(() => {
-            setCurrentBannerIndex(prevIndex => 
-                (prevIndex + 1) % bannerImages.length
-            );
-        }, 7000);
+            // 페이드 아웃
+            setBannerFadeIn(false);
+            
+            // 페이드 아웃 후 인덱스 변경
+            setTimeout(() => {
+                setCurrentBannerIndex(prevIndex => 
+                    (prevIndex + 1) % bannerImages.length
+                );
+                // 페이드 인
+                setBannerFadeIn(true);
+            }, 300);
+        }, 4000);
 
         return () => clearInterval(bannerInterval);
-    }, [bannerImages.length]);
+    }, [bannerImages.length, bannerImagesLoaded]);
 
     return (
         <div className="w-full flex flex-col items-center bg-[#f8f5f0]">
             {/* Banner */}
-            <div
-                className="w-full aspect-[3/1] relative bg-cover bg-center transition-all duration-1000"
-                style={{ backgroundImage: `url('${bannerImages[currentBannerIndex]}')` }}
-            >
+            <div className="w-full aspect-[3/1] relative overflow-hidden">
+                <div
+                    className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500 ${
+                        bannerFadeIn ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    style={{ backgroundImage: `url('${bannerImages[currentBannerIndex]}')` }}
+                />
                 {/* Shadow */}
                 <div className="absolute inset-0 bg-black/40 z-0" />
 
@@ -127,7 +163,13 @@ const HomePage = () => {
                     {bannerImages.map((_, index) => (
                         <button
                             key={index}
-                            onClick={() => setCurrentBannerIndex(index)}
+                            onClick={() => {
+                                setBannerFadeIn(false);
+                                setTimeout(() => {
+                                    setCurrentBannerIndex(index);
+                                    setBannerFadeIn(true);
+                                }, 300);
+                            }}
                             className={`w-3 h-3 rounded-full transition-all ${
                                 index === currentBannerIndex ? 'bg-white scale-110' : 'bg-white/50'
                             }`}
