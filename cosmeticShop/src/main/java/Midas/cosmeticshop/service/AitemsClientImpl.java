@@ -43,36 +43,6 @@ public class AitemsClientImpl implements AitemsClient {
         return executeRequest(url, "개인화 추천");
     }
 
-    @Override
-    public List<String> getRelatedItems(String itemId, int count) {
-        log.info("연관 상품 추천 요청 - itemId: {}, count: {}", itemId, count);
-        
-        String endpoint = String.format("%s%s/services/%s/recommendations/related",
-            aitemsConfig.getApiEndpoint(),
-            API_VERSION,
-            aitemsConfig.getServiceName()
-        );
-        
-        String url = endpoint + "?itemId=" + itemId + "&count=" + count;
-        
-        return executeRequest(url, "연관 상품 추천");
-    }
-
-    @Override
-    public List<String> getPopularItems(int count) {
-        log.info("인기 상품 추천 요청 - count: {}", count);
-        
-        String endpoint = String.format("%s%s/services/%s/recommendations/popular",
-            aitemsConfig.getApiEndpoint(),
-            API_VERSION,
-            aitemsConfig.getServiceName()
-        );
-        
-        String url = endpoint + "?count=" + count;
-        
-        return executeRequest(url, "인기 상품 추천");
-    }
-
     /**
      * API 요청 실행 (재시도 로직 포함)
      */
