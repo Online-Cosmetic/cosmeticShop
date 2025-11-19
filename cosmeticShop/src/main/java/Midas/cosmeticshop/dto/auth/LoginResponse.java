@@ -16,6 +16,7 @@ public class LoginResponse {
     private String errorMessage;
     private String email;
     private String username;
+    private Boolean approved;  // 기업 회원 승인 상태
     private String nickname;
 
     // ADMIN
@@ -26,9 +27,10 @@ public class LoginResponse {
         this.errorMessage = null;
         this.email = null;
         this.username = null;
+        this.approved = null;
     }
 
-    // USER, COMPANY
+    // USER
     public LoginResponse(String userId, String role, String accessToken, String email, String username, String nickname) {
         this.userId = userId;
         this.role = role;
@@ -36,7 +38,20 @@ public class LoginResponse {
         this.errorMessage = null;
         this.email = email;
         this.username = username;
+        this.approved = null;
         this.nickname = nickname;
+    }
+
+    // COMPANY
+    public LoginResponse(String userId, String role, String accessToken, String email, String username, Boolean approved) {
+        this.userId = userId;
+        this.role = role;
+        this.accessToken = accessToken;
+        this.errorMessage = null;
+        this.email = email;
+        this.username = username;
+        this.approved = approved;
+        this.nickname = null;
     }
 
     // ERROR
@@ -47,5 +62,6 @@ public class LoginResponse {
         this.errorMessage = errorMessage;
         this.email = null;
         this.username = null;
+        this.approved = null;
     }
 }

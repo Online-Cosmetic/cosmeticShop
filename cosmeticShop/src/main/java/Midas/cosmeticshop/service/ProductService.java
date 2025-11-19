@@ -9,12 +9,15 @@ import Midas.cosmeticshop.jwt.JWTUtil;
 import Midas.cosmeticshop.repository.ProductImageRepository;
 import Midas.cosmeticshop.repository.ProductRepository;
 import Midas.cosmeticshop.repository.ThumbnailImageRepository;
+import Midas.cosmeticshop.repository.specification.ProductSpecifications;
 import Midas.cosmeticshop.repository.user.CompanyRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -238,25 +242,9 @@ public class ProductService {
         // 3. 필드 전체 교체
         product.modifyFields(dto);
 
-        // 4. 썸네일 이미지 삭제
-        if (product.getThumbnailImage() != null) {
-            fileStorageService.deleteFile(product.getThumbnailImage().getImageUrl());
-            product.setThumbnailImage(null);
-        }
-
-        // 나머지 이미지 삭제
-//        for (ProductImage img : new ArrayList<>(product.getProductImages())) {
-//            fileStorageService.deleteFile(img.getImageUrl());
-//            product.getProductImages().remove(img);
-//        }
-
-        // 5. 새 썸네일 이미지 저장 & 연관 설정
-        if (newImage != null) {
-            // 메인 이미지 저장 후 URL 세팅
-            String mainImage = fileStorageService.storeFile(newImage);
-            ThumbnailImage thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(productId, mainImage));
-            product.setThumbnailImage(thumbnailImage);
-        }
+        // 4. 이미지 처리는 별도의 updateProductImages API에서 처리하므로 여기서는 건드리지 않음
+        // (newImage 파라미터는 레거시 지원용으로 유지하지만, 실제로는 사용되지 않음)
+        // 이미지 수정이 필요한 경우 /api/products/{productId}/images 엔드포인트를 사용해야 함
 
         // 나머지 이미지들 저장
 //        if (Objects.requireNonNull(newImages).length > 1) {
@@ -305,22 +293,6 @@ public class ProductService {
 //        productRepository.delete(product);
     }
 
-    /* 카테고리에 속하는 상품 조회 */
-    public ProductBatchPreviewResponse getCategorizedProductsPreview(int categoryId) {
-        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
-
-        response.setBatchesPreviews(new ArrayList<>());
-        List<Product> productList = productRepository.findAllByCategoryIdAndActiveTrue(categoryId);
-//        List<Product> productList = productRepository.findAllByCategoryId(categoryId);
-
-        for(Product product : productList) {
-            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
-            response.getBatchesPreviews().add(dto);
-        }
-
-        return response;
-    }
-
     /* 찜하기 수 많은 상품 조회 */
     public ProductBatchPreviewResponse getPopularProductsPreview() {
         ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
@@ -355,11 +327,34 @@ public class ProductService {
 
     /* 기업 회원의 상품 목록 조회 */
     @Transactional(readOnly = true)
-    public Page<ProductListDTO> getCompanyProducts(Long companyId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Product> products = productRepository.findByCompanyIdAndActiveTrue(companyId, pageable);
-//        Page<Product> products = productRepository.findByCompanyId(companyId, pageable);
+    public Page<ProductListDTO> getCompanyProducts(Long companyId, int page, int size, String keyword, String sortOption) {
+        Sort sort = resolveSortForManagement(sortOption);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        Specification<Product> specification = Specification.where(ProductSpecifications.isActive())
+            .and(ProductSpecifications.belongsToCompany(companyId));
+        
+        Specification<Product> keywordSpec = ProductSpecifications.containsKeyword(keyword);
+        if (keywordSpec != null) {
+            specification = specification.and(keywordSpec);
+        }
+        
+        Page<Product> products = productRepository.findAll(specification, pageable);
         return products.map(ProductListDTO::from);
+    }
+    
+    /* 상품 관리 페이지용 정렬 옵션 해석 */
+    private Sort resolveSortForManagement(String sortOption) {
+        if (sortOption == null || sortOption.isEmpty()) {
+            return Sort.by(Sort.Order.desc("id")); // 기본값: 최신순 (ID 내림차순)
+        }
+        
+        return switch (sortOption) {
+            case "latest" -> Sort.by(Sort.Order.desc("id")); // 등록시간순 (최신순)
+            case "priceAsc" -> Sort.by(Sort.Order.asc("price")); // 가격 낮은순
+            case "priceDesc" -> Sort.by(Sort.Order.desc("price")); // 가격 높은순
+            default -> Sort.by(Sort.Order.desc("id")); // 기본값: 최신순
+        };
     }
 
     /* 상품 설명만 업데이트 */
@@ -388,7 +383,8 @@ public class ProductService {
     /* 상품 이미지 업데이트 - 개선된 버전 */
     public void updateProductImages(BaseUserDetails userDetails, Long productId,
                                     MultipartFile mainImage, MultipartFile[] additionalImages,
-                                    boolean deleteMainImage, boolean deleteAdditionalImages) {
+                                    boolean deleteMainImage, boolean deleteAdditionalImages,
+                                    List<String> remainingAdditionalImageUrls) {
 
         String userId = userDetails.getUsername();
         String role = userDetails.getAuthorities().iterator().next().getAuthority();
@@ -406,12 +402,15 @@ public class ProductService {
         }
 
         // 메인 이미지 처리
-        if (deleteMainImage || (mainImage != null && !mainImage.isEmpty())) {
+        if (mainImage != null && !mainImage.isEmpty()) {
+            // 새 메인 이미지가 업로드된 경우: 기존 이미지 삭제 후 새 이미지 저장
             // 기존 메인 이미지가 있으면 연관관계 제거 후 삭제
             if (product.getThumbnailImage() != null) {
                 ThumbnailImage oldImage = product.getThumbnailImage();
                 product.setThumbnailImage(null);
                 thumnailImageRepository.delete(oldImage);
+                // DELETE가 DB에 즉시 반영되도록 flush() 호출 (고유 제약 조건 위반 방지)
+                thumnailImageRepository.flush();
 
                 // 파일 시스템에서 실제 파일 삭제
                 try {
@@ -422,55 +421,137 @@ public class ProductService {
                 }
             }
 
-            // 새 메인 이미지 업로드 (deleteMainImage가 true이면서 새 이미지가 없으면 썸네일은 null로 유지)
-            if (mainImage != null && !mainImage.isEmpty()) {
-                String mainImageUrl = fileStorageService.storeFile(mainImage);
-                ThumbnailImage thumbnailImage = ThumbnailImage.create(
-                    new ProductImageItemDTO(product.getId(), mainImageUrl));
-                thumbnailImage.setProduct(product);  // 양방향 관계 설정
-                product.setThumbnailImage(thumbnailImage);
-                thumnailImageRepository.save(thumbnailImage);
-            }
-        }
+            // 새 메인 이미지 업로드 및 저장 (ProductRegister와 동일한 패턴)
+            System.out.println("메인 이미지 저장 시작 - Product ID: " + productId);
+            String mainImageUrl = fileStorageService.storeFile(mainImage);
+            System.out.println("FileStorageService.storeFile 완료 - Image URL: " + mainImageUrl);
+            
+            ThumbnailImage thumbnailImage = ThumbnailImage.create(
+                new ProductImageItemDTO(product.getId(), mainImageUrl));
+            // ThumbnailImage.create()가 새 Product 객체를 생성하므로, 실제 product로 교체
+            thumbnailImage.setProduct(product);
+            product.setThumbnailImage(thumbnailImage);
+            
+            // ProductRegister와 동일하게 repository에서 명시적으로 저장
+            ThumbnailImage savedImage = thumnailImageRepository.saveAndFlush(thumbnailImage);
+            System.out.println("ThumbnailImage 저장 완료 - Image ID: " + savedImage.getId() + ", URL: " + savedImage.getImageUrl());
+        } else if (deleteMainImage) {
+            // deleteMainImage가 true이고 새 이미지가 없는 경우: 기존 이미지만 삭제
+            if (product.getThumbnailImage() != null) {
+                ThumbnailImage oldImage = product.getThumbnailImage();
+                product.setThumbnailImage(null);
+                thumnailImageRepository.delete(oldImage);
+                // DELETE가 DB에 즉시 반영되도록 flush() 호출
+                thumnailImageRepository.flush();
 
-        // 추가 이미지 처리
-        if (deleteAdditionalImages) {
-            // 기존 이미지 연관관계 제거 후 삭제
-            List<ProductImage> oldImages = new ArrayList<>(product.getProductImages());
-            product.getProductImages().clear();
-
-            // DB에서 삭제
-            productImageRepository.deleteAll(oldImages);
-
-            // 파일 시스템에서 실제 파일 삭제
-            for (ProductImage image : oldImages) {
+                // 파일 시스템에서 실제 파일 삭제
                 try {
-                    fileStorageService.deleteFile(image.getImageUrl());
+                    fileStorageService.deleteFile(oldImage.getImageUrl());
                 } catch (Exception e) {
                     // 파일 삭제 실패 로그만 남기고 계속 진행
                     System.err.println("파일 삭제 중 오류 발생: " + e.getMessage());
                 }
             }
         }
+        // mainImage가 null이고 deleteMainImage가 false이면 기존 이미지 유지 (아무것도 하지 않음)
 
-        // 새 추가 이미지 업로드
+        // ---------- 추가 이미지 처리 (기존 유지 + 부분 삭제 + 새 이미지 추가) ----------
+        System.out.println("추가 이미지 처리 시작 - deleteAdditionalImages: " + deleteAdditionalImages +
+                          ", additionalImages: " + (additionalImages != null ? additionalImages.length : 0));
+        System.out.println("remainingAdditionalImageUrls 파라미터: " + 
+                          (remainingAdditionalImageUrls != null ? remainingAdditionalImageUrls.toString() : "null"));
+
+        // 1) 기존 추가 이미지 조회 (lazy loading 이슈 방지)
+        List<ProductImage> existingImages = productImageRepository.findAllByProduct_IdOrderByIdDesc(productId);
+        System.out.println("기존 추가 이미지 개수 (DB 조회): " + existingImages.size());
+        for (ProductImage img : existingImages) {
+            System.out.println("  - 기존 이미지 URL: " + img.getImageUrl());
+        }
+
+        // 2) 프론트에서 전달된 '유지할 기존 추가 이미지 URL 목록'을 Set으로 변환
+        Set<String> remainingImageUrlSet = null;
+        if (remainingAdditionalImageUrls != null && !remainingAdditionalImageUrls.isEmpty()) {
+            remainingImageUrlSet = new HashSet<>(remainingAdditionalImageUrls);
+            System.out.println("유지 요청된 기존 추가 이미지 URL 개수: " + remainingImageUrlSet.size());
+        } else if (!deleteAdditionalImages) {
+            // remainingAdditionalImageUrls가 없고 deleteAdditionalImages가 false이면
+            // 기존 이미지를 모두 유지 (새 이미지만 추가하는 경우)
+            remainingImageUrlSet = new HashSet<>();
+            for (ProductImage img : existingImages) {
+                remainingImageUrlSet.add(img.getImageUrl());
+            }
+            System.out.println("remainingAdditionalImageUrls가 없음 → 기존 이미지 모두 유지 (개수: " + remainingImageUrlSet.size() + ")");
+        }
+
+        // 3) 삭제 대상 이미지 결정
+        List<ProductImage> imagesToDelete = new ArrayList<>();
+
+        if (deleteAdditionalImages) {
+            // 전체 삭제 플래그가 true인 경우: 기존 추가 이미지를 모두 삭제
+            System.out.println("deleteAdditionalImages=true → 기존 추가 이미지 전체 삭제");
+            imagesToDelete.addAll(existingImages);
+        } else if (remainingImageUrlSet != null && !remainingImageUrlSet.isEmpty()) {
+            // 부분 삭제: remainingAdditionalImageUrls에 포함되지 않은 기존 이미지만 삭제
+            System.out.println("부분 삭제 모드 → remainingAdditionalImageUrls에 없는 기존 이미지만 삭제");
+            for (ProductImage img : existingImages) {
+                if (!remainingImageUrlSet.contains(img.getImageUrl())) {
+                    imagesToDelete.add(img);
+                }
+            }
+        }
+
+        // 4) 삭제 대상 이미지 실제 삭제 (DB + 파일 시스템 + 연관관계)
+        if (!imagesToDelete.isEmpty()) {
+            System.out.println("삭제 대상 추가 이미지 개수: " + imagesToDelete.size());
+
+            // 연관관계에서 제거
+            product.getProductImages().removeAll(imagesToDelete);
+
+            // DB 삭제
+            productImageRepository.deleteAll(imagesToDelete);
+            productImageRepository.flush();
+
+            // 파일 시스템에서 삭제
+            for (ProductImage image : imagesToDelete) {
+                try {
+                    fileStorageService.deleteFile(image.getImageUrl());
+                } catch (Exception e) {
+                    System.err.println("파일 삭제 중 오류 발생: " + e.getMessage());
+                }
+            }
+        } else {
+            System.out.println("삭제할 추가 이미지가 없습니다.");
+        }
+
+        // 5) 새 추가 이미지 업로드 및 저장 (기존 이미지는 유지된 상태에서 추가)
         if (additionalImages != null && additionalImages.length > 0) {
+            System.out.println("새 추가 이미지 업로드 시작 - 개수: " + additionalImages.length);
             for (MultipartFile image : additionalImages) {
                 if (!image.isEmpty()) {
                     String imageUrl = fileStorageService.storeFile(image);
                     ProductImage productImage = new ProductImage();
                     productImage.setProduct(product);
                     productImage.setImageUrl(imageUrl);
+
                     product.getProductImages().add(productImage);
+                    productImageRepository.saveAndFlush(productImage);
+
+                    System.out.println("새 추가 이미지 저장 완료: " + imageUrl);
                 }
             }
+        } else {
+            System.out.println("새로 업로드된 추가 이미지가 없습니다.");
         }
 
-        // 변경사항 저장 및 flush
+        // 6) Product 저장 (연관관계 변경 반영)
         productRepository.saveAndFlush(product);
 
-        // 캐시 무효화를 위해 강제로 엔티티 매니저 refresh (옵션)
-        // entityManager.refresh(product);
+        // 7) 최종 확인 로그
+        List<ProductImage> finalImages = productImageRepository.findAllByProduct_IdOrderByIdDesc(productId);
+        System.out.println("최종 추가 이미지 개수 (DB 조회): " + finalImages.size());
+        for (ProductImage img : finalImages) {
+            System.out.println("  - 최종 이미지 ID: " + img.getId() + ", URL: " + img.getImageUrl());
+        }
     }
 
     /* 가격순 정렬 상품 조회 */
@@ -496,123 +577,59 @@ public class ProductService {
     }
 
     /* 정렬 옵션 적용된 카테고리별 상품 조회 */
-    public ProductBatchPreviewResponse getCategorizedProductsPreview(int categoryId, String sortOption) {
-        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
-        response.setBatchesPreviews(new ArrayList<>());
-
-        List<Product> productList;
-
-        // 카테고리 ID가 0인 경우 전체 상품 조회
-        if (categoryId == 0) {
-            switch (sortOption) {
-                case "popular":
-                    productList = productRepository.findAllByActiveTrueOrderByLikedDesc();
-                    break;
-                case "priceAsc":
-                    productList = productRepository.findAllByActiveTrueOrderByPriceAsc();
-                    break;
-                case "priceDesc":
-                    productList = productRepository.findAllByActiveTrueOrderByPriceDesc();
-                    break;
-                case "latest":
-                default:
-                    productList = productRepository.findAllByActiveTrueOrderByIdDesc();
-                    break;
-            }
-        } else {
-            // 특정 카테고리 상품 조회
-            switch (sortOption) {
-                case "popular":
-                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByLikedDesc(categoryId);
-                    break;
-                case "priceAsc":
-                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByPriceAsc(categoryId);
-                    break;
-                case "priceDesc":
-                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByPriceDesc(categoryId);
-                    break;
-                case "latest":
-                default:
-                    productList = productRepository.findAllByCategoryIdAndActiveTrueOrderByIdDesc(categoryId);
-                    break;
-            }
-        }
-
-        for (Product product : productList) {
-            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
-            response.getBatchesPreviews().add(dto);
-        }
-
-        return response;
+    public ProductBatchPreviewResponse getCategorizedProductsPreview(int categoryId, String sortOption, String keyword, int page, int size) {
+        return getFilteredProducts(categoryId, null, sortOption, keyword, page, size);
     }
 
     /* 정렬 옵션 적용된 회사별 상품 조회 */
-    public ProductBatchPreviewResponse getCompanyProductsPreview(Long companyId, String sortOption) {
-        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
-        response.setBatchesPreviews(new ArrayList<>());
-
-        List<Product> productList;
-
-        // 회사별 상품 조회
-        switch (sortOption) {
-            case "popular":
-                productList = productRepository.findByCompanyIdAndActiveTrueOrderByLikedDesc(companyId);
-                break;
-            case "priceAsc":
-                productList = productRepository.findByCompanyIdAndActiveTrueOrderByPriceAsc(companyId);
-                break;
-            case "priceDesc":
-                productList = productRepository.findByCompanyIdAndActiveTrueOrderByPriceDesc(companyId);
-                break;
-            case "latest":
-            default:
-                productList = productRepository.findByCompanyIdAndActiveTrueOrderByIdDesc(companyId);
-                break;
-        }
-
-        for (Product product : productList) {
-            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
-            response.getBatchesPreviews().add(dto);
-        }
-
-        return response;
+    public ProductBatchPreviewResponse getCompanyProductsPreview(Long companyId, String sortOption, String keyword, int page, int size) {
+        return getFilteredProducts(null, companyId, sortOption, keyword, page, size);
     }
 
     /* 정렬 옵션 적용된 카테고리 및 회사별 상품 조회 */
-    public ProductBatchPreviewResponse getCategoryAndCompanyProductsPreview(int categoryId, Long companyId, String sortOption) {
+    public ProductBatchPreviewResponse getCategoryAndCompanyProductsPreview(int categoryId, Long companyId, String sortOption, String keyword, int page, int size) {
+        return getFilteredProducts(categoryId, companyId, sortOption, keyword, page, size);
+    }
+
+    private ProductBatchPreviewResponse getFilteredProducts(Integer categoryId, Long companyId, String sortOption, String keyword, int page, int size) {
+        Sort sort = resolveSort(sortOption);
+        int safePage = Math.max(page, 0);
+        int safeSize = size <= 0 ? 9 : size;
+        Pageable pageable = PageRequest.of(safePage, safeSize, sort);
+
+        Specification<Product> specification = Specification.where(ProductSpecifications.isActive());
+        if (categoryId != null && categoryId > 0) {
+            specification = specification.and(ProductSpecifications.hasCategory(categoryId));
+        }
+        if (companyId != null) {
+            specification = specification.and(ProductSpecifications.belongsToCompany(companyId));
+        }
+
+        Specification<Product> keywordSpec = ProductSpecifications.containsKeyword(keyword);
+        if (keywordSpec != null) {
+            specification = specification.and(keywordSpec);
+        }
+
+        Page<Product> productPage = productRepository.findAll(specification, pageable);
+
         ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
-        response.setBatchesPreviews(new ArrayList<>());
-
-        List<Product> productList;
-
-        // 카테고리 ID가 0인 경우 회사별 전체 상품 조회
-        if (categoryId == 0) {
-            return getCompanyProductsPreview(companyId, sortOption);
-        } else {
-            // 특정 카테고리 및 회사 상품 조회
-            switch (sortOption) {
-                case "popular":
-                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByLikedDesc(categoryId, companyId);
-                    break;
-                case "priceAsc":
-                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceAsc(categoryId, companyId);
-                    break;
-                case "priceDesc":
-                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByPriceDesc(categoryId, companyId);
-                    break;
-                case "latest":
-                default:
-                    productList = productRepository.findByCategoryIdAndCompanyIdAndActiveTrueOrderByIdDesc(categoryId, companyId);
-                    break;
-            }
-        }
-
-        for (Product product : productList) {
-            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
-            response.getBatchesPreviews().add(dto);
-        }
-
+        response.setBatchesPreviews(productPage.getContent().stream()
+            .map(ProductPreviewDTO::from)
+            .collect(Collectors.toList()));
+        response.setHasNext(productPage.hasNext());
+        response.setTotalElements(productPage.getTotalElements());
+        response.setPage(productPage.getNumber());
+        response.setPageSize(productPage.getSize());
         return response;
+    }
+
+    private Sort resolveSort(String sortOption) {
+        return switch (sortOption) {
+            case "popular" -> Sort.by(Sort.Order.desc("liked"));
+            case "priceAsc" -> Sort.by(Sort.Order.asc("price"));
+            case "priceDesc" -> Sort.by(Sort.Order.desc("price"));
+            default -> Sort.by(Sort.Order.desc("id"));
+        };
     }
 
     /* 사용자 ID로 기업 ID 조회 */
@@ -620,5 +637,87 @@ public class ProductService {
         return companyRepository.findByUserId(userId).getId();
     }
 
+    /* 메인페이지용 베스트셀러 (liked 기준 인기순 상위 10개 상품) */
+    public ProductBatchPreviewResponse getBestsellers() {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
 
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findTop10ByActiveTrueOrderByLikedDesc();
+//        List<Product> productList = productRepository.findAllByOrderByLikedDesc();
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 메인페이지용 추천상품 (최신순 상위 5개 품목) */
+    public ProductBatchPreviewResponse getRecommendedProducts() {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+
+        response.setBatchesPreviews(new ArrayList<>());
+        List<Product> productList = productRepository.findTop5ByActiveTrueOrderByIdDesc();
+//        List<Product> productList = productRepository.findAllByOrderByIdDesc();
+
+        for(Product product : productList) {
+            ProductPreviewDTO dto  = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
+
+    /* 상품 상세페이지 관련상품 (동일 카테고리 최신순 상위 8개 품목) */
+    public ProductBatchPreviewResponse getRelatedProducts(int categoryId, String sortOption, Long excludeProductId) {
+        ProductBatchPreviewResponse response = new ProductBatchPreviewResponse();
+        response.setBatchesPreviews(new ArrayList<>());
+
+        List<Product> productList;
+
+        // 특정 카테고리 상품 조회 (현재 상품을 제외하기 위해 9개를 가져온 후 필터링)
+        switch (sortOption) {
+            case "popular":
+                productList = excludeProductId != null 
+                    ? productRepository.findTop9ByCategoryIdAndActiveTrueOrderByLikedDesc(categoryId)
+                    : productRepository.findTop8ByCategoryIdAndActiveTrueOrderByLikedDesc(categoryId);
+                break;
+            case "priceAsc":
+                productList = excludeProductId != null 
+                    ? productRepository.findTop9ByCategoryIdAndActiveTrueOrderByPriceAsc(categoryId)
+                    : productRepository.findTop8ByCategoryIdAndActiveTrueOrderByPriceAsc(categoryId);
+                break;
+            case "priceDesc":
+                productList = excludeProductId != null 
+                    ? productRepository.findTop9ByCategoryIdAndActiveTrueOrderByPriceDesc(categoryId)
+                    : productRepository.findTop8ByCategoryIdAndActiveTrueOrderByPriceDesc(categoryId);
+                break;
+            case "latest":
+            default:
+                productList = excludeProductId != null 
+                    ? productRepository.findTop9ByCategoryIdAndActiveTrueOrderByIdDesc(categoryId)
+                    : productRepository.findTop8ByCategoryIdAndActiveTrueOrderByIdDesc(categoryId);
+                break;
+        }
+
+        // 현재 상품 제외 필터링
+        if (excludeProductId != null) {
+            productList = productList.stream()
+                    .filter(product -> !product.getId().equals(excludeProductId))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
+        // 최대 8개로 제한
+        if (productList.size() > 8) {
+            productList = productList.subList(0, 8);
+        }
+
+        for (Product product : productList) {
+            ProductPreviewDTO dto = ProductPreviewDTO.from(product);
+            response.getBatchesPreviews().add(dto);
+        }
+
+        return response;
+    }
 }

@@ -12,7 +12,20 @@ const EnterpriseMain = () => {
     const companyName = localStorage.getItem('userName') || 'TestCompany';
     const [transactionPage, setTransactionPage] = useState(0);
     const [isLastPage, setIsLastPage] = useState(false);
-
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    
+    // 기간별 통계 관련 상태 - 오늘 날짜 기준으로 기본값 설정
+    const today = new Date();
+    const currentYear = String(today.getFullYear());
+    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+    const currentDate = today.toISOString().split('T')[0]; // YYYY-MM-DD 형식
+    
+    const [periodType, setPeriodType] = useState('daily'); // 'daily', 'monthly', 'yearly'
+    const [selectedDate, setSelectedDate] = useState(currentDate); // 일별: 오늘 날짜
+    const [selectedYear, setSelectedYear] = useState(currentYear); // 월별/연도별: 올해
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth); // 월별: 이번 달
+    const [shouldFetch, setShouldFetch] = useState(false); // 조회 버튼 클릭 여부
+    
     // 페이지 데이터 새로고침 함수
     const refreshData = useCallback(() => {
         // 강제로 쿼리 무효화하고 다시 가져오기
@@ -105,11 +118,98 @@ const EnterpriseMain = () => {
         staleTime: 60000 // 1 minute
     });
 
+    // 3. 주간 전체 판매 수량 쿼리 (새로 추가)
+    const {
+        data: totalQuantity = 0,
+        isLoading: quantityLoading,
+        isError: quantityError,
+        refetch: refetchTotalQuantity
+    } = useQuery({
+        queryKey: ['weeklyTotalQuantity', companyName],
+        queryFn: async () => {
+            try {
+                const response = await companyAPI.product.getWeeklyTotalQuantity(companyName);
+                return response.data || 0;  // API가 Long을 반환하므로 그대로 사용
+            } catch (error) {
+                console.error("Error fetching weekly total quantity:", error);
+                throw error;
+            }
+        },
+        retry: 1,
+        staleTime: 60000 // 1 minute
+    });
+
+    // 기간별 통계 쿼리
+    const {
+        data: periodSalesData = {},
+        isLoading: periodSalesLoading,
+        isError: periodSalesError,
+        refetch: refetchPeriodSales
+    } = useQuery({
+        queryKey: ['periodSales', companyName, periodType, selectedDate, selectedYear, selectedMonth, shouldFetch],
+        queryFn: async () => {
+            if (!shouldFetch) return {};
+            
+            try {
+                let response;
+                if (periodType === 'daily') {
+                    response = await companyAPI.product.getDailySales(companyName, selectedDate);
+                } else if (periodType === 'monthly') {
+                    response = await companyAPI.product.getMonthlySales(companyName, parseInt(selectedYear), parseInt(selectedMonth));
+                } else {
+                    response = await companyAPI.product.getYearlySales(companyName, parseInt(selectedYear));
+                }
+                return response.data || {};
+            } catch (error) {
+                console.error("Error fetching period sales data:", error);
+                throw error;
+            }
+        },
+        enabled: shouldFetch,
+        retry: 1
+    });
+
+    const {
+        data: periodQuantityData = {},
+        isLoading: periodQuantityLoading,
+        isError: periodQuantityError,
+        refetch: refetchPeriodQuantity
+    } = useQuery({
+        queryKey: ['periodQuantity', companyName, periodType, selectedDate, selectedYear, selectedMonth, shouldFetch],
+        queryFn: async () => {
+            if (!shouldFetch) return {};
+            
+            try {
+                let response;
+                if (periodType === 'daily') {
+                    response = await companyAPI.product.getDailyQuantity(companyName, selectedDate);
+                } else if (periodType === 'monthly') {
+                    response = await companyAPI.product.getMonthlyQuantity(companyName, parseInt(selectedYear), parseInt(selectedMonth));
+                } else {
+                    response = await companyAPI.product.getYearlyQuantity(companyName, parseInt(selectedYear));
+                }
+                return response.data || {};
+            } catch (error) {
+                console.error("Error fetching period quantity data:", error);
+                throw error;
+            }
+        },
+        enabled: shouldFetch,
+        retry: 1
+    });
+
+    // 조회 버튼 클릭 핸들러
+    const handleSearch = useCallback(() => {
+        setShouldFetch(true);
+        refetchPeriodSales();
+        refetchPeriodQuantity();
+    }, [refetchPeriodSales, refetchPeriodQuantity]);
+
     // 차트 데이터 준비 (주간 판매 통계)
     const prepareChartData = () => {
         if (!salesData || Object.keys(salesData).length === 0) return [];
 
-        const dates = Object.keys(salesData).sort().reverse(); // 최근 날짜순
+        const dates = Object.keys(salesData).sort();
         const maxValue = Math.max(...Object.values(salesData));
         const chartHeight = 200; // 차트 높이
 
@@ -132,7 +232,7 @@ const EnterpriseMain = () => {
     const totalSales = Object.values(salesData).reduce((sum, value) => sum + value, 0);
 
     // 총 판매 수량 계산 (예시 데이터)
-    const totalQuantity = topProducts.reduce((sum, product) => sum + (product.totalQuantity || 0), 0);
+    // const totalQuantity = topProducts.reduce((sum, product) => sum + (product.totalQuantity || 0), 0);
 
     return (
         <div className="w-full max-w-[1262px] mx-auto p-4 flex flex-col gap-6">
@@ -151,13 +251,18 @@ const EnterpriseMain = () => {
                     <h2 className="text-xl font-bold text-neutral-800">지난 1주일 통계</h2>
                     <button
                         onClick={() => {
+                            setIsRefreshing(true);
                             refetchSalesData();
                             refetchTopProducts();
+                            refetchTotalQuantity();
+                            setTimeout(() => setIsRefreshing(false), 500);  // 0.5초 후 정지
                         }}
                         className="ml-auto p-2 text-gray-500 rounded-lg hover:text-indigo-600 hover:bg-gray-100 transition-all"
                         aria-label="통계 데이터 새로고침"
                     >
-                        <ArrowPathIcon className="w-5 h-5" />
+                        <ArrowPathIcon 
+                            className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} 
+                        />
                     </button>
                 </div>
 
@@ -281,6 +386,279 @@ const EnterpriseMain = () => {
                             ))}
                         </div>
                     )}
+                </div>
+            </div>
+            
+            {/* 기간별 통계 섹션 */}
+            <div className="bg-white border rounded-xl shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-6">
+                    <CalendarIcon className="h-5 w-5 text-indigo-600" />
+                    <h2 className="text-xl font-bold text-neutral-800">기간별 통계</h2>
+                </div>
+
+                {/* 탭 메뉴 */}
+                <div className="flex gap-2 mb-6 border-b border-gray-200">
+                    <button
+                        onClick={() => {
+                            setPeriodType('daily');
+                            setSelectedDate(currentDate);
+                            setSelectedYear(currentYear);
+                            setSelectedMonth(currentMonth);
+                            setShouldFetch(false);
+                        }}
+                        className={`px-4 py-2 font-medium transition-colors ${
+                            periodType === 'daily'
+                                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        일별
+                    </button>
+                    <button
+                        onClick={() => {
+                            setPeriodType('monthly');
+                            setSelectedDate(currentDate);
+                            setSelectedYear(currentYear);
+                            setSelectedMonth(currentMonth);
+                            setShouldFetch(false);
+                        }}
+                        className={`px-4 py-2 font-medium transition-colors ${
+                            periodType === 'monthly'
+                                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        월별
+                    </button>
+                    <button
+                        onClick={() => {
+                            setPeriodType('yearly');
+                            setSelectedDate(currentDate);
+                            setSelectedYear(currentYear);
+                            setSelectedMonth(currentMonth);
+                            setShouldFetch(false);
+                        }}
+                        className={`px-4 py-2 font-medium transition-colors ${
+                            periodType === 'yearly'
+                                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                    >
+                        연도별
+                    </button>
+                </div>
+
+                {/* 기간 선택 */}
+                <div className="mb-6 flex items-center gap-4">
+                    {periodType === 'daily' && (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">날짜:</label>
+                                <input
+                                    type="date"
+                                    value={selectedDate}
+                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                        </>
+                    )}
+                    
+                    {periodType === 'monthly' && (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">년도:</label>
+                                <input
+                                    type="number"
+                                    min="2000"
+                                    max="2100"
+                                    value={selectedYear}
+                                    onChange={(e) => setSelectedYear(e.target.value)}
+                                    placeholder="2025"
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-24"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">월:</label>
+                                <select
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                >
+                                    <option value="">선택</option>
+                                    {Array.from({length: 12}, (_, i) => i + 1).map(month => (
+                                        <option key={month} value={String(month).padStart(2, '0')}>
+                                            {month}월
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </>
+                    )}
+                    
+                    {periodType === 'yearly' && (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">년도:</label>
+                                <input
+                                    type="number"
+                                    min="2000"
+                                    max="2100"
+                                    value={selectedYear}
+                                    onChange={(e) => setSelectedYear(e.target.value)}
+                                    placeholder="2025"
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-24"
+                                />
+                            </div>
+                        </>
+                    )}
+                    
+                    <button
+                        onClick={handleSearch}
+                        className="ml-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={
+                            periodSalesLoading || 
+                            periodQuantityLoading || 
+                            (periodType === 'daily' && !selectedDate) ||
+                            (periodType === 'monthly' && (!selectedYear || !selectedMonth)) ||
+                            (periodType === 'yearly' && !selectedYear)
+                        }
+                    >
+                        {periodSalesLoading || periodQuantityLoading ? '조회 중...' : '조회'}
+                    </button>
+                </div>
+
+                {/* 통계 카드 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="bg-emerald-50 p-6 rounded-xl shadow-sm border border-emerald-100 flex items-center">
+                        <div className="bg-emerald-100 p-3 rounded-lg mr-4">
+                            <CurrencyDollarIcon className="h-8 w-8 text-emerald-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-emerald-800">총 판매액</h3>
+                            <p className="text-3xl font-bold text-emerald-600 mt-1">
+                                {periodSalesLoading ? '조회 중...' : 
+                                 Object.keys(periodSalesData).length > 0 
+                                    ? `₩${Object.values(periodSalesData).reduce((sum, val) => sum + (val || 0), 0).toLocaleString()}`
+                                    : '₩0'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="bg-blue-50 p-6 rounded-xl shadow-sm border border-blue-100 flex items-center">
+                        <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                            <ShoppingBagIcon className="h-8 w-8 text-blue-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-blue-800">총 판매 수량</h3>
+                            <p className="text-3xl font-bold text-blue-600 mt-1">
+                                {periodQuantityLoading ? '조회 중...' : 
+                                 Object.keys(periodQuantityData).length > 0 
+                                    ? `${Object.values(periodQuantityData).reduce((sum, val) => sum + (val || 0), 0).toLocaleString()}개`
+                                    : '0개'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 판매액 테이블 */}
+                <div className="mb-6">
+                    <h3 className="text-lg font-bold text-neutral-800 mb-4 flex items-center gap-2">
+                        <CurrencyDollarIcon className="h-5 w-5 text-emerald-600" />
+                        판매액 내역
+                    </h3>
+                    <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                                        {periodType === 'daily' ? '날짜' : periodType === 'monthly' ? '월' : '연도'}
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">판매액</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {periodSalesLoading ? (
+                                    <tr>
+                                        <td colSpan="2" className="px-4 py-8 text-center text-gray-500">
+                                            조회 중...
+                                        </td>
+                                    </tr>
+                                ) : periodSalesError ? (
+                                    <tr>
+                                        <td colSpan="2" className="px-4 py-8 text-center text-red-500">
+                                            데이터를 불러오는데 실패했습니다.
+                                        </td>
+                                    </tr>
+                                ) : Object.keys(periodSalesData).length === 0 ? (
+                                    <tr>
+                                        <td colSpan="2" className="px-4 py-8 text-center text-gray-500">
+                                            데이터가 없습니다. 기간을 선택하고 조회 버튼을 클릭하세요.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    Object.entries(periodSalesData).map(([key, value]) => (
+                                        <tr key={key} className="hover:bg-gray-50">
+                                            <td className="px-4 py-3 text-sm text-gray-900">{key}</td>
+                                            <td className="px-4 py-3 text-sm text-right font-semibold text-emerald-600">
+                                                ₩{value.toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* 판매수량 테이블 */}
+                <div>
+                    <h3 className="text-lg font-bold text-neutral-800 mb-4 flex items-center gap-2">
+                        <ShoppingBagIcon className="h-5 w-5 text-blue-600" />
+                        판매 수량 내역
+                    </h3>
+                    <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                                        {periodType === 'daily' ? '날짜' : periodType === 'monthly' ? '월' : '연도'}
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">판매 수량</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {periodQuantityLoading ? (
+                                    <tr>
+                                        <td colSpan="2" className="px-4 py-8 text-center text-gray-500">
+                                            조회 중...
+                                        </td>
+                                    </tr>
+                                ) : periodQuantityError ? (
+                                    <tr>
+                                        <td colSpan="2" className="px-4 py-8 text-center text-red-500">
+                                            데이터를 불러오는데 실패했습니다.
+                                        </td>
+                                    </tr>
+                                ) : Object.keys(periodQuantityData).length === 0 ? (
+                                    <tr>
+                                        <td colSpan="2" className="px-4 py-8 text-center text-gray-500">
+                                            데이터가 없습니다. 기간을 선택하고 조회 버튼을 클릭하세요.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    Object.entries(periodQuantityData).map(([key, value]) => (
+                                        <tr key={key} className="hover:bg-gray-50">
+                                            <td className="px-4 py-3 text-sm text-gray-900">{key}</td>
+                                            <td className="px-4 py-3 text-sm text-right font-semibold text-blue-600">
+                                                {value.toLocaleString()}개
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

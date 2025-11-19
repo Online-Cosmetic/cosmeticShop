@@ -61,11 +61,16 @@ public class CosmeticShopApplication {
 			temp2.setCreatedAt(java.time.LocalDateTime.now());
 			temp2.setRole("COMPANY");
 			temp2.setCompanyName("Default Company");
-			temp2.setEmailAddress("1111");
-			temp2.setPhoneNumber("1111");
+			temp2.setEmailAddress("company2@example.com");
+			temp2.setPhoneNumber("02-1234-5678");
+			temp2.setBusinessRegistrationNumber("123-45-67890");
+			temp2.setRepresentativeName("대표자명");
+			temp2.setBusinessAddress("서울시 강남구");
+			temp2.setContactPersonName("담당자명");
+			temp2.setContactPhoneNumber("010-1234-5678");
 			temp2.setApproved(true);
 			company.save(temp2);
-			System.out.println("Admin user created with ID: " + userId + " and Password: " + rawPw);
+			System.out.println("Company user created with ID: " + companyId + " and Password: " + password);
 		}
 	}
 }

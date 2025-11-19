@@ -14,17 +14,14 @@ public class ProductPreviewDTO { // 여러 상품 나와있을때 최소한의 �
     private String description;
     private int price;
     private int discountRate; // 할인율 필드 추가
-    private String ThumbImgUrl;
+    private String thumbImgUrl; //소문자로 수정
+    private int liked; // 찜한 사람 수
+    private String companyName;
 
     public static ProductPreviewDTO from(Product product) {
         String imageUrl = null;
         if (product.getThumbnailImage() != null) {
             imageUrl = product.getThumbnailImage().getImageUrl();
-            
-            // S3 public URL로 변환
-            if (imageUrl != null && imageUrl.startsWith("/images/")) {
-                imageUrl = "https://cosmall-image-bucket.s3.ap-northeast-2.amazonaws.com" + imageUrl;
-            }
         }
 
         return new ProductPreviewDTO(
@@ -32,8 +29,10 @@ public class ProductPreviewDTO { // 여러 상품 나와있을때 최소한의 �
             product.getProductName(),
             product.getDescription(),
             product.getPrice(),
-            product.getDiscountRate(),
-            imageUrl
+            product.getDiscountRate(), // 할인율 값 추가
+            imageUrl,
+            product.getLiked(), // 찜한 사람 수 추가
+            product.getCompany().getCompanyName()
         );
     }
 }

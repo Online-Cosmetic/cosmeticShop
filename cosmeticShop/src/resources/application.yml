@@ -17,12 +17,30 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
+  servlet:
+    multipart: # 멀티파트 파일 업로드 설정 (상품 일괄등록용)
+      max-file-size: 100MB # 파일 하나당 최대 100MB
+      max-request-size: 100MB # 요청 전체 최대 108MB
+
   web:
     resources:
       static-locations: classpath:/static/,classpath:/public/
 
   mail:
-    host: localhost
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect

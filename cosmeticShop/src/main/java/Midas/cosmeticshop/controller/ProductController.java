@@ -67,8 +67,11 @@ public class ProductController {
     @GetMapping("/batch/{categoryId}")
     public ResponseEntity<ProductBatchPreviewResponse> categorizedProducts(
         @PathVariable int categoryId,
-        @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
-        ProductBatchPreviewResponse response = productService.getCategorizedProductsPreview(categoryId, sortOption);
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "9") int size) {
+        ProductBatchPreviewResponse response = productService.getCategorizedProductsPreview(categoryId, sortOption, keyword, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -98,8 +101,11 @@ public class ProductController {
     @GetMapping("/batch/company/{companyId}")
     public ResponseEntity<ProductBatchPreviewResponse> companyProducts(
         @PathVariable Long companyId,
-        @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
-        ProductBatchPreviewResponse response = productService.getCompanyProductsPreview(companyId, sortOption);
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "9") int size) {
+        ProductBatchPreviewResponse response = productService.getCompanyProductsPreview(companyId, sortOption, keyword, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -108,8 +114,11 @@ public class ProductController {
     public ResponseEntity<ProductBatchPreviewResponse> categoryAndCompanyProducts(
         @PathVariable int categoryId,
         @PathVariable Long companyId,
-        @RequestParam(value = "sort", defaultValue = "latest") String sortOption) {
-        ProductBatchPreviewResponse response = productService.getCategoryAndCompanyProductsPreview(categoryId, companyId, sortOption);
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "9") int size) {
+        ProductBatchPreviewResponse response = productService.getCategoryAndCompanyProductsPreview(categoryId, companyId, sortOption, keyword, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -118,9 +127,11 @@ public class ProductController {
     public ResponseEntity<Page<ProductListDTO>> getCompanyProducts(
         @PathVariable Long companyId,
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption
     ) {
-        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size);
+        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size, keyword, sortOption);
         return ResponseEntity.ok(products);
     }
 
@@ -154,10 +165,18 @@ public class ProductController {
         @RequestParam(value = "mainImage", required = false) MultipartFile mainImage,
         @RequestParam(value = "additionalImages", required = false) MultipartFile[] additionalImages,
         @RequestParam(value = "deleteMainImage", defaultValue = "false") boolean deleteMainImage,
-        @RequestParam(value = "deleteAdditionalImages", defaultValue = "false") boolean deleteAdditionalImages
+        @RequestParam(value = "deleteAdditionalImages", defaultValue = "false") boolean deleteAdditionalImages,
+        @RequestParam(value = "remainingAdditionalImageUrls", required = false) java.util.List<String> remainingAdditionalImageUrls
     ) {
-        productService.updateProductImages(userDetails, productId, mainImage, additionalImages,
-            deleteMainImage, deleteAdditionalImages);
+        productService.updateProductImages(
+            userDetails,
+            productId,
+            mainImage,
+            additionalImages,
+            deleteMainImage,
+            deleteAdditionalImages,
+            remainingAdditionalImageUrls
+        );
 
         ProductDTO dto = productService.getProductInfo(productId);
         ProductImageDTO imageDTO = productService.getProductImages(productId);
@@ -167,6 +186,30 @@ public class ProductController {
         response.put("product", dto);
         response.put("images", imageDTO);
 
+        return ResponseEntity.ok(response);
+    }
+
+    /* 메인페이지용 베스트셀러 (liked 기준 인기순 상위 10개 상품) */
+    @GetMapping("/batch/bestsellers")
+    public ResponseEntity<ProductBatchPreviewResponse> getBestsellers() {
+        ProductBatchPreviewResponse response = productService.getBestsellers();
+        return ResponseEntity.ok(response);
+    }
+
+    /* 메인페이지용 추천상품 (최신순 상위 5개 품목) */
+    @GetMapping("/batch/recommended")
+    public ResponseEntity<ProductBatchPreviewResponse> getRecommendedProducts() {
+        ProductBatchPreviewResponse response = productService.getRecommendedProducts();
+        return ResponseEntity.ok(response);
+    }
+
+    /* 상품 상세페이지 관련상품 (동일 카테고리 최신순 상위 8개 품목) */
+    @GetMapping("/batch/related/{categoryId}")
+    public ResponseEntity<ProductBatchPreviewResponse> getRelatedProducts(
+            @PathVariable int categoryId,
+            @RequestParam(value = "sort", defaultValue = "latest") String sortOption,
+            @RequestParam(value = "excludeProductId", required = false) Long excludeProductId) {
+        ProductBatchPreviewResponse response = productService.getRelatedProducts(categoryId, sortOption, excludeProductId);
         return ResponseEntity.ok(response);
     }
 }

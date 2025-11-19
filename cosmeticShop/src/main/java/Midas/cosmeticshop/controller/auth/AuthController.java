@@ -133,7 +133,7 @@ public class AuthController {
                     accessToken,
                     company.getEmailAddress(),
                     company.getCompanyName(),
-                    null
+                    company.isApproved()
                 );
             } else { // ADMIN
                 body = new LoginResponse(

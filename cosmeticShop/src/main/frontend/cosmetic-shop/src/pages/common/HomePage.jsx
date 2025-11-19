@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { userAPI } from "../../utils/customAxios.js";
 import { Link } from "react-router-dom";
-import { StarIcon, SparklesIcon, TrophyIcon, ShoppingBagIcon } from "@heroicons/react/24/solid";
+import { StarIcon, SparklesIcon, TrophyIcon, ShoppingBagIcon, ClockIcon } from "@heroicons/react/24/solid";
 import { getImageUrl } from "@/utils/imageUtils";
+import RecentProducts from "../../components/product/RecentProducts.jsx";
 
 const HomePage = () => {
     const { user } = useAuth();
@@ -14,6 +15,8 @@ const HomePage = () => {
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [fadeIn, setFadeIn] = useState(true);
+    const [bannerFadeIn, setBannerFadeIn] = useState(true);
+    const [bannerImagesLoaded, setBannerImagesLoaded] = useState(false);
 
     // 캐러셀 컨테이너 참조
     const bestSellerContainerRef = useRef(null);
@@ -26,18 +29,39 @@ const HomePage = () => {
         "/banner4.jpg"
     ];
 
+    // 배너 이미지 미리 로드
+    useEffect(() => {
+        const imagePromises = bannerImages.map((src) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = src;
+            });
+        });
+
+        Promise.all(imagePromises)
+            .then(() => {
+                setBannerImagesLoaded(true);
+            })
+            .catch((error) => {
+                console.error("배너 이미지 로드 실패:", error);
+                setBannerImagesLoaded(true); // 실패해도 계속 진행
+            });
+    }, []);
+
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 // 인기 상품 가져오기
-                const popularResponse = await userAPI.product.getPopular();
+                const popularResponse = await userAPI.product.getBestsellers();
                 console.log("인기 상품 응답:", popularResponse.data);
                 if (popularResponse.data && popularResponse.data.batchesPreviews) {
                     setBestSellers(popularResponse.data.batchesPreviews);
                 }
 
                 // 최신 상품 가져오기 (추천 상품으로 사용)
-                const latestResponse = await userAPI.product.getLatest();
+                const latestResponse = await userAPI.product.getRecommendedProducts();
                 console.log("최신 상품 응답:", latestResponse.data);
                 if (latestResponse.data && latestResponse.data.batchesPreviews) {
                     setRecommended(latestResponse.data.batchesPreviews);
@@ -97,22 +121,35 @@ const HomePage = () => {
 
     // 배너 이미지 자동 변경
     useEffect(() => {
+        if (!bannerImagesLoaded) return;
+
         const bannerInterval = setInterval(() => {
-            setCurrentBannerIndex(prevIndex => 
-                (prevIndex + 1) % bannerImages.length
-            );
-        }, 7000);
+            // 페이드 아웃
+            setBannerFadeIn(false);
+            
+            // 페이드 아웃 후 인덱스 변경
+            setTimeout(() => {
+                setCurrentBannerIndex(prevIndex => 
+                    (prevIndex + 1) % bannerImages.length
+                );
+                // 페이드 인
+                setBannerFadeIn(true);
+            }, 300);
+        }, 4000);
 
         return () => clearInterval(bannerInterval);
-    }, [bannerImages.length]);
+    }, [bannerImages.length, bannerImagesLoaded]);
 
     return (
         <div className="w-full flex flex-col items-center bg-[#f8f5f0]">
             {/* Banner */}
-            <div
-                className="w-full aspect-[3/1] relative bg-cover bg-center transition-all duration-1000"
-                style={{ backgroundImage: `url('${bannerImages[currentBannerIndex]}')` }}
-            >
+            <div className="w-full aspect-[3/1] relative overflow-hidden">
+                <div
+                    className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500 ${
+                        bannerFadeIn ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    style={{ backgroundImage: `url('${bannerImages[currentBannerIndex]}')` }}
+                />
                 {/* Shadow */}
                 <div className="absolute inset-0 bg-black/40 z-0" />
 
@@ -126,7 +163,13 @@ const HomePage = () => {
                     {bannerImages.map((_, index) => (
                         <button
                             key={index}
-                            onClick={() => setCurrentBannerIndex(index)}
+                            onClick={() => {
+                                setBannerFadeIn(false);
+                                setTimeout(() => {
+                                    setCurrentBannerIndex(index);
+                                    setBannerFadeIn(true);
+                                }, 300);
+                            }}
                             className={`w-3 h-3 rounded-full transition-all ${
                                 index === currentBannerIndex ? 'bg-white scale-110' : 'bg-white/50'
                             }`}
@@ -311,6 +354,20 @@ const HomePage = () => {
                             <p className="text-lg text-gray-500 product-description">추천상품이 없습니다.</p>
                         </div>
                     )}
+                </div>
+
+                {/* 최근 본 상품 */}
+                <div className="flex flex-col gap-8">
+                    <div className="flex items-center gap-2">
+                        <ClockIcon className="w-6 h-6 text-blue-500" />
+                        <h2 className="text-2xl font-bold text-gray-800 product-name">
+                            최근 본 상품
+                        </h2>
+                    </div>
+
+                    <div className="relative">
+                        <RecentProducts maxItems={10} showRemoveButton={true} />
+                    </div>
                 </div>
             </div>
         </div>

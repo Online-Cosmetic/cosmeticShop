@@ -11,8 +11,10 @@ function Cart() {
     const [loading, setLoading] = useState(true);
 
     // 장바구니 상품 데이터 로드
-    const fetchCart = async () => {
-        setLoading(true);
+    const fetchCart = async (showLoading = true) => {
+        if (showLoading) {
+            setLoading(true);
+        }
         try {
             const res = await userAPI.cart.getAllCarts();
             // 상품 할인율에 따른 할인가 계산을 추가하여 cartItems 세팅
@@ -28,7 +30,10 @@ function Cart() {
                 };
             });
 
-            setCartItems(itemsWithDiscountedPrice);
+            // ID 기준으로 정렬하여 일관된 순서 유지
+            const sortedItems = itemsWithDiscountedPrice.sort((a, b) => (a.id || 0) - (b.id || 0));
+
+            setCartItems(sortedItems);
 
             // 개발 환경에서만 사용할 디버깅 코드
             console.log("장바구니 상품 데이터(할인 정보 포함):", itemsWithDiscountedPrice);
@@ -37,7 +42,22 @@ function Cart() {
             console.error("장바구니 정보 로드 실패:", e);
             alert('장바구니 정보를 불러오지 못했습니다.');
         } finally {
-            setLoading(false);
+            if (showLoading) {
+                setLoading(false);
+            }
+        }
+    };
+
+    // 수량 변경 핸들러 - 해당 상품만 업데이트
+    const handleQuantityChange = async (cartId, newQuantity) => {
+        try {
+            await userAPI.cart.updateQuantity(cartId, newQuantity);
+            // 전체 장바구니를 다시 가져오되 로딩 상태는 표시하지 않음
+            await fetchCart(false);
+        } catch (error) {
+            console.error(`수량 변경 실패: ${error.message}`);
+            // 에러 발생 시 전체 장바구니 새로고침
+            await fetchCart(false);
         }
     };
 
@@ -154,9 +174,9 @@ function Cart() {
                                     <ProductCard
                                         key={product.id}
                                         product={product}
-                                        onQuantityChange={fetchCart}
+                                        onQuantityChange={handleQuantityChange}
                                         editable={true}
-                                        showQuantityControls={false} // 수량 조절 UI를 표시하지 않음
+                                        showQuantityControls={true} // 수량 조절 UI 표시
                                         isChecked={checkedItems.has(product.id)}
                                         onCheck={() => handleCheckItem(product.id)}
                                         onDelete={() => handleDeleteItem(product.id)}

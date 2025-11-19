@@ -7,13 +7,14 @@ import { userAPI } from '../../../utils/customAxios';
 import { getImageUrl } from '../../../utils/imageUtils';
 
 export default function ReviewWrite({ onCancel, reviewData }) {
-  const { productId } = useParams();
+  const { productId, reviewId } = useParams();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [existingReview, setExistingReview] = useState(null); // 수정 모드용 기존 리뷰 데이터
 
   const [rating, setRating] = useState(reviewData?.rating || 0);
   const [hover, setHover] = useState(0);
@@ -30,13 +31,59 @@ export default function ReviewWrite({ onCancel, reviewData }) {
   const [totalSize, setTotalSize] = useState(0);
   const [sizeError, setSizeError] = useState(null);
 
+  // 리뷰 수정 모드: 기존 리뷰 데이터 가져오기
+  useEffect(() => {
+    const fetchReviewData = async () => {
+      if (!reviewId) return;
+      
+      try {
+        // 내 리뷰 목록에서 해당 리뷰 찾기
+        const response = await userAPI.review.getMyProductReviews();
+        const reviews = response.data || [];
+        const review = reviews.find(r => r.id === parseInt(reviewId));
+        
+        if (review) {
+          setExistingReview(review);
+          setRating(review.rating || 0);
+          setContent(review.content || '');
+          
+          // 기존 리뷰 이미지가 있으면 처리 (이미지는 URL이므로 별도 처리 필요)
+          // 이미지는 새로 업로드해야 하므로 빈 배열로 시작
+          setImages([]);
+          
+          // 상품 정보도 함께 설정
+          if (review.product) {
+            setProduct({
+              productName: review.product.productName,
+              description: review.product.description,
+              price: review.product.price,
+              thumbnailImageUrl: review.product.thumbnailImageUrl
+            });
+            setLoading(false);
+          }
+        }
+      } catch (err) {
+        console.error("리뷰 데이터 로딩 중 오류 발생:", err);
+        setError("리뷰 정보를 불러오는 중 오류가 발생했습니다.");
+        setLoading(false);
+      }
+    };
+    
+    if (reviewId) {
+      fetchReviewData();
+    }
+  }, [reviewId]);
+
   // 상품 정보 가져오기 - useCallback으로 감싸서 불필요한 재생성 방지
   const fetchProductData = useCallback(async () => {
-    if (!productId && !reviewData) return;
+    if (!productId && !reviewData && !existingReview) return;
 
     try {
       setLoading(true);
-      const response = await userAPI.product.getById(productId || reviewData.productId);
+      const targetProductId = productId || reviewData?.productId || existingReview?.product?.id;
+      if (!targetProductId) return;
+      
+      const response = await userAPI.product.getById(targetProductId);
       setProduct(response.data.productDTO);
     } catch (err) {
       console.error("상품 정보 로딩 중 오류 발생:", err);
@@ -44,12 +91,14 @@ export default function ReviewWrite({ onCancel, reviewData }) {
     } finally {
       setLoading(false);
     }
-  }, [productId, reviewData]); // 의존성 배열에는 productId와 reviewData만 포함
+  }, [productId, reviewData, existingReview]); // 의존성 배열에 existingReview 추가
 
-  // 컴포넌트 마운트 시 한 번만 상품 정보 가져오기
+  // 컴포넌트 마운트 시 한 번만 상품 정보 가져오기 (수정 모드가 아닐 때만)
   useEffect(() => {
-    fetchProductData();
-  }, [fetchProductData]); // fetchProductData가 변경될 때만 실행
+    if (!reviewId) {
+      fetchProductData();
+    }
+  }, [fetchProductData, reviewId]); // reviewId가 없을 때만 실행
 
   // 이미지 변경 시 총 크기 계산
   useEffect(() => {
@@ -187,16 +236,18 @@ export default function ReviewWrite({ onCancel, reviewData }) {
       }
 
       // 리뷰 데이터 생성
+      const targetProductId = productId || reviewData?.productId || existingReview?.product?.id;
       const reviewPostData = {
-        productId: productId || reviewData?.productId,
+        productId: targetProductId,
         content: content,
         rating: Math.round(rating), // 정수로 변환
         imageUrls: imageUrls
       };
 
-      if (reviewData?.id) {
+      const targetReviewId = reviewId || reviewData?.id || existingReview?.id;
+      if (targetReviewId) {
         // 리뷰 수정
-        await userAPI.review.updateReview(reviewData.id, reviewPostData);
+        await userAPI.review.updateReview(targetReviewId, reviewPostData);
       } else {
         // 새 리뷰 작성
         await userAPI.review.createReview(reviewPostData);
@@ -224,10 +275,12 @@ export default function ReviewWrite({ onCancel, reviewData }) {
     return <div className="text-center py-10">상품 정보를 찾을 수 없습니다.</div>;
   }
 
+  const isEditMode = !!reviewId || !!existingReview?.id;
+
   return (
       <section className="px-4">
         <div className="flex justify-between items-center border-b pb-4 mb-6">
-          <h2 className="text-2xl font-bold">리뷰 작성</h2>
+          <h2 className="text-2xl font-bold">{isEditMode ? '리뷰 수정' : '리뷰 작성'}</h2>
           {onCancel && (
               <button
                   onClick={onCancel}
@@ -238,34 +291,37 @@ export default function ReviewWrite({ onCancel, reviewData }) {
           )}
         </div>
 
-        <div className="flex items-center mb-6">
-          <img
-              src={product.thumbnailImageUrl ? getImageUrl(product.thumbnailImageUrl) : "https://via.placeholder.com/80"}
-              alt={product.productName}
-              className="w-20 h-20 rounded-lg object-cover mr-4"
-              onError={(e) => {
-                e.target.src = "https://via.placeholder.com/80x80.png?text=No+Image";
-              }}
-          />
-          <div className="flex-1">
-            <p className="font-semibold">{product.productName}</p>
-            <p className="text-gray-600">{product.description?.substring(0, 50)}{product.description?.length > 50 ? '...' : ''}</p>
-            <p>{product.price.toLocaleString()}원</p>
+        <div className="mb-6">
+          <div className="flex items-start mb-4">
+            <img
+                src={product.thumbnailImageUrl ? getImageUrl(product.thumbnailImageUrl) : "https://via.placeholder.com/80"}
+                alt={product.productName}
+                className="w-20 h-20 rounded-lg object-cover mr-4 flex-shrink-0"
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/80x80.png?text=No+Image";
+                }}
+            />
+            <div className="flex-1">
+              <p className="font-semibold text-lg mb-1">{product.productName}</p>
+              <p className="text-gray-600 text-sm mb-2">{product.description?.substring(0, 50)}{product.description?.length > 50 ? '...' : ''}</p>
+              <p className="text-emerald-600 font-semibold">{product.price.toLocaleString()}원</p>
+            </div>
           </div>
-          <div className="flex items-center space-x-1 text-2xl">
+          <div className="flex items-center space-x-1 text-2xl border-t pt-4">
+            <span className="text-sm text-gray-700 mr-2">별점:</span>
             {[1,2,3,4,5].map(i => (
                 <button
                     key={i}
                     type="button"
-                    className="focus:outline-none text-yellow-400 hover:text-yellow-500"
+                    className="focus:outline-none text-yellow-400 hover:text-yellow-500 transition-colors"
                     onClick={() => setRating(rating === i ? i - 0.5 : i)}
-                    onMouseEnter={() => setHover(i - 0.5)}
+                    onMouseEnter={() => setHover(i)}
                     onMouseLeave={() => setHover(0)}
                 >
                   {renderStar(i)}
                 </button>
             ))}
-            <span className="ml-2 text-base text-gray-600">{rating.toFixed(1)}</span>
+            <span className="ml-2 text-base text-gray-600 font-medium">{rating.toFixed(1)}</span>
           </div>
         </div>
 
@@ -341,12 +397,27 @@ export default function ReviewWrite({ onCancel, reviewData }) {
           />
         </div>
 
+        <div className="mb-4">
+          {content.length < 20 && (
+            <div className="mb-2 text-sm text-orange-600">
+              리뷰 내용을 20자 이상 입력해주세요. (현재: {content.length}자)
+            </div>
+          )}
+          {!rating && (
+            <div className="mb-2 text-sm text-orange-600">
+              별점을 선택해주세요.
+            </div>
+          )}
+        </div>
+
         <button
             type="button"
             onClick={handleSubmit}
             disabled={content.length < 20 || !rating || submitting || sizeError !== null}
-            className={`w-full py-3 rounded-md text-white ${
-                content.length < 20 || !rating || submitting || sizeError !== null ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800'
+            className={`w-full py-4 rounded-lg text-white font-semibold text-lg shadow-lg transition-all ${
+                content.length < 20 || !rating || submitting || sizeError !== null 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800'
             }`}
         >
           {submitting ? (
@@ -358,7 +429,7 @@ export default function ReviewWrite({ onCancel, reviewData }) {
             제출 중...
           </span>
           ) : (
-              '등록'
+              '리뷰 작성하기'
           )}
         </button>
       </section>

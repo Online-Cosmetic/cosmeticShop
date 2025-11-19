@@ -32,13 +32,15 @@ public class CompanyController {
     public ResponseEntity<Page<ProductListDTO>> getMyProducts(
         @AuthenticationPrincipal BaseUserDetails userDetails,
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "sort", defaultValue = "latest") String sortOption
     ) {
         // 현재 로그인한 기업 회원의 ID를 가져옴
         String userId = userDetails.getUsername();
         Long companyId = productService.getCompanyIdByUserId(userId);
 
-        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size);
+        Page<ProductListDTO> products = productService.getCompanyProducts(companyId, page, size, keyword, sortOption);
         return ResponseEntity.ok(products);
     }
 

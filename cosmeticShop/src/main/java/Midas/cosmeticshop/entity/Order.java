@@ -64,10 +64,12 @@ public class Order {
             .collect(Collectors.toList());
 
         return OrderDTO.builder()
+            .orderId(this.id)
             .totalPrice(this.totalPrice)
             .city(this.orderAddress.getCity())
             .street(this.orderAddress.getStreet())
             .detail(this.orderAddress.getDetail())
+            .createdAt(this.createdAt)
             .orderItems(orderItemDTOs)
             .build();
     }
