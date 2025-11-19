@@ -163,15 +163,22 @@ const RecommendationSection = ({ user }) => {
 
     return (
         <div className="flex flex-col gap-8">
-            <div className="flex items-center gap-2">
-                <SparklesIcon className="w-6 h-6 text-emerald-500" />
-                <h2 className="text-2xl font-bold text-gray-800 product-name">
-                    AI 개인화 추천
-                </h2>
-                {reasonText && (
-                    <span className="text-sm text-gray-500 font-normal">
-                        ({reasonText} 추천)
-                    </span>
+            <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                    <SparklesIcon className="w-6 h-6 text-emerald-500" />
+                    <h2 className="text-2xl font-bold text-gray-800 product-name">
+                        AI 개인화 추천
+                    </h2>
+                    {reasonText && (
+                        <span className="text-sm text-gray-500 font-normal">
+                            ({reasonText} 추천)
+                        </span>
+                    )}
+                </div>
+                {user && (
+                    <p className="text-sm text-emerald-600 font-medium ml-8">
+                        ✨ Ai 추천받아 보세요! 당신만을 위한 맞춤 상품을 추천해드립니다.
+                    </p>
                 )}
             </div>
 
