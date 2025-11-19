@@ -43,19 +43,19 @@ export default function AdminBadKeywordManagement() {
             fetchBadKeywords(); // Refresh the list
         } catch (error) {
             console.error("Error adding BadKeyword:", error);
-            alert("Failed to add keyword. Please try again.");
+            alert("키워드 등록에 실패했습니다. 다시 시도해주세요.");
         }
     };
 
     // Delete BadKeyword
     const handleDeleteKeyword = async (badKeywordId) => {
-        if (window.confirm("Are you sure you want to delete this keyword?")) {
+        if (window.confirm("이 키워드를 삭제하시겠습니까?")) {
             try {
                 await adminAPI.badKeyword.deleteBadKeyword(badKeywordId);
                 fetchBadKeywords(); // Refresh the list
             } catch (error) {
                 console.error("Error deleting BadKeyword:", error);
-                alert("Failed to delete keyword. Please try again.");
+                alert("키워드 삭제에 실패했습니다. 다시 시도해주세요.");
             }
         }
     };
@@ -83,7 +83,7 @@ export default function AdminBadKeywordManagement() {
             <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-6">
                 {/* Header */}
                 <div className="flex justify-between items-center">
-                    <h2 className="text-3xl font-bold text-neutral-800">Bad Keyword 관리</h2>
+                    <h2 className="text-3xl font-bold text-neutral-800">유해 키워드 관리</h2>
                 </div>
 
                 {/* Add new keyword section */}
@@ -92,7 +92,7 @@ export default function AdminBadKeywordManagement() {
                     <div className="flex gap-3">
                         <input
                             type="text"
-                            placeholder="Enter new bad keyword..."
+                            placeholder="유해 키워드를 입력해주세요"
                             value={newKeyword}
                             onChange={(e) => setNewKeyword(e.target.value)}
                             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
@@ -123,7 +123,7 @@ export default function AdminBadKeywordManagement() {
                     {/* Loading state */}
                     {loading ? (
                         <div className="flex justify-center items-center h-40 bg-white rounded-lg border shadow-sm">
-                            <div className="text-xl text-gray-500">Loading keywords...</div>
+                            <div className="text-xl text-gray-500">키워드 로딩중...</div>
                         </div>
                     ) : error ? (
                         <div className="flex justify-center items-center h-40 bg-white rounded-lg border shadow-sm">
@@ -131,15 +131,15 @@ export default function AdminBadKeywordManagement() {
                         </div>
                     ) : currentItems.length === 0 ? (
                         <div className="flex justify-center items-center h-40 bg-white rounded-lg border shadow-sm">
-                            <div className="text-xl text-gray-500">No bad keywords found.</div>
+                            <div className="text-xl text-gray-500">유해 키워드를 찾을 수 없습니다.</div>
                         </div>
                     ) : (
                         <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
                             {/* Table header */}
                             <div className="w-full bg-gray-100 flex items-center py-3 px-6 text-lg font-semibold text-neutral-700">
                                 <div className="w-28 text-center">ID</div>
-                                <div className="flex-1 text-center">Keyword</div>
-                                <div className="w-32 text-center">Actions</div>
+                                <div className="flex-1 text-center">키워드</div>
+                                <div className="w-32 text-center">작업</div>
                             </div>
 
                             {/* Table items */}
@@ -175,7 +175,7 @@ export default function AdminBadKeywordManagement() {
                                         : 'bg-white border border-gray-300 text-neutral-700 hover:bg-gray-50'
                                 } transition-colors`}
                             >
-                                Previous
+                                이전
                             </button>
                             <div className="text-lg font-medium text-neutral-700">
                                 Page {currentPage} of {totalPages}
@@ -189,7 +189,7 @@ export default function AdminBadKeywordManagement() {
                                         : 'bg-white border border-gray-300 text-neutral-700 hover:bg-gray-50'
                                 } transition-colors`}
                             >
-                                Next
+                                다음
                             </button>
                         </div>
                     )}

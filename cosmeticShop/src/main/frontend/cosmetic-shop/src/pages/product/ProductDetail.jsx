@@ -641,10 +641,16 @@ function Detail({title}) {
                     {/* 오른쪽: 상품 정보 */}
                     <div className="md:w-1/2 w-full flex flex-col justify-between">
                         <div className="space-y-6">
-                            <div className="flex justify-between items-center border-b border-gray-100 pb-4">
-                                <h1 className="text-3xl font-bold text-gray-900 mb-2 product-name">
-                                    {product.productName}
-                                </h1>
+                            <div className="flex justify-between items-start border-b border-gray-100 pb-4">
+                                <div className="flex-1">
+                                    {/* 회사 이름 */}
+                                    {product.companyName && (
+                                        <p className="text-sm text-gray-500 mb-1">{product.companyName}</p>
+                                    )}
+                                    <h1 className="text-3xl font-bold text-gray-900 product-name">
+                                        {product.productName}
+                                    </h1>
+                                </div>
                                 {/* 하트 아이콘(찜) */}
                                 <button
                                     onClick={() => handleToggleLike(product.productId)}

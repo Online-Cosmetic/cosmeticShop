@@ -1,5 +1,3 @@
-#spring.application.name=cosmeticShop
-
 server:
   port: 9000
   servlet:
@@ -8,17 +6,16 @@ server:
         same-site: None
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]               # 로컬 실행용
+      - optional:file:/home/ubuntu/.env[.properties]  # EC2 서버용
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
-  config:
-    import: optional:file:.env[.properties]
-  servlet:
-    multipart: # 멀티파트 파일 업로드 설정(상품 일괄등록용)
-      max-file-size: 100MB      # 파일 하나당 최대 100MB
-      max-request-size: 100MB   # 요청 전체 최대 100MB
 
   web:
     resources:
@@ -49,9 +46,9 @@ spring:
         show_sql: true
         format_sql: true
 
-  jwt:
-    secretKey: ${JWT_SECRETKEY}
-    refreshExpirationMs: ${JWT_REFRESHEXPIRATIONMS:604800000}
+jwt:
+  secretKey: ${JWT_SECRETKEY}
+  refreshExpirationMs: ${JWT_REFRESHEXPIRATIONMS:604800000}
 
 iamport:
   api:
@@ -67,9 +64,9 @@ app:
   upload-dir: "C:/Users/admin/Desktop/cosmeticShop/cosmeticShop/src/main/resources/static/images"
 
 supabase:
-  url: "${SUPABASE_URL:}"
-  service-key: "${SUPABASE_SERVICE_KEY:}"
-  bucket: "cosmall_image"
+  url: ${SUPABASE_URL:}
+  service-key: ${SUPABASE_SERVICE_KEY:}
+  bucket: cosmall_image
 
 aws:
   s3:

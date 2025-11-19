@@ -161,6 +161,10 @@ function ProductCard({
 
             <div className="flex flex-col gap-2 flex-1">
                 <div>
+                    {/* 회사 이름 추가 */}
+                    {product.companyName && (
+                        <p className="text-xs text-gray-400 font-medium mb-1">{product.companyName}</p>
+                    )}
                     {product.brand && (
                         <p className="text-sm text-gray-500 font-medium product-description">{product.brand}</p>
                     )}

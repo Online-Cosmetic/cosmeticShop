@@ -1,11 +1,12 @@
-// src/pages/admin/AdminQnAManagement.jsx
+// src/pages/admin/AdminCompanyQnAManagement.jsx
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { adminAPI } from "../../utils/customAxios";
 
-export default function AdminQnAManagement() {
+export default function AdminCompanyQnAManagement() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [qnaList, setQnaList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("all"); // "all", "answered", "unanswered"
@@ -13,38 +14,43 @@ export default function AdminQnAManagement() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    // Fetch QnA data based on filter
+    // Fetch Company QnA data based on filter
     useEffect(() => {
         fetchQnAs();
     }, [filter]);
+
+    // 답변 제출 후 목록으로 돌아올 때 데이터 다시 불러오기
+    useEffect(() => {
+        if (location.state?.refresh) {
+            fetchQnAs();
+            // state 초기화
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state]);
 
     const fetchQnAs = async () => {
         setLoading(true);
         try {
             let response;
             if (filter === "all") {
-                response = await adminAPI.qna.getUnansweredQnas();
-                const unansweredQnAs = response.data;
-
-                response = await adminAPI.qna.getAnsweredQnas();
-                const answeredQnAs = response.data;
-
-                setQnaList([...unansweredQnAs, ...answeredQnAs]);
+                const unansweredResponse = await adminAPI.companyQna.getUnansweredQnas();
+                const answeredResponse = await adminAPI.companyQna.getAnsweredQnas();
+                setQnaList([...unansweredResponse.data, ...answeredResponse.data]);
             } else if (filter === "answered") {
-                response = await adminAPI.qna.getAnsweredQnas();
+                response = await adminAPI.companyQna.getAnsweredQnas();
                 setQnaList(response.data);
             } else if (filter === "unanswered") {
-                response = await adminAPI.qna.getUnansweredQnas();
+                response = await adminAPI.companyQna.getUnansweredQnas();
                 setQnaList(response.data);
             }
         } catch (error) {
-            console.error("Error fetching QnAs:", error);
+            console.error("Error fetching Company QnAs:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    // Search QnAs by title
+    // Search Company QnAs by title
     const handleSearch = async () => {
         if (!searchTerm.trim()) {
             fetchQnAs();
@@ -55,35 +61,35 @@ export default function AdminQnAManagement() {
         try {
             let response;
             if (filter === "all") {
-                // Search both answered and unanswered QnAs
-                const answeredResponse = await adminAPI.qna.searchAnsweredQnasByTitle(searchTerm);
-                const unansweredResponse = await adminAPI.qna.searchUnansweredQnasByTitle(searchTerm);
+                const answeredResponse = await adminAPI.companyQna.searchAnsweredQnasByTitle(searchTerm);
+                const unansweredResponse = await adminAPI.companyQna.searchUnansweredQnasByTitle(searchTerm);
                 setQnaList([...answeredResponse.data, ...unansweredResponse.data]);
             } else if (filter === "answered") {
-                response = await adminAPI.qna.searchAnsweredQnasByTitle(searchTerm);
+                response = await adminAPI.companyQna.searchAnsweredQnasByTitle(searchTerm);
                 setQnaList(response.data);
             } else if (filter === "unanswered") {
-                response = await adminAPI.qna.searchUnansweredQnasByTitle(searchTerm);
+                response = await adminAPI.companyQna.searchUnansweredQnasByTitle(searchTerm);
                 setQnaList(response.data);
             }
         } catch (error) {
-            console.error("Error searching QnAs:", error);
+            console.error("Error searching Company QnAs:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    // Delete QnA
+    // Delete Company QnA
     const handleDelete = async (e, qnaId) => {
         e.stopPropagation(); // Prevent navigation to response page
 
-        if (window.confirm("Are you sure you want to delete this QnA?")) {
+        if (window.confirm("이 기업 QnA를 삭제하시겠습니까?")) {
             try {
-                await adminAPI.qna.adminDeleteQna(qnaId);
+                await adminAPI.companyQna.adminDeleteQna(qnaId);
                 // Refresh the list after deletion
                 fetchQnAs();
             } catch (error) {
-                console.error("Error deleting QnA:", error);
+                console.error("Error deleting Company QnA:", error);
+                alert("QnA 삭제에 실패했습니다.");
             }
         }
     };
@@ -108,7 +114,7 @@ export default function AdminQnAManagement() {
             <div className="w-full px-20 py-12 bg-white border rounded-2xl shadow flex flex-col gap-2">
                 {/* 헤더 */}
                 <div className="flex justify-between items-center">
-                    <h2 className="text-3xl font-bold text-neutral-800">Q&A 관리</h2>
+                    <h2 className="text-3xl font-bold text-neutral-800">기업 Q&A 관리</h2>
                 </div>
 
                 {/* 필터 및 검색 */}
@@ -151,6 +157,7 @@ export default function AdminQnAManagement() {
                             placeholder="Q&A 제목으로 검색"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                             className="px-4 py-2 border rounded-md"
                         />
                         <button
@@ -167,7 +174,7 @@ export default function AdminQnAManagement() {
                     <div className="w-28 text-center">QnA 번호</div>
                     <div className="w-32 text-center">상태</div>
                     <div className="flex-1 text-center">제목</div>
-                    <div className="w-32 text-center">작성자</div>
+                    <div className="w-32 text-center">기업명</div>
                     <div className="w-36 text-center">작성일</div>
                     <div className="w-24 text-center">비고</div>
                 </div>
@@ -176,25 +183,27 @@ export default function AdminQnAManagement() {
                 {loading ? (
                     <div className="w-full py-8 text-center text-gray-500">Loading...</div>
                 ) : currentItems.length === 0 ? (
-                    <div className="w-full py-8 text-center text-gray-500">QnA 가 없습니다.</div>
+                    <div className="w-full py-8 text-center text-gray-500">기업 QnA가 없습니다.</div>
                 ) : (
                     /* 테이블 항목 */
                     currentItems.map((item) => (
                         <div
                             key={item.id}
-                            onClick={() => navigate(`/admin/qna/${item.id}/response`)}
+                            onClick={() => navigate(`/admin/company-qna/${item.id}/response`)}
                             className="w-full bg-white border-b border-neutral-200 flex items-center py-2 px-4 text-md text-black font-normal cursor-pointer hover:bg-zinc-50 transition-colors"
                         >
                             <div className="w-28 text-center">{item.id}</div>
                             <div className="w-32 text-center">
-                                {item.answered ? (
-                                    <span className="text-emerald-600 font-medium">Answered</span>
-                                ) : (
-                                    <span className="text-red-500 font-medium">Pending</span>
-                                )}
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    (item.isAnswered || item.answered) 
+                                        ? 'bg-green-100 text-green-800' 
+                                        : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                    {(item.isAnswered || item.answered) ? '답변완료' : '대기중'}
+                                </span>
                             </div>
                             <div className="flex-1 text-center">{item.questionTitle}</div>
-                            <div className="w-32 text-center">{item.nickname}</div>
+                            <div className="w-32 text-center">{item.companyName || '기업명'}</div>
                             <div className="w-36 text-center">{formatDate(item.questionedAt)}</div>
                             <div className="w-24 text-center">
                                 <button
@@ -234,3 +243,4 @@ export default function AdminQnAManagement() {
         </div>
     );
 }
+

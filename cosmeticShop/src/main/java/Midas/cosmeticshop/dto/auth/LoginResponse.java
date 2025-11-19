@@ -17,6 +17,7 @@ public class LoginResponse {
     private String email;
     private String username;
     private Boolean approved;  // 기업 회원 승인 상태
+    private String nickname;
 
     // ADMIN
     public LoginResponse(String userId, String role, String accessToken) {
@@ -49,6 +50,7 @@ public class LoginResponse {
         this.email = email;
         this.username = username;
         this.approved = approved;
+        this.nickname = nickname;
     }
 
     // ERROR

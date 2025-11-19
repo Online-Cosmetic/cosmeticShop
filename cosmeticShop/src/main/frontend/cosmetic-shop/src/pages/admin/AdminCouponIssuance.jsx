@@ -133,7 +133,7 @@ export default function AdminCouponIssuance() {
                                 onClick={() => setShowDropdown(!showDropdown)}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md flex justify-between items-center cursor-pointer"
                             >
-                                <span>{selectedCompany || "Select a brand"}</span>
+                                <span>{selectedCompany || <span className="text-gray-400">브랜드를 선택해주세요</span>}</span>
                                 <span>▼</span>
                             </div>
                             {showDropdown && (
@@ -174,7 +174,7 @@ export default function AdminCouponIssuance() {
                                 value={discountRate}
                                 onChange={(e) => setDiscountRate(e.target.value)}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md pr-10"
-                                placeholder="Enter discount rate (1-99)"
+                                placeholder="할인율을 입력해주세요 (1주99)"
                             />
                             <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                                 %
@@ -193,7 +193,7 @@ export default function AdminCouponIssuance() {
                             value={duration}
                             onChange={(e) => setDuration(e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                            placeholder="Enter duration in days"
+                            placeholder="사용기한을 입력해주세요"
                         />
                     </div>
 
@@ -207,7 +207,7 @@ export default function AdminCouponIssuance() {
                             value={couponName}
                             onChange={(e) => setCouponName(e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                            placeholder="Enter coupon name"
+                            placeholder="쿠폰 이름을 입력해주세요"
                         />
                     </div>
 

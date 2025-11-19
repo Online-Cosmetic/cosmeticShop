@@ -107,7 +107,8 @@ public class SecurityConfig {
                         "https://*.vercel.app",
                         "https://your-frontend.com",
                         "http://localhost:5173",
-                        "http://localhost:3000"
+                        "http://localhost:3000",
+                        "http://43.202.44.185"
                 ));
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                 configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
@@ -148,6 +149,12 @@ public class SecurityConfig {
                 "/api/auth/**",
                 "/login/oauth2/code/**", // 소셜로그인 URI
                 "/api/products/**"
+            ).permitAll()
+
+            // 회사 정보 공개 API (비로그인 사용자도 접근 가능)
+            .requestMatchers(
+                "/api/company/info/public",
+                "/api/company/names/public"
             ).permitAll()
 
             // 관리자 페이지 접근 경로 허용

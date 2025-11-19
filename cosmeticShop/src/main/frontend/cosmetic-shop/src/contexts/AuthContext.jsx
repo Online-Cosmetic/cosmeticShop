@@ -33,7 +33,8 @@ export const AuthProvider = ({children}) => {
                     userId: userData.userId,
                     role: userData.role,
                     email: userData.email,
-                    username: userData.username
+                    username: userData.username,
+                    nickname: userData.nickname
                 };
                 setUser(userInfo);
             }
@@ -74,17 +75,18 @@ export const AuthProvider = ({children}) => {
         try {
             setLoading(true);
             const response = await authAPI.login(credentials);
-            const {userId, role, accessToken, email, username} = response.data;
+            const {userId, role, accessToken, email, username, nickname} = response.data;
 
             if (response.data.errorMessage) {
                 throw new Error(response.data.errorMessage);
             }
 
-            const userData = {userId, role, email, username};
+            const userData = {userId, role, email, username, nickname};
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('user', JSON.stringify(userData));
             localStorage.setItem('userEmail', email);
             localStorage.setItem('userName', username);
+            localStorage.setItem('nickName', nickname);
             setUser(userData);
 
             // 사용자 역할에 따른 리다이렉트
@@ -112,6 +114,7 @@ export const AuthProvider = ({children}) => {
         localStorage.removeItem('user');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userName');
+        localStorage.removeItem('nickName');
     };
 
     // 로그아웃 함수 수정

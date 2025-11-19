@@ -51,8 +51,9 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
-          source: "cosmeticShop/build/libs/*.jar"   # ✅ 정확한 상대경로
+          source: "cosmeticShop/build/libs/*.jar"
           target: "/home/ubuntu/deploy/build/libs/"
+          strip_components: 3   # cosmeticShop/build/libs/ 제거하고 파일만 두기
 
       # 도커 이미지 빌드 및 재기동 (root 권한으로 실행)
       - name: Build & restart container on EC2
@@ -66,19 +67,35 @@ jobs:
             sudo bash -lc '
               set -e
               mkdir -p /home/ubuntu/cosmeticShop/cosmeticShop/build/libs
-              mv /home/ubuntu/deploy/build/libs/*.jar /home/ubuntu/cosmeticShop/cosmeticShop/build/libs/ || true
+
+              # JAR 존재 확인 (없으면 실패)
+              ls -l /home/ubuntu/deploy/build/libs/*.jar
+
+              # JAR 배치
+              mv -f /home/ubuntu/deploy/build/libs/*.jar /home/ubuntu/cosmeticShop/cosmeticShop/build/libs/
+
               cd /home/ubuntu/cosmeticShop/cosmeticShop
-              docker image prune -af || true
-              docker build -t cosmeticshop:latest .
+
               docker rm -f cosmeticshop || true
+              docker build -t cosmeticshop:latest .
+
+              # ENV 파일 확인 (ubuntu 홈)
+              test -f /home/ubuntu/.env || { echo ".env not found"; exit 1; }
+
+              # .env를 컨테이너에 주입
               docker run -d --name cosmeticshop \
                 -p 9000:9000 \
-                --env-file ${{ secrets.EC2_ENV_FILE_PATH }} \
+                --env-file /home/ubuntu/.env \
                 --restart unless-stopped \
                 cosmeticshop:latest
+
+              # 헬스체크
+              sleep 3
+              echo "---- docker ps ----"
+              docker ps
+              echo "---- curl BE ----"
+              curl -sfI http://127.0.0.1:9000/ | head -n 1 || true
             '
-            sleep 3
-            curl -sfI http://127.0.0.1:9000/ | head -n 1 || true
 
   frontend:
     name: Frontend build → upload dist → replace on EC2
@@ -98,15 +115,21 @@ jobs:
           cache: "npm"
           cache-dependency-path: cosmeticShop/src/main/frontend/cosmetic-shop/package-lock.json
 
+      #  도메인 하드코딩 대신 Nginx 프록시(/api) 사용
       - name: Write .env.production
-        run: printf "VITE_API_BASE=/api\n" > .env.production
+        run: |
+          printf "VITE_API_BASE=/api\n" > .env.production
+          printf "VITE_BACKEND_URL=/api\n" >> .env.production
+          printf "VITE_IMAGE_BASE_URL=/images\n" >> .env.production
 
       - name: Install deps & build
         run: |
           npm ci
           npm run build
-          tar -C dist -czf dist.tar.gz .
+          tar -czf dist.tar.gz -C dist .
+          ls -lh dist.tar.gz
 
+      #  단순하게 /tmp 로 업로드 (strip_components 사용 X)
       - name: Upload dist to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -115,9 +138,12 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           source: "cosmeticShop/src/main/frontend/cosmetic-shop/dist.tar.gz"
-          target: "/tmp/dist.tar.gz"
+          target: "/tmp/"
+          overwrite: true
+          strip_components: 5
 
-      - name: Replace /var/www/cosmeticshop on EC2
+      #  /var/www/cosmeticshop 에 바로 배포 (Nginx root와 일치)
+      - name: Deploy frontend to /var/www/cosmeticshop on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -127,19 +153,16 @@ jobs:
           script: |
             sudo bash -lc '
               set -e
-              DIST=$(find /tmp -type f -name dist.tar.gz -printf "%T@ %p\n" | sort -nr | head -n1 | awk "{print \$2}")
-              if [ -z "$DIST" ]; then
-                echo "dist.tar.gz not found under /tmp" >&2
-                exit 1
-              fi
-              echo "Using: $DIST"
+              echo "=== Unpacking Frontend ==="
+              test -f /tmp/dist.tar.gz || { echo "dist.tar.gz not found under /tmp"; exit 1; }
+
               mkdir -p /var/www/cosmeticshop
               rm -rf /var/www/cosmeticshop/*
-              tar -xzf "$DIST" -C /var/www/cosmeticshop
-              find /var/www/cosmeticshop -type d -exec chmod 755 {} \;
-              find /var/www/cosmeticshop -type f -exec chmod 644 {} \;
-              if command -v nginx >/dev/null 2>&1; then
-                nginx -t && systemctl reload nginx || true
-              fi
+              tar -xzf /tmp/dist.tar.gz -C /var/www/cosmeticshop
+
+              chown -R www-data:www-data /var/www/cosmeticshop
+              chmod -R 755 /var/www/cosmeticshop
+
+              echo "=== Restarting Nginx ==="
+              nginx -t && systemctl restart nginx
             '
-            curl -sfI http://127.0.0.1/ | head -n 1 || true

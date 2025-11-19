@@ -49,10 +49,10 @@ function ProductRegister() {
 
   // 카테고리
   const categories = [
-    { id: 1, name: "Makeup" },
-    { id: 2, name: "Skincare" },
-    { id: 3, name: "Hair" },
-    { id: 4, name: "Body" },
+    { id: 1, name: "메이크업" },
+    { id: 2, name: "스킨케어" },
+    { id: 3, name: "헤어제품" },
+    { id: 4, name: "바디제품" },
   ];
 
   // 입력 변경
@@ -119,6 +119,18 @@ function ProductRegister() {
   // 단건 등록 제출
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // 필수 필드 검증
+    if (!formData.categoryId || !formData.productName || !formData.price || !formData.stock) {
+      alert("필수 항목을 모두 입력해주세요. (카테고리, 상품명, 가격, 재고)");
+      return;
+    }
+    
+    if (!mainImage) {
+      alert("메인 이미지를 등록해주세요.");
+      return;
+    }
+    
     const data = new FormData();
     Object.entries(formData).forEach(([k, v]) => data.append(k, v));
     if (mainImage) data.append('mainImage', mainImage);
@@ -149,7 +161,7 @@ function ProductRegister() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-8">
           {/* 카테고리 */}
           <div className="flex items-center gap-10">
-            <label className="w-1/4 text-2xl font-medium">Category</label>
+            <label className="w-1/4 text-2xl font-medium">카테고리</label>
             <div className="w-full relative">
               <button
                 type="button"
@@ -183,7 +195,7 @@ function ProductRegister() {
 
           {/* 상품명 */}
           <div className="flex items-center gap-10">
-            <label className="w-1/4 text-2xl font-medium">Name</label>
+            <label className="w-1/4 text-2xl font-medium">상품명</label>
             <input
               type="text"
               name="productName"
@@ -195,7 +207,7 @@ function ProductRegister() {
 
           {/* 설명 */}
           <div className="flex items-start gap-10">
-            <label className="w-1/4 text-2xl font-medium">Description</label>
+            <label className="w-1/4 text-2xl font-medium">상품설명</label>
             <textarea
               name="description"
               value={formData.description}
@@ -206,7 +218,7 @@ function ProductRegister() {
 
           {/* 가격 */}
           <div className="flex items-center gap-10">
-            <label className="w-1/4 text-2xl font-medium">Price</label>
+            <label className="w-1/4 text-2xl font-medium">상품가격</label>
             <input
               type="number"
               name="price"
@@ -218,7 +230,7 @@ function ProductRegister() {
 
           {/* 재고 */}
           <div className="flex items-center gap-10">
-            <label className="w-1/4 text-2xl font-medium">Stock</label>
+            <label className="w-1/4 text-2xl font-medium">재고</label>
             <input
               type="number"
               name="stock"

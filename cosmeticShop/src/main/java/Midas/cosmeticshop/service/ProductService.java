@@ -70,9 +70,8 @@ public class ProductService {
             String mainImageUrl = fileStorageService.storeFile(mainImage);
             thumbnailImage = ThumbnailImage.create(new ProductImageItemDTO(product.getId(), mainImageUrl));
             product.setThumbnailImage(thumbnailImage);
+            thumnailImageRepository.save(thumbnailImage);
         }
-
-        thumnailImageRepository.save(Objects.requireNonNull(product.getThumbnailImage()));
 
         List<ProductImage> productImages = new ArrayList<>();
         if (additionalImages != null) {
@@ -208,16 +207,21 @@ public class ProductService {
 
     /* 이미지 URL DTO 반환 */
     public ProductImageDTO getProductImages(Long productId) {
-//        Product product = productRepository.findById(productId)
         Product product = productRepository.findByIdAndActiveTrue(productId)
-            .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. id=" + productId));
+                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. id=" + productId));
 
-        // Get images ordered by ID in descending order (newest first)
         List<ProductImage> orderedImages = productImageRepository.findAllByProduct_IdOrderByIdDesc(productId);
 
         List<ProductImageItemDTO> imageItems = new ArrayList<>();
         for (ProductImage productImage : orderedImages) {
-            imageItems.add(new ProductImageItemDTO(productId, productImage.getImageUrl()));
+            String imageUrl = productImage.getImageUrl();
+
+            // 🔧 S3 퍼블릭 URL로 변환
+            if (imageUrl.startsWith("/images/")) {
+                imageUrl = "https://cosmall-image-bucket.s3.ap-northeast-2.amazonaws.com" + imageUrl;
+            }
+
+            imageItems.add(new ProductImageItemDTO(productId, imageUrl));
         }
         return new ProductImageDTO(imageItems);
     }

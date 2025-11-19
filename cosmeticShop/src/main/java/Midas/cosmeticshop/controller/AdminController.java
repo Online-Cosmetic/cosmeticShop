@@ -2,6 +2,9 @@ package Midas.cosmeticshop.controller;
 
 import Midas.cosmeticshop.dto.BadKeywordDTO;
 import Midas.cosmeticshop.dto.CompanyApprovalDTO;
+import Midas.cosmeticshop.dto.BadKeywordRequest;
+import Midas.cosmeticshop.dto.CompanyQnaDetailDTO;
+import Midas.cosmeticshop.dto.CompanyQnaListDTO;
 import Midas.cosmeticshop.dto.CouponPostDTO;
 import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.dto.UserInfo.UserDetailDTO;
@@ -198,5 +201,59 @@ public class AdminController {
             Authentication authentication) {
         adminService.rejectCompany(authentication.getName(), companyId);
         return ResponseEntity.ok().build();
+    /* 기업 QnA 관리 엔드포인트 */
+
+    // 전체 기업 QnA 목록 조회
+    @GetMapping("/company-qnas")
+    public ResponseEntity<List<CompanyQnaListDTO>> getAllCompanyQnas(Authentication authentication) {
+        return ResponseEntity.ok().body(adminService.getAllCompanyQnas(authentication.getName()));
+    }
+
+    // 답변 완료 기업 QnA 목록
+    @GetMapping("/company-qnas/answered")
+    public ResponseEntity<List<CompanyQnaListDTO>> getAnsweredCompanyQnas(Authentication authentication) {
+        return ResponseEntity.ok().body(adminService.getAnsweredCompanyQnas(authentication.getName()));
+    }
+
+    // 답변 대기 기업 QnA 목록
+    @GetMapping("/company-qnas/unanswered")
+    public ResponseEntity<List<CompanyQnaListDTO>> getUnansweredCompanyQnas(Authentication authentication) {
+        return ResponseEntity.ok().body(adminService.getUnansweredCompanyQnas(authentication.getName()));
+    }
+
+    // 기업 QnA 상세 조회
+    @GetMapping("/company-qnas/{id}")
+    public ResponseEntity<CompanyQnaDetailDTO> getCompanyQnaDetail(@PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok().body(adminService.getCompanyQnaDetail(id, authentication.getName()));
+    }
+
+    // 기업 QnA 답변 작성/수정
+    @PutMapping("/company-qnas/{id}/answers")
+    public ResponseEntity<Void> putCompanyQnaAnswer(@PathVariable Long id,
+                                                     @RequestParam("answer") String answer,
+                                                     Authentication authentication) {
+        adminService.putCompanyQnaAnswer(id, answer, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    // 기업 QnA 삭제
+    @DeleteMapping("/company-qnas/{id}")
+    public ResponseEntity<Void> adminDeleteCompanyQna(@PathVariable Long id, Authentication authentication) {
+        adminService.adminDeleteCompanyQna(id, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    // 답변완료 + 제목 검색
+    @GetMapping("/company-qnas/answered/search")
+    public ResponseEntity<List<CompanyQnaListDTO>> searchAnsweredCompanyQnasByTitle(@RequestParam("title") String title,
+                                                                                     Authentication authentication) {
+        return ResponseEntity.ok().body(adminService.getAnsweredCompanyQnasByTitle(title, authentication.getName()));
+    }
+
+    // 답변대기 + 제목 검색
+    @GetMapping("/company-qnas/unanswered/search")
+    public ResponseEntity<List<CompanyQnaListDTO>> searchUnansweredCompanyQnasByTitle(@RequestParam("title") String title,
+                                                                                      Authentication authentication) {
+        return ResponseEntity.ok().body(adminService.getUnansweredCompanyQnasByTitle(title, authentication.getName()));
     }
 }

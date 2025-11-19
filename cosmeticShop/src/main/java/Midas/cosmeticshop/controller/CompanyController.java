@@ -69,5 +69,13 @@ public class CompanyController {
             .map(company -> new CompanyInfoDTO(company.getId(), company.getCompanyName()))
             .collect(Collectors.toList());
         return ResponseEntity.ok(companyInfos);
+    /* 등록된 모든 기업 정보(이름, ID)를 조회 (공개) */
+    @GetMapping("/info/public")
+    public ResponseEntity<List<CompanyInfoDTO>> getAllCompaniesInfoPublic() {
+        List<Company> companies = companyRepository.findAllCompanies();
+        List<CompanyInfoDTO> companyInfoList = companies.stream()
+                .map(company -> new CompanyInfoDTO(company.getId(), company.getCompanyName()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(companyInfoList);
     }
 }

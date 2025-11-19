@@ -2,6 +2,8 @@ package Midas.cosmeticshop.service;
 
 import Midas.cosmeticshop.dto.BadKeywordDTO;
 import Midas.cosmeticshop.dto.CompanyApprovalDTO;
+import Midas.cosmeticshop.dto.CompanyQnaDetailDTO;
+import Midas.cosmeticshop.dto.CompanyQnaListDTO;
 import Midas.cosmeticshop.dto.CouponPostDTO;
 import Midas.cosmeticshop.dto.ReviewGetDTO;
 import Midas.cosmeticshop.dto.UserInfo.UserDetailDTO;
@@ -9,6 +11,7 @@ import Midas.cosmeticshop.dto.UserInfo.UserListDTO;
 import Midas.cosmeticshop.dto.UserInfo.UserUpdateDTO;
 import Midas.cosmeticshop.dto.order.OrderDTO;
 import Midas.cosmeticshop.entity.BadKeyword;
+import Midas.cosmeticshop.entity.CompanyQna;
 import Midas.cosmeticshop.entity.Coupon;
 import Midas.cosmeticshop.entity.Order;
 import Midas.cosmeticshop.entity.Review;
@@ -16,6 +19,7 @@ import Midas.cosmeticshop.entity.user.Admin;
 import Midas.cosmeticshop.entity.user.Company;
 import Midas.cosmeticshop.entity.user.User;
 import Midas.cosmeticshop.repository.BadKeywordRepository;
+import Midas.cosmeticshop.repository.CompanyQnaRepository;
 import Midas.cosmeticshop.repository.CouponRepository;
 import Midas.cosmeticshop.repository.OrderRepository;
 import Midas.cosmeticshop.repository.ReviewRepository;
@@ -29,6 +33,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +51,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final EmailService emailService;
+    private final CompanyQnaRepository CompanyQnaRepo;
 
     public AdminService (ReviewRepository ReviewRepo,
                          BadKeywordRepository BadKeywordRepo,
@@ -55,6 +61,7 @@ public class AdminService {
                          UserRepository userRepository,
                          OrderRepository orderRepository,
                          EmailService emailService) {
+                         CompanyQnaRepository CompanyQnaRepo) {
         this.ReviewRepo = ReviewRepo;
         this.BadKeywordRepo = BadKeywordRepo;
         this.adminRepo = adminRepo;
@@ -63,6 +70,7 @@ public class AdminService {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.emailService = emailService;
+        this.CompanyQnaRepo = CompanyQnaRepo;
     }
 
     public List<BadKeywordDTO> getBadkeywords (String userId) {
@@ -396,6 +404,123 @@ public class AdminService {
         dto.setApproved(company.isApproved());
         dto.setCreatedAt(company.getCreatedAt());
         return dto;
+    /* 기업 QnA 관리 메서드들 */
+
+    // 전체 기업 QnA 목록 조회
+    public List<CompanyQnaListDTO> getAllCompanyQnas(String adminId) {
+        Admin admin = adminRepo.findByUserId(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        if (!admin.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 접근 가능합니다.");
+        
+        List<CompanyQna> companyQnaList = CompanyQnaRepo.findAll();
+        List<CompanyQnaListDTO> companyQnaListDTOList = new ArrayList<>();
+        for (CompanyQna companyQna : companyQnaList) {
+            companyQnaListDTOList.add(new CompanyQnaListDTO(companyQna));
+        }
+        return companyQnaListDTOList;
+    }
+
+    // 답변 완료 기업 QnA 목록
+    public List<CompanyQnaListDTO> getAnsweredCompanyQnas(String adminId) {
+        Admin admin = adminRepo.findByUserId(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        if (!admin.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 접근 가능합니다.");
+        
+        List<CompanyQna> companyQnaList = CompanyQnaRepo.findByAnswerIsNotNull();
+        List<CompanyQnaListDTO> companyQnaListDTOList = new ArrayList<>();
+        for (CompanyQna companyQna : companyQnaList) {
+            companyQnaListDTOList.add(new CompanyQnaListDTO(companyQna));
+        }
+        return companyQnaListDTOList;
+    }
+
+    // 답변 대기 기업 QnA 목록
+    public List<CompanyQnaListDTO> getUnansweredCompanyQnas(String adminId) {
+        Admin admin = adminRepo.findByUserId(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        if (!admin.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 접근 가능합니다.");
+        
+        List<CompanyQna> companyQnaList = CompanyQnaRepo.findByAnswerIsNull();
+        List<CompanyQnaListDTO> companyQnaListDTOList = new ArrayList<>();
+        for (CompanyQna companyQna : companyQnaList) {
+            companyQnaListDTOList.add(new CompanyQnaListDTO(companyQna));
+        }
+        return companyQnaListDTOList;
+    }
+
+    // 답변완료 + 제목 검색
+    public List<CompanyQnaListDTO> getAnsweredCompanyQnasByTitle(String title, String adminId) {
+        Admin admin = adminRepo.findByUserId(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        if (!admin.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 접근 가능합니다.");
+        
+        List<CompanyQna> companyQnaList = CompanyQnaRepo.findByAnswerIsNotNullAndQuestionTitleContaining(title);
+        List<CompanyQnaListDTO> companyQnaListDTOList = new ArrayList<>();
+        for (CompanyQna companyQna : companyQnaList) {
+            companyQnaListDTOList.add(new CompanyQnaListDTO(companyQna));
+        }
+        return companyQnaListDTOList;
+    }
+
+    // 답변대기 + 제목 검색
+    public List<CompanyQnaListDTO> getUnansweredCompanyQnasByTitle(String title, String adminId) {
+        Admin admin = adminRepo.findByUserId(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        if (!admin.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 접근 가능합니다.");
+        
+        List<CompanyQna> companyQnaList = CompanyQnaRepo.findByAnswerIsNullAndQuestionTitleContaining(title);
+        List<CompanyQnaListDTO> companyQnaListDTOList = new ArrayList<>();
+        for (CompanyQna companyQna : companyQnaList) {
+            companyQnaListDTOList.add(new CompanyQnaListDTO(companyQna));
+        }
+        return companyQnaListDTOList;
+    }
+
+    // 기업 QnA 상세 조회
+    public CompanyQnaDetailDTO getCompanyQnaDetail(Long id, String adminId) {
+        Admin admin = adminRepo.findByUserId(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        if (!admin.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 접근 가능합니다.");
+        
+        CompanyQna companyQna = CompanyQnaRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("기업 QnA가 존재하지 않습니다."));
+        
+        return new CompanyQnaDetailDTO(companyQna);
+    }
+
+    // 기업 QnA 답변 작성/수정
+    @Transactional
+    public void putCompanyQnaAnswer(Long id, String answer, String adminId) {
+        Admin admin = adminRepo.findByUserId(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        if (!admin.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 접근 가능합니다.");
+        
+        CompanyQna companyQna = CompanyQnaRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("기업 QnA가 존재하지 않습니다."));
+        
+        companyQna.setAnswer(answer);
+        companyQna.setAnsweredAt(LocalDateTime.now());
+        CompanyQnaRepo.save(companyQna);
+    }
+
+    // 기업 QnA 삭제
+    public void adminDeleteCompanyQna(Long id, String adminId) {
+        Admin admin = adminRepo.findByUserId(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("관리자가 존재하지 않습니다."));
+        if (!admin.getRole().equals("ADMIN"))
+            throw new AccessDeniedException("관리자만 접근 가능합니다.");
+        
+        CompanyQna companyQna = CompanyQnaRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("기업 QnA가 존재하지 않습니다."));
+        
+        CompanyQnaRepo.delete(companyQna);
     }
 
 }

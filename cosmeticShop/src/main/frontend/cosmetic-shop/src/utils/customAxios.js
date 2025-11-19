@@ -19,6 +19,11 @@ const customAxios = axios.create({
 // 요청 인터셉터에 중복 요청 방지 로직 추가
 customAxios.interceptors.request.use(
     config => {
+        // baseURL이 '/api'이고 요청 URL이 '/api'로 시작하면 '/api' 제거 (중복 방지)
+        if (BACKEND_URL === '/api' && config.url?.startsWith('/api/')) {
+            config.url = config.url.replace(/^\/api/, '');
+        }
+        
         // FormData 객체인 경우 Content-Type 헤더 제거 (브라우저가 자동으로 multipart/form-data 설정)
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];
@@ -366,6 +371,8 @@ export const companyAPI = {
 
     // 모든 회사 이름 조회 (공개)
     getAllCompanyNames: () => customAxios.get('/api/company/names/public'),
+    // 모든 회사 정보(이름, ID) 조회 (공개)
+    getAllCompaniesInfo: () => customAxios.get('/api/company/info/public'),
 
     // 모든 회사 정보(ID, 이름) 조회 (공개)
     getAllCompanyInfos: () => customAxios.get('/api/company/infos/public'),
@@ -407,15 +414,58 @@ export const companyAPI = {
 
         // 새로 추가하는 API 함수들
         getWeeklySalesData: (companyName) => customAxios.get(`/api/payments/statistics/weekly/${companyName}`),
+        getWeeklyTotalQuantity: (companyName) => customAxios.get(`/api/payments/statistics/weekly-quantity/${companyName}`),
         getTopProducts: (companyName) => customAxios.get(`/api/payments/statistics/top-products/${companyName}`),
         getTransactions: (companyName, page, size) => customAxios.get(`/api/payments/transactions/${companyName}`, {
             params: {page, size}
+        }),
+        // 기간별 통계 API
+        getDailySales: (companyName, date) => customAxios.get(`/api/payments/statistics/daily/sales/${companyName}`, {
+            params: { date }
+        }),
+        getDailyQuantity: (companyName, date) => customAxios.get(`/api/payments/statistics/daily/quantity/${companyName}`, {
+            params: { date }
+        }),
+        getMonthlySales: (companyName, year, month) => customAxios.get(`/api/payments/statistics/monthly/sales/${companyName}`, {
+            params: { year, month }
+        }),
+        getMonthlyQuantity: (companyName, year, month) => customAxios.get(`/api/payments/statistics/monthly/quantity/${companyName}`, {
+            params: { year, month }
+        }),
+        getYearlySales: (companyName, year) => customAxios.get(`/api/payments/statistics/yearly/sales/${companyName}`, {
+            params: { year }
+        }),
+        getYearlyQuantity: (companyName, year) => customAxios.get(`/api/payments/statistics/yearly/quantity/${companyName}`, {
+            params: { year }
         })
     },
 
     order: {
         getCompanyOrderItems: (companyName) => customAxios.get(`/api/orders/company/${companyName}`),
         updateDeliveryStatus: (orderItemId, statusData) => customAxios.patch(`/api/orders/${orderItemId}`, statusData),
+    },
+
+    // Company QnA Management
+    qna: {
+        // Get all my company QnAs
+        getAllCompanyQnas: () => customAxios.get('/api/company/qnas'),
+
+        // Get company QnA detail
+        getDetail: (id) => customAxios.get(`/api/company/qnas/${id}`),
+
+        // Create company QnA
+        create: (data) => customAxios.post('/api/company/qnas', data),
+
+        // Update company QnA
+        update: (id, data) => customAxios.put(`/api/company/qnas/${id}`, data),
+
+        // Delete company QnA
+        delete: (id) => customAxios.delete(`/api/company/qnas/${id}`),
+
+        // Search company QnAs by title
+        searchByTitle: (title) => customAxios.get('/api/company/qnas/search', {
+            params: { title }
+        })
     }
 };
 
@@ -550,6 +600,39 @@ export const adminAPI = {
 
         // Reject company
         rejectCompany: (companyId) => customAxios.delete(`/api/admin/companies/${companyId}`)
+    },
+  
+    // Company QnA Management
+    companyQna: {
+        // Get all company QnAs
+        getAllCompanyQnas: () => customAxios.get('/api/admin/company-qnas'),
+
+        // Get answered company QnAs
+        getAnsweredQnas: () => customAxios.get('/api/admin/company-qnas/answered'),
+
+        // Get unanswered company QnAs
+        getUnansweredQnas: () => customAxios.get('/api/admin/company-qnas/unanswered'),
+
+        // Get company QnA detail
+        getDetail: (id) => customAxios.get(`/api/admin/company-qnas/${id}`),
+
+        // Answer company QnA
+        answerQna: (id, answer) => customAxios.put(`/api/admin/company-qnas/${id}/answers`, null, {
+            params: { answer }
+        }),
+
+        // Admin delete company QnA
+        adminDeleteQna: (id) => customAxios.delete(`/api/admin/company-qnas/${id}`),
+
+        // Search answered company QnAs by title
+        searchAnsweredQnasByTitle: (title) => customAxios.get('/api/admin/company-qnas/answered/search', {
+            params: { title }
+        }),
+
+        // Search unanswered company QnAs by title
+        searchUnansweredQnasByTitle: (title) => customAxios.get('/api/admin/company-qnas/unanswered/search', {
+            params: { title }
+        })
     }
 };
 
