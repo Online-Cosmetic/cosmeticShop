@@ -276,7 +276,7 @@ const HomePage = () => {
                 </div>
 
                 {/* 기존 추천 상품 - 페이드 인/아웃 효과 (최신순 5개) */}
-                <div className="flex flex-col gap-8">
+                {/* <div className="flex flex-col gap-8">
                     <div className="flex items-center gap-2">
                         <SparklesIcon className="w-6 h-6 text-emerald-500" />
                         <h2 className="text-2xl font-bold text-gray-800 product-name">
@@ -358,7 +358,7 @@ const HomePage = () => {
                             <p className="text-lg text-gray-500 product-description">추천상품이 없습니다.</p>
                         </div>
                     )}
-                </div>
+                </div> */}
 
                 {/* 최근 본 상품 */}
                 <div className="flex flex-col gap-8">

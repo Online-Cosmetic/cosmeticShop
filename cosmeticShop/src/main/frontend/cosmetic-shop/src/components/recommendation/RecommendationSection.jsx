@@ -30,7 +30,9 @@ const RecommendationSection = ({ user }) => {
                 setError(null);
                 const response = await userAPI.recommend.personalized();
                 if (response.data && response.data.products && Array.isArray(response.data.products)) {
-                    setRecommendedProducts(response.data.products);
+                    // 최대 5개만 표시
+                    const limitedProducts = response.data.products.slice(0, 5);
+                    setRecommendedProducts(limitedProducts);
                     setAgeGroup(response.data.ageGroup);
                     setGender(response.data.gender);
                 } else {
@@ -63,18 +65,21 @@ const RecommendationSection = ({ user }) => {
         return () => clearInterval(interval);
     }, [recommendedProducts.length]);
 
-    // 추천 이유 텍스트 생성
-    const getRecommendationReason = () => {
-        if (!ageGroup || !gender) return "";
+    // 추천 이유 텍스트 및 태그 정보 생성
+    const getRecommendationInfo = () => {
+        if (!ageGroup || !gender) return null;
         
-        const genderText = gender === "M" ? "남자" : gender === "F" ? "여자" : "";
+        const genderText = gender === "M" ? "남성" : gender === "F" ? "여성" : "";
         const ageText = ageGroup ? `${ageGroup.replace("s", "대")}` : "";
         
-        const reasons = [];
-        if (ageText) reasons.push(ageText);
-        if (genderText) reasons.push(genderText);
+        const tags = [];
+        if (ageText) tags.push(ageText);
+        if (genderText) tags.push(genderText);
         
-        return reasons.length > 0 ? `${reasons.join(", ")} 고객님을 위한` : "";
+        return {
+            tags: tags,
+            suffix: "고객님들이 많이 찜하고 구매한 상품  -  TOP 5"
+        };
     };
 
     // 비로그인 유저를 위한 UI
@@ -84,7 +89,7 @@ const RecommendationSection = ({ user }) => {
                 <div className="flex items-center gap-2">
                     <SparklesIcon className="w-6 h-6 text-emerald-500" />
                     <h2 className="text-2xl font-bold text-gray-800 product-name">
-                        AI 개인화 추천
+                        당신을 위한 AI 맞춤 추천
                     </h2>
                 </div>
                 <div className="flex flex-col items-center justify-center h-64 bg-gradient-to-br from-emerald-50 to-blue-50 rounded-lg border-2 border-dashed border-emerald-300">
@@ -116,7 +121,7 @@ const RecommendationSection = ({ user }) => {
                 <div className="flex items-center gap-2">
                     <SparklesIcon className="w-6 h-6 text-emerald-500" />
                     <h2 className="text-2xl font-bold text-gray-800 product-name">
-                        AI 개인화 추천
+                        당신을 위한 AI 맞춤 추천
                     </h2>
                 </div>
                 <div className="flex justify-center items-center h-64">
@@ -132,7 +137,7 @@ const RecommendationSection = ({ user }) => {
                 <div className="flex items-center gap-2">
                     <SparklesIcon className="w-6 h-6 text-emerald-500" />
                     <h2 className="text-2xl font-bold text-gray-800 product-name">
-                        AI 개인화 추천
+                        당신을 위한 AI 맞춤 추천
                     </h2>
                 </div>
                 <div className="flex justify-center items-center h-64 bg-gray-50 rounded-lg">
@@ -148,7 +153,7 @@ const RecommendationSection = ({ user }) => {
                 <div className="flex items-center gap-2">
                     <SparklesIcon className="w-6 h-6 text-emerald-500" />
                     <h2 className="text-2xl font-bold text-gray-800 product-name">
-                        AI 개인화 추천
+                        당신을 위한 AI 맞춤 추천
                     </h2>
                 </div>
                 <div className="flex justify-center items-center h-64 bg-gray-50 rounded-lg">
@@ -159,26 +164,32 @@ const RecommendationSection = ({ user }) => {
     }
 
     const currentProduct = recommendedProducts[currentIndex];
-    const reasonText = getRecommendationReason();
+    const recommendationInfo = getRecommendationInfo();
 
     return (
         <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     <SparklesIcon className="w-6 h-6 text-emerald-500" />
                     <h2 className="text-2xl font-bold text-gray-800 product-name">
-                        AI 개인화 추천
+                        당신을 위한 AI 맞춤 추천
                     </h2>
-                    {reasonText && (
-                        <span className="text-sm text-gray-500 font-normal">
-                            ({reasonText} 추천)
-                        </span>
-                    )}
                 </div>
-                {user && (
-                    <p className="text-sm text-emerald-600 font-medium ml-8">
-                        ✨ Ai 추천받아 보세요! 당신만을 위한 맞춤 상품을 추천해드립니다.
-                    </p>
+                {recommendationInfo && (
+                    <div className="ml-2 bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-200">
+                        <div className="flex items-center gap-1 flex-wrap">
+                            {recommendationInfo.tags.map((tag, index) => (
+                                <span 
+                                    key={index}
+                                    className="text-sm text-pink-500 font-medium"
+                                >#{tag}
+                                </span>
+                            ))}
+                            <span className="text-sm text-gray-800 font-medium">
+                                {recommendationInfo.suffix}
+                            </span>
+                        </div>
+                    </div>
                 )}
             </div>
 
@@ -199,7 +210,6 @@ const RecommendationSection = ({ user }) => {
                                         {currentProduct?.discountRate > 0 ? (
                                             <span className="text-red-400 mr-2">{currentProduct?.discountRate}% 할인</span>
                                         ) : null}
-                                        {currentProduct?.price?.toLocaleString()}원
                                     </p>
                                 </div>
                                 <div className="flex space-x-1">

@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 public class AitemsConfig {
 
     @Value("${aitems.api.endpoint}")
-    private String apiEndpoint;
+    private String apiEndpointBase;
 
     @Value("${aitems.api.access-key}")
     private String accessKey;
@@ -44,8 +44,21 @@ public class AitemsConfig {
     }
 
     // Getter methods for accessing configuration values
-    public String getApiEndpoint() {
-        return apiEndpoint;
+    /**
+     * API 엔드포인트 반환 (base URL만, host)
+     * 예: https://aitems.apigw.ntruss.com
+     * 
+     * 참고: /api/v1은 pathWithQuery에 포함되어 있음
+     */
+    public String getEndpoint() {
+        return apiEndpointBase;
+    }
+    
+    /**
+     * 서비스 ID 반환 (서비스 이름이 아닌 ID)
+     */
+    public String getServiceId() {
+        return serviceName;
     }
 
     public String getAccessKey() {
