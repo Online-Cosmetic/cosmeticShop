@@ -63,6 +63,7 @@ iamport:
 logging:
   level:
     org.springframework.security: DEBUG
+    Midas.cosmeticshop.service.GoogleAnalyticsService: INFO
 
 app:
   storage: ${STORAGE_MODE:local}  # local, supabase, s3
@@ -87,3 +88,8 @@ aitems:
     secret-key: ${AITEMS_SECRET_KEY:}
     service-name: ${AITEMS_SERVICE_NAME:cosmetic-shop-recommend}
     timeout: ${AITEMS_TIMEOUT:30000}  # 30초
+
+google:
+  analytics:
+    property-id: ${GA_PROPERTY_ID:513467645}
+    credentials-path: ${GA_CREDENTIALS_PATH:classpath:cosmall-analytics-6dad3944c7b3.json}

@@ -1,9 +1,10 @@
 import "./App.css";
 
 import React, {useEffect} from "react";
-import {Routes, Route, Navigate, useNavigate} from "react-router-dom";
+import {Routes, Route, Navigate, useNavigate, useLocation} from "react-router-dom";
 import {AuthProvider} from "./contexts/AuthContext";
 import {emitter} from "./utils/customAxios.js";
+import {trackPageViewSafe} from "./utils/ga4.js";
 
 // 공통 컴포넌트
 import UserHeader from "./components/common/UserHeader.jsx";
@@ -64,6 +65,7 @@ import AdminUserDetail from "./pages/admin/AdminUserDetail.jsx";
 import AdminCompanyManagement from "./pages/admin/AdminCompanyManagement.jsx";
 import AdminCompanyDetail from "./pages/admin/AdminCompanyDetail.jsx";
 import AdminAitemsDataset from "./pages/admin/AdminAitemsDataset.jsx";
+import AnalyticsDashboard from "./pages/admin/AnalyticsDashboard.jsx";
 import AdminSidebar from "./components/admin/AdminSidebar.jsx";
 import AdminHeader from "./components/admin/AdminHeader.jsx";
 
@@ -143,6 +145,17 @@ const queryClient = new QueryClient({
 
 const App = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // SPA 라우트 변경 시 페이지뷰 추적
+    useEffect(() => {
+        // GA가 로드될 때까지 약간의 지연 후 추적
+        const timer = setTimeout(() => {
+            trackPageViewSafe(location.pathname);
+        }, 100);
+        
+        return () => clearTimeout(timer);
+    }, [location]);
 
     useEffect(() => {
         emitter.on("logout", () => {
@@ -332,6 +345,7 @@ const App = () => {
                                 <Routes>
                                     {/*<Route path="/" element={<AdminMain />} />*/}
                                     <Route path="main" element={<AdminMain />} />
+                                    <Route path="analytics" element={<AnalyticsDashboard />} />
                                     <Route path="statistics" element={
                                         <div className="w-full max-w-[1262px] mx-auto p-4 flex justify-center items-center min-h-[400px]">
                                             <div className="text-xl text-gray-500">Statistics page will be implemented later.</div>

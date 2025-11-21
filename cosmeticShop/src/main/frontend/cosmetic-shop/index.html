@@ -6,6 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>shop</title>
     
+    <!-- Google Analytics 4 -->
+    <!-- TODO: G-XXXXXXXXXX를 실제 Measurement ID로 변경하세요 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-X2D9QY505Q', {
+        page_path: window.location.pathname,
+      });
+    </script>
+    
     <!-- 결제 모듈 -->
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>

@@ -7,6 +7,7 @@ export default function AdminSidebar() {
     const { pathname } = useLocation();
 
     const menuItems = [
+        { label: "방문자 통계", path: "/admin/analytics" },
         { label: "Q&A 관리", path: "/admin/qna" },
         { label: "기업 Q&A 관리", path: "/admin/company-qna" },
         { label: "쿠폰 발급", path: "/admin/coupon" },
@@ -22,6 +23,9 @@ export default function AdminSidebar() {
         }
         if (path === '/admin/aitems-dataset') {
             return pathname === '/admin/aitems-dataset';
+        }
+        if (path === '/admin/analytics') {
+            return pathname === '/admin/analytics';
         }
         return pathname === path;
     };

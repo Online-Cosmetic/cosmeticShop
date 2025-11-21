@@ -556,6 +556,37 @@ export const adminAPI = {
         getDashboardCounts: () => customAxios.get('/api/admin/order_stats/dashboard')
     },
 
+    // Google Analytics API
+    analytics: {
+        // 일별 방문자 통계
+        getDailyVisitors: (startDate, endDate) => 
+            customAxios.get('/api/admin/analytics/visitors/daily', {
+                params: { startDate, endDate }
+            }),
+        
+        // 실시간 방문자 수
+        getRealtimeVisitors: () => 
+            customAxios.get('/api/admin/analytics/visitors/realtime'),
+        
+        // 페이지뷰 통계
+        getPageViews: (startDate, endDate) => 
+            customAxios.get('/api/admin/analytics/pageviews', {
+                params: { startDate, endDate }
+            }),
+        
+        // 인기 페이지
+        getTopPages: (limit = 10, startDate, endDate) => 
+            customAxios.get('/api/admin/analytics/pages/top', {
+                params: { limit, startDate, endDate }
+            }),
+        
+        // 방문자 통계 요약
+        getVisitorSummary: (startDate, endDate) => 
+            customAxios.get('/api/admin/analytics/summary', {
+                params: { startDate, endDate }
+            }),
+    },
+
     // User Management
     user: {
         // Get user list with pagination and search

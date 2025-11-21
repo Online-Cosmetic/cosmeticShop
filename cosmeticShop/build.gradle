@@ -71,6 +71,14 @@ dependencies {
 
 	implementation 'org.springframework:spring-test'
 
+	// Google Analytics Data API
+	// BOM을 사용하여 호환되는 버전 자동 관리
+	implementation platform('com.google.cloud:libraries-bom:26.38.0')
+	implementation 'com.google.analytics:google-analytics-data'
+	// 명시적으로 최신 google-auth-library 버전 지정 (getUniverseDomain() 메서드 포함)
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
+	implementation 'com.google.auth:google-auth-library-credentials:1.23.0'
+
 }
 
 configurations.all {
