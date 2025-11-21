@@ -3,6 +3,7 @@ package Midas.cosmeticshop.repository;
 
 import Midas.cosmeticshop.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
@@ -16,4 +17,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     void deleteAllByContentContaining(String badKeyword);
 
     Boolean existsByProductIdAndUserUserId(Long productId, String userUserId);
+
+    // AiTEMS용: 모든 리뷰 조회 (User와 Product를 함께 로드)
+    @Query("SELECT r FROM Review r JOIN FETCH r.user JOIN FETCH r.product")
+    List<Review> findAllReviewsForAitems();
 }
