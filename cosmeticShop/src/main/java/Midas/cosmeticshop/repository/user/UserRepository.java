@@ -1,14 +1,12 @@
 package Midas.cosmeticshop.repository.user;
 
 import Midas.cosmeticshop.entity.user.User;
-import Midas.cosmeticshop.entity.user.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 
@@ -22,13 +20,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // 관리자용: 사용자 목록 조회 (검색, 페이징)
     @Query(value = "SELECT u FROM User u WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(u.userId) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(u.nickName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(u.emailAddress) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY u.createdAt DESC")
     Page<User> findAllWithSearch(@Param("keyword") String keyword, Pageable pageable);
-
-    // AiTEMS용: USER role만 조회
-    @Query("SELECT u FROM User u WHERE u.role = :role")
-    List<User> findAllByRole(@Param("role") UserRole role);
-
-    // AiTEMS용: USER role만 조회 (간편 메서드)
-    default List<User> findAllUsersForAitems() {
-        return findAllByRole(UserRole.USER);
-    }
 }
