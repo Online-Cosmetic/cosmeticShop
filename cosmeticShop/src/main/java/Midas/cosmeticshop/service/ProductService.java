@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -108,16 +107,8 @@ public class ProductService {
             while ((entry = zis.getNextEntry()) != null) {
                 if(entry.isDirectory()) continue;
                 String entryName = entry.getName();
-                
-                // Mac 숨김 파일 / 메타데이터는 무시
-                if (entryName.startsWith("__MACOSX/") || entryName.contains("/._")) {
-                    continue;
-                }
-                
                 if (entryName.endsWith(".csv")) {
-                    csvContent = new String(zis.readAllBytes(), StandardCharsets.UTF_8);
-                    // 첫 번째 유효 CSV만 쓰고 바로 탈출해도 됨 (선택사항)
-                    // break;
+                    csvContent = new String(zis.readAllBytes());
                 } else{
                     byte[] bytes = zis.readAllBytes();
                     String fileName = entryName.substring(entryName.lastIndexOf('/') + 1);

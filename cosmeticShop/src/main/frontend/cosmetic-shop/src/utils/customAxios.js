@@ -360,11 +360,6 @@ export const userAPI = {
         // 주문용 사용 가능한 쿠폰 조회
         getAvailableCouponsForOrder: (companyId) =>
             customAxios.get(`/api/coupons/available/order/${companyId}`)
-    },
-
-    recommend: {
-        // AiTEMS 개인화 추천 (로그인 필수)
-        personalized: () => customAxios.get('/api/recommend/personalized')
     }
 };
 
@@ -637,24 +632,6 @@ export const adminAPI = {
         // Search unanswered company QnAs by title
         searchUnansweredQnasByTitle: (title) => customAxios.get('/api/admin/company-qnas/unanswered/search', {
             params: { title }
-        })
-    },
-
-    // AiTEMS Dataset CSV Export
-    aitems: {
-        // Download User Dataset CSV
-        downloadUserDataset: () => customAxios.get('/api/admin/aitems/dataset/user', {
-            responseType: 'blob'
-        }),
-
-        // Download Item Dataset CSV
-        downloadItemDataset: () => customAxios.get('/api/admin/aitems/dataset/item', {
-            responseType: 'blob'
-        }),
-
-        // Download Interaction Dataset CSV
-        downloadInteractionDataset: () => customAxios.get('/api/admin/aitems/dataset/interaction', {
-            responseType: 'blob'
         })
     }
 };

@@ -23,8 +23,4 @@ public interface ProductLikeRepository extends JpaRepository<ProductLike, Long> 
 
     Optional<ProductLike> findByUserUserIdAndProductId(String userId, Long productId);
     List<ProductLike> findByUserUserId(String userId);
-
-    // AiTEMS용: 모든 찜하기 데이터 조회 (User와 Product를 함께 로드)
-    @Query("SELECT pl FROM ProductLike pl JOIN FETCH pl.user JOIN FETCH pl.product")
-    List<ProductLike> findAllProductLikesForAitems();
 }
