@@ -10,7 +10,8 @@
 
 ## 1. 시스템 아키텍처
 
-<img width="1597" height="903" alt="Cosmall-아키텍처 drawio" src="https://github.com/user-attachments/assets/c31e922b-4827-4587-aa0e-009e81aa45e3" />
+<img width="1597" height="903" alt="Cosmall-아키텍처 drawio" src="https://github.com/user-attachments/assets/5dc6cbeb-d015-49a6-91f6-9d060df2f924" />
+
 
 ---
 
